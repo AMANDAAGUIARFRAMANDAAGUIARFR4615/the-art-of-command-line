@@ -37,14 +37,19 @@ VideoPlayer::VideoPlayer(QWidget *parent) : QWidget(parent)
     QElapsedTimer *timer = new QElapsedTimer;
     timer->start();
 
+    bool isMediaLoaded = false;
     QObject::connect(m_mediaPlayer, &QMediaPlayer::mediaStatusChanged,
-                     [this, timer](QMediaPlayer::MediaStatus status)
+                     [&isMediaLoaded, timer, this](QMediaPlayer::MediaStatus status)
                      {
+                         if (isMediaLoaded)
+                             return;
+
                          qDebug() << "媒体加载中... " << status;
                          qDebug() << "耗时:" << timer->elapsed() << "ms";
 
                          if (status == QMediaPlayer::LoadedMedia || status == QMediaPlayer::BufferedMedia)
                          {
+                             isMediaLoaded = true;
                              qDebug() << "媒体加载完成，可以播放";
                              m_mediaPlayer->stop();
                              m_mediaPlayer->play();
@@ -77,6 +82,7 @@ void VideoPlayer::handleError()
     else
         message += errorString;
     m_errorLabel->setText(message);
+    m_mediaPlayer->play();
 }
 
 #include "moc_videoplayer.cpp"
