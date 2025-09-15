@@ -7,6 +7,7 @@
 #include <QFrame>
 #include <QGuiApplication>
 #include <QScreen>
+#include <QApplication>
 #include "videoplayer.h"
 
 MainWindow::MainWindow(QWidget *parent)
@@ -74,4 +75,16 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
+}
+
+void MainWindow::keyPressEvent(QKeyEvent *event)
+{
+    if (event->key() == Qt::Key_Escape)
+    {
+        QApplication::quit();
+    }
+    else
+    {
+        QMainWindow::keyPressEvent(event);
+    }
 }
