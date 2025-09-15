@@ -7,6 +7,7 @@
 #include <QFrame>
 #include <QGuiApplication>
 #include <QScreen>
+#include "videoplayer.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -21,7 +22,11 @@ MainWindow::MainWindow(QWidget *parent)
     QWidget *tab3 = new QWidget();
 
     tab1->setLayout(new QVBoxLayout());
-    tab1->layout()->addWidget(new QLabel("这是标签页 1 的内容"));
+
+    VideoPlayer *player = new VideoPlayer();
+    player->setUrl(QString("tcp://192.168.0.102:23145"));
+
+    tab1->layout()->addWidget(player);
     tab2->setLayout(new QVBoxLayout());
     tab2->layout()->addWidget(new QLabel("这是标签页 2 的内容"));
     tab3->setLayout(new QVBoxLayout());
@@ -61,7 +66,7 @@ MainWindow::MainWindow(QWidget *parent)
     setWindowTitle("Qt 多布局示例");
 
     QRect screenGeometry = QGuiApplication::primaryScreen()->geometry();
-    int screenWidth  = screenGeometry.width();
+    int screenWidth = screenGeometry.width();
     int screenHeight = screenGeometry.height();
 
     resize(screenWidth * 0.8, screenHeight * 0.8);
