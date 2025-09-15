@@ -5,6 +5,8 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QFrame>
+#include <QGuiApplication>
+#include <QScreen>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -35,7 +37,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     for (int row = 0; row < 2; ++row)
     {
-        for (int col = 0; col < 4; ++col)
+        for (int col = 0; col < 6; ++col)
         {
             QFrame *frame = new QFrame(bottomWidget);
             frame->setFrameShape(QFrame::Box);
@@ -57,7 +59,12 @@ MainWindow::MainWindow(QWidget *parent)
 
     setCentralWidget(central);
     setWindowTitle("Qt 多布局示例");
-    resize(800, 600);
+
+    QRect screenGeometry = QGuiApplication::primaryScreen()->geometry();
+    int screenWidth  = screenGeometry.width();
+    int screenHeight = screenGeometry.height();
+
+    resize(screenWidth * 0.8, screenHeight * 0.8);
 }
 
 MainWindow::~MainWindow()
