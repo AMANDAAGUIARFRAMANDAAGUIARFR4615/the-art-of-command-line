@@ -42,10 +42,15 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
     auto style = sideBarWidget->style();
 
-    auto item1 = new QListWidgetItem(QIcon(style->standardIcon(QStyle::SP_MessageBoxInformation)), "");
-    auto item2 = new QListWidgetItem(QIcon(style->standardIcon(QStyle::SP_MessageBoxWarning)), "");
-    auto item3 = new QListWidgetItem(QIcon(style->standardIcon(QStyle::SP_MessageBoxCritical)), "");
-    auto item4 = new QListWidgetItem(QIcon(style->standardIcon(QStyle::SP_MessageBoxQuestion)), "");
+    // auto item1 = new QListWidgetItem(QIcon::fromTheme("user-home"), "");
+    auto item1 = new QListWidgetItem(QIcon(style->standardIcon(QStyle::SP_DesktopIcon)), "");
+    item1->setToolTip("提示1");
+    auto item2 = new QListWidgetItem(QIcon(style->standardIcon(QStyle::SP_ComputerIcon)), "");
+    item2->setToolTip("提示2");
+    auto item3 = new QListWidgetItem(QIcon(style->standardIcon(QStyle::SP_BrowserReload)), "");
+    item3->setToolTip("提示3");
+    auto item4 = new QListWidgetItem(QIcon(style->standardIcon(QStyle::SP_FileIcon)), "");
+    item4->setToolTip("提示4");
 
     sideBarList->addItem(item1);
     sideBarList->addItem(item2);
