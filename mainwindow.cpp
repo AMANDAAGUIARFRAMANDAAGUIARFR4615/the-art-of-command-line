@@ -8,10 +8,10 @@
 #include <QGuiApplication>
 #include <QScreen>
 #include <QApplication>
+#include <QTabBar>
 #include "videoplayer.h"
 
-MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
+MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
     QWidget *central = new QWidget(this);
     QVBoxLayout *mainLayout = new QVBoxLayout(central);
@@ -36,6 +36,8 @@ MainWindow::MainWindow(QWidget *parent)
     tabWidget->addTab(tab1, "Tab 1");
     tabWidget->addTab(tab2, "Tab 2");
     tabWidget->addTab(tab3, "Tab 3");
+
+    connect(tabWidget->tabBar(), &QTabBar::tabBarClicked, this, &MainWindow::onTabClicked);
 
     // 下方 2 行 4 列的小布局区域
     QWidget *bottomWidget = new QWidget(this);
@@ -86,5 +88,24 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     else
     {
         QMainWindow::keyPressEvent(event);
+    }
+}
+
+void MainWindow::onTabClicked(int index)
+{
+    qDebug() << "Clicked on Tab " << index + 1;
+    switch (index)
+    {
+    case 0:
+        qDebug() << "Tab 1 clicked: Video Player tab";
+        break;
+    case 1:
+        qDebug() << "Tab 2 clicked: Content for Tab 2";
+        break;
+    case 2:
+        qDebug() << "Tab 3 clicked: Content for Tab 3";
+        break;
+    default:
+        break;
     }
 }

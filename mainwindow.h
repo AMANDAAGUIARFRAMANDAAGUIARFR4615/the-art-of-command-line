@@ -11,8 +11,10 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+
 protected:
     void keyPressEvent(QKeyEvent *event) override;
+    void onTabClicked(int index);
 };
 
 #endif // MAINWINDOW_H
