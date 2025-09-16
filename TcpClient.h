@@ -16,6 +16,7 @@ public:
               const std::function<void()> &onDisconnected,
               const std::function<void(QAbstractSocket::SocketError)> &onError);
 
+    void connectToServer(const QString &ip, quint16 port);
     void sendData(const QString &data);
 
 private:

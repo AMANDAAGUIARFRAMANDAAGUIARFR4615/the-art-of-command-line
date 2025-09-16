@@ -12,7 +12,6 @@ TcpClient::TcpClient(const std::function<void()> &onConnected,
       onErrorCallback(onError)
 {
     socket = new QTcpSocket(this);
-    socket->connectToHost("127.0.0.1", 3000);
 
     connect(socket, &QTcpSocket::readyRead, this, [this]() {
         if (onDataReceivedCallback) {
@@ -37,6 +36,11 @@ TcpClient::TcpClient(const std::function<void()> &onConnected,
             onErrorCallback(error);
         }
     });
+}
+
+void TcpClient::connectToServer(const QString &ip, quint16 port)
+{
+    socket->connectToHost(ip, port);
 }
 
 void TcpClient::sendData(const QString &data)
