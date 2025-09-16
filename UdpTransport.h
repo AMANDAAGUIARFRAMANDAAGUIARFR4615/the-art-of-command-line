@@ -7,12 +7,12 @@
 #include <QByteArray>
 #include <QJsonObject>
 
-class UdpClient : public QObject
+class UdpTransport : public QObject
 {
     Q_OBJECT
 
 public:
-    UdpClient(const std::function<void(const QJsonObject &jsonObject)> &onDataReceived,
+    UdpTransport(const std::function<void(const QJsonObject &jsonObject)> &onDataReceived,
               const std::function<void(QAbstractSocket::SocketError)> &onError,
               quint16 listenPort);
 

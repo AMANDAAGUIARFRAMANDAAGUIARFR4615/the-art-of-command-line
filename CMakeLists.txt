@@ -15,8 +15,8 @@ add_executable(${PROJECT_NAME}
     TcpServer.cpp
     TcpClient.h
     TcpClient.cpp
-    UdpClient.h
-    UdpClient.cpp
+    UdpTransport.h
+    UdpTransport.cpp
     ToastWidget.h
     NetworkUtils.h
 )

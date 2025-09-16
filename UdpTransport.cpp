@@ -1,10 +1,10 @@
-#include "UdpClient.h"
+#include "UdpTransport.h"
 #include <QTextStream>
 #include <QDebug>
 #include <QHostAddress>
 #include <QJsonDocument>
 
-UdpClient::UdpClient(const std::function<void(const QJsonObject &jsonObject)> &onDataReceived,
+UdpTransport::UdpTransport(const std::function<void(const QJsonObject &jsonObject)> &onDataReceived,
                      const std::function<void(QAbstractSocket::SocketError)> &onError,
                      quint16 listenPort = 0)
     : onDataReceivedCallback(onDataReceived),
@@ -39,7 +39,7 @@ UdpClient::UdpClient(const std::function<void(const QJsonObject &jsonObject)> &o
     });
 }
 
-void UdpClient::sendData(const QJsonObject &jsonObject, const QString &ip, quint16 port)
+void UdpTransport::sendData(const QJsonObject &jsonObject, const QString &ip, quint16 port)
 {
     if (socket->state() != QAbstractSocket::BoundState) {
         qDebug() << "UDP 套接字未绑定，无法发送数据！";
@@ -73,7 +73,7 @@ void UdpClient::sendData(const QJsonObject &jsonObject, const QString &ip, quint
     socket->flush();
 }
 
-void UdpClient::processBufferedData()
+void UdpTransport::processBufferedData()
 {
     while (buffer.size() >= sizeof(quint64) + sizeof(quint32)) {
         // 解析识别码
