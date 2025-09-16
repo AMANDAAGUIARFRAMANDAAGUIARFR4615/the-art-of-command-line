@@ -19,6 +19,8 @@ public:
               const std::function<void(QAbstractSocket::SocketError)> &onError,
               quint16 port = 0);
 
+    quint16 getPort() const { return port; }
+
 private slots:
     void onNewConnection();
     void onDataReceived();

@@ -18,6 +18,10 @@ TcpServer::TcpServer(const std::function<void()> &onClientConnected,
         return;
     }
     connect(server, &QTcpServer::newConnection, this, &TcpServer::onNewConnection);
+
+    if (port == 0)
+        port = server->serverPort();
+
     qDebug() << "服务器已启动，监听端口：" << port;
 }
 

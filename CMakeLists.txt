@@ -11,6 +11,8 @@ add_executable(${PROJECT_NAME}
     MainWindow.cpp
     VideoPlayer.h
     VideoPlayer.cpp
+    TcpServer.h
+    TcpServer.cpp
     TcpClient.h
     TcpClient.cpp
     UdpClient.h
