@@ -16,6 +16,7 @@ add_executable(${PROJECT_NAME}
     UdpClient.h
     UdpClient.cpp
     ToastWidget.h
+    NetworkUtils.h
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
