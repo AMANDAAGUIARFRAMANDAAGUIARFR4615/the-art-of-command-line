@@ -1,4 +1,4 @@
-#include "videoplayer.h"
+#include "VideoPlayer.h"
 #include "ToastWidget.h"
 
 #include <QBoxLayout>

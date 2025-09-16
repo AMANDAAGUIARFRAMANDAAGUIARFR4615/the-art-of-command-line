@@ -1,4 +1,4 @@
-#include "mainwindow.h"
+#include "MainWindow.h"
 #include <QTabWidget>
 #include <QWidget>
 #include <QVBoxLayout>
@@ -9,7 +9,7 @@
 #include <QScreen>
 #include <QApplication>
 #include <QTabBar>
-#include "videoplayer.h"
+#include "VideoPlayer.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {

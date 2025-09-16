@@ -7,10 +7,10 @@ qt_standard_project_setup()
 
 add_executable(${PROJECT_NAME}
     main.cpp
-    mainwindow.h
-    mainwindow.cpp
-    videoplayer.h
-    videoplayer.cpp
+    MainWindow.h
+    MainWindow.cpp
+    VideoPlayer.h
+    VideoPlayer.cpp
     TcpClient.h
     TcpClient.cpp
     UdpClient.h
