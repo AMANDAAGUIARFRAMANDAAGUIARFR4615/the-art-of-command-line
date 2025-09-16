@@ -28,8 +28,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
     // 左侧导航栏
     auto sideBarWidget = new QWidget(this);
-    sideBarWidget->setFixedWidth(100);
-    sideBarWidget->setStyleSheet("background: transparent;");
+    sideBarWidget->setFixedWidth(70);
+    sideBarWidget->setStyleSheet("background: transparent; border: none;");
 
     auto sideBarLayout = new QVBoxLayout(sideBarWidget);
 
@@ -40,6 +40,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     sideBarList->setIconSize(QSize(36, 36));
     sideBarList->setSpacing(5);
     sideBarList->setItemDelegate(new CenteredItemDelegate(this));
+    sideBarList->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
     auto style = sideBarWidget->style();
 
