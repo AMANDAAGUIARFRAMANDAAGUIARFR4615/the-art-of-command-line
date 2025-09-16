@@ -1,4 +1,6 @@
 #include "MainWindow.h"
+#include "CenteredItemDelegate.h"
+
 #include <QTabWidget>
 #include <QWidget>
 #include <QVBoxLayout>
@@ -12,43 +14,61 @@
 #include "VideoPlayer.h"
 #include <QSplitter>
 #include <QListWidget>
+#include <QListWidgetItem>
+#include <QStyle>
+#include <QIcon>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
-    QWidget *central = new QWidget(this);
-    QHBoxLayout *mainLayout = new QHBoxLayout(central);  // 使用 QHBoxLayout 使左侧和右侧在一行内排列
+    auto central = new QWidget(this);
+    auto mainLayout = new QHBoxLayout(central);  // 使用 QHBoxLayout 使左侧和右侧在一行内排列
 
     // 创建 QSplitter 用于分隔左右面板
-    QSplitter *splitter = new QSplitter(Qt::Horizontal, this);
+    auto splitter = new QSplitter(Qt::Horizontal, this);
 
     // 左侧导航栏
-    QWidget *sideBarWidget = new QWidget(this);
-    QVBoxLayout *sideBarLayout = new QVBoxLayout(sideBarWidget);
-
-    QListWidget *sideBarList = new QListWidget(sideBarWidget);
-    sideBarList->addItem("常看的号");
-    sideBarList->addItem("CSDN");
-    sideBarList->addItem("华为任职");
-    sideBarList->addItem("人民日报");
-
-    sideBarLayout->addWidget(sideBarList);
+    auto sideBarWidget = new QWidget(this);
     sideBarWidget->setFixedWidth(100);
 
-    splitter->addWidget(sideBarWidget);  // 将左侧导航栏添加到 splitter
+    auto sideBarLayout = new QVBoxLayout(sideBarWidget);
+
+    auto sideBarList = new QListWidget(sideBarWidget);
+
+    // 设置列表项显示样式
+    sideBarList->setViewMode(QListView::ListMode);
+    sideBarList->setIconSize(QSize(36, 36));
+    sideBarList->setSpacing(5);
+    sideBarList->setItemDelegate(new CenteredItemDelegate(this));
+
+    auto style = sideBarWidget->style();
+
+    auto item1 = new QListWidgetItem(QIcon(style->standardIcon(QStyle::SP_MessageBoxInformation)), "");
+    auto item2 = new QListWidgetItem(QIcon(style->standardIcon(QStyle::SP_MessageBoxWarning)), "");
+    auto item3 = new QListWidgetItem(QIcon(style->standardIcon(QStyle::SP_MessageBoxCritical)), "");
+    auto item4 = new QListWidgetItem(QIcon(style->standardIcon(QStyle::SP_MessageBoxQuestion)), "");
+
+    sideBarList->addItem(item1);
+    sideBarList->addItem(item2);
+    sideBarList->addItem(item3);
+    sideBarList->addItem(item4);
+
+    sideBarLayout->addWidget(sideBarList);
+
+    splitter->addWidget(sideBarWidget);
 
     // 右侧区域：Tab 和底部小布局
-    QWidget *rightWidget = new QWidget(this);
-    QVBoxLayout *rightLayout = new QVBoxLayout(rightWidget);
+    auto rightWidget = new QWidget(this);
+    auto rightLayout = new QVBoxLayout(rightWidget);
 
     // 上方大区域：Tab 标签页
-    QTabWidget *tabWidget = new QTabWidget(this);
-    QWidget *tab1 = new QWidget();
-    QWidget *tab2 = new QWidget();
-    QWidget *tab3 = new QWidget();
+    auto tabWidget = new QTabWidget(this);
+    auto tab1 = new QWidget();
+    auto tab2 = new QWidget();
+    auto tab3 = new QWidget();
 
     tab1->setLayout(new QVBoxLayout());
 
-    VideoPlayer *player = new VideoPlayer();
+    auto player = new VideoPlayer();
     player->setUrl(QString("tcp://192.168.0.102:23145"));
 
     tab1->layout()->addWidget(player);
@@ -64,21 +84,21 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     connect(tabWidget->tabBar(), &QTabBar::tabBarClicked, this, &MainWindow::onTabClicked);
 
     // 下方 2 行 6 列的小布局区域
-    QWidget *bottomWidget = new QWidget(this);
-    QGridLayout *gridLayout = new QGridLayout(bottomWidget);
+    auto bottomWidget = new QWidget(this);
+    auto gridLayout = new QGridLayout(bottomWidget);
 
     for (int row = 0; row < 2; ++row)
     {
         for (int col = 0; col < 6; ++col)
         {
-            QFrame *frame = new QFrame(bottomWidget);
+            auto frame = new QFrame(bottomWidget);
             frame->setFrameShape(QFrame::Box);
             frame->setLineWidth(2);
 
-            QLabel *label = new QLabel(QString("区域 %1,%2").arg(row + 1).arg(col + 1), frame);
+            auto label = new QLabel(QString("区域 %1,%2").arg(row + 1).arg(col + 1), frame);
             label->setAlignment(Qt::AlignCenter);
 
-            QVBoxLayout *frameLayout = new QVBoxLayout(frame);
+            auto frameLayout = new QVBoxLayout(frame);
             frameLayout->addWidget(label);
 
             gridLayout->addWidget(frame, row, col);
