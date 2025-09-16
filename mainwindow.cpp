@@ -25,6 +25,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
     // 创建 QSplitter 用于分隔左右面板
     auto splitter = new QSplitter(Qt::Horizontal, this);
+    splitter->setStyleSheet("QSplitter::handle {"
+                            "background-color: #B0B0B0;"
+                            "width: 1px;"
+                            "}");
 
     // 左侧导航栏
     auto sideBarWidget = new QWidget(this);
