@@ -10,11 +10,35 @@
 #include <QApplication>
 #include <QTabBar>
 #include "VideoPlayer.h"
+#include <QSplitter>
+#include <QListWidget>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
     QWidget *central = new QWidget(this);
-    QVBoxLayout *mainLayout = new QVBoxLayout(central);
+    QHBoxLayout *mainLayout = new QHBoxLayout(central);  // 使用 QHBoxLayout 使左侧和右侧在一行内排列
+
+    // 创建 QSplitter 用于分隔左右面板
+    QSplitter *splitter = new QSplitter(Qt::Horizontal, this);
+
+    // 左侧导航栏
+    QWidget *sideBarWidget = new QWidget(this);
+    QVBoxLayout *sideBarLayout = new QVBoxLayout(sideBarWidget);
+
+    QListWidget *sideBarList = new QListWidget(sideBarWidget);
+    sideBarList->addItem("常看的号");
+    sideBarList->addItem("CSDN");
+    sideBarList->addItem("华为任职");
+    sideBarList->addItem("人民日报");
+
+    sideBarLayout->addWidget(sideBarList);
+    sideBarWidget->setFixedWidth(100);
+
+    splitter->addWidget(sideBarWidget);  // 将左侧导航栏添加到 splitter
+
+    // 右侧区域：Tab 和底部小布局
+    QWidget *rightWidget = new QWidget(this);
+    QVBoxLayout *rightLayout = new QVBoxLayout(rightWidget);
 
     // 上方大区域：Tab 标签页
     QTabWidget *tabWidget = new QTabWidget(this);
@@ -61,9 +85,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
         }
     }
 
-    // 上下布局，比例 2:1
-    mainLayout->addWidget(tabWidget, 2);
-    mainLayout->addWidget(bottomWidget, 1);
+    // 将 Tab 和底部布局添加到右侧区域
+    rightLayout->addWidget(tabWidget, 2);
+    rightLayout->addWidget(bottomWidget, 1);
+
+    splitter->addWidget(rightWidget);  // 将右侧内容区域添加到 splitter
+
+    mainLayout->addWidget(splitter);  // 将整个 splitter 放入主布局
 
     setCentralWidget(central);
     setWindowTitle("Qt 多布局示例");
