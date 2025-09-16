@@ -21,11 +21,12 @@ public:
     void sendData(const QJsonObject &jsonObject);
 
 private:
-    QTcpSocket *socket;
     std::function<void()> onConnectedCallback;
     std::function<void(const QByteArray&)> onDataReceivedCallback;
     std::function<void()> onDisconnectedCallback;
     std::function<void(QAbstractSocket::SocketError)> onErrorCallback;
+
+    QTcpSocket *socket;
 };
 
 #endif // TCPCLIENT_H

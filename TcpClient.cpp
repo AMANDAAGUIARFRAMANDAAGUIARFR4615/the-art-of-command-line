@@ -14,25 +14,25 @@ TcpClient::TcpClient(const std::function<void()> &onConnected,
 {
     socket = new QTcpSocket(this);
 
-    connect(socket, &QTcpSocket::readyRead, this, [this]() {
+    connect(socket, &QTcpSocket::readyRead, [this]() {
         if (onDataReceivedCallback) {
             onDataReceivedCallback(socket->readAll());
         }
     });
 
-    connect(socket, &QTcpSocket::connected, this, [this]() {
+    connect(socket, &QTcpSocket::connected, [this]() {
         if (onConnectedCallback) {
             onConnectedCallback();
         }
     });
 
-    connect(socket, &QTcpSocket::disconnected, this, [this]() {
+    connect(socket, &QTcpSocket::disconnected, [this]() {
         if (onDisconnectedCallback) {
             onDisconnectedCallback();
         }
     });
 
-    connect(socket, &QTcpSocket::errorOccurred, this, [this](QAbstractSocket::SocketError error) {
+    connect(socket, &QTcpSocket::errorOccurred, [this](QAbstractSocket::SocketError error) {
         if (onErrorCallback) {
             onErrorCallback(error);
         }

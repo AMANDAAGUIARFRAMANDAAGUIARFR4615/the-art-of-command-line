@@ -4,12 +4,12 @@
 #include <QHostAddress>
 #include <QJsonDocument>
 
-UdpClient::UdpClient(quint16 listenPort,
-                     const std::function<void()> &onDataReceived,
-                     const std::function<void()> &onError)
-    : listenPort(listenPort),
-      onDataReceivedCallback(onDataReceived),
-      onErrorCallback(onError)
+UdpClient::UdpClient(const std::function<void()> &onDataReceived,
+                     const std::function<void(QAbstractSocket::SocketError)> &onError,
+                     quint16 listenPort = 0)
+    : onDataReceivedCallback(onDataReceived),
+      onErrorCallback(onError),
+      listenPort(listenPort)
 {
     socket = new QUdpSocket(this);
 
@@ -18,8 +18,17 @@ UdpClient::UdpClient(quint16 listenPort,
         return;
     }
 
-    connect(socket, &QUdpSocket::readyRead, this, &UdpClient::onDataReceivedInternal);
-    connect(socket, &QUdpSocket::errorOccurred, this, &UdpClient::onErrorInternal);
+    connect(socket, &QUdpSocket::readyRead, this,  [this]() {
+        if (onDataReceivedCallback) {
+            onDataReceivedCallback();
+        }
+    });
+
+    connect(socket, &QUdpSocket::errorOccurred, this,  [this](QAbstractSocket::SocketError error) {
+        if (onErrorCallback) {
+            onErrorCallback(error);
+        }
+    });
 }
 
 void UdpClient::sendData(const QJsonObject &jsonObject, const QString &ip, quint16 port)
@@ -54,26 +63,4 @@ void UdpClient::sendData(const QJsonObject &jsonObject, const QString &ip, quint
     // 发送数据
     socket->writeDatagram(dataToSend, QHostAddress(ip), port);
     socket->flush();
-}
-
-void UdpClient::onDataReceivedInternal()
-{
-    while (socket->hasPendingDatagrams()) {
-        QByteArray datagram;
-        datagram.resize(int(socket->pendingDatagramSize()));
-        socket->readDatagram(datagram.data(), datagram.size());
-
-        if (onDataReceivedCallback) {
-            onDataReceivedCallback();
-        }
-        qDebug() << "接收到数据: " << datagram;
-    }
-}
-
-void UdpClient::onErrorInternal(QAbstractSocket::SocketError error)
-{
-    if (onErrorCallback) {
-        onErrorCallback();
-    }
-    qDebug() << "发生错误: " << error;
 }
