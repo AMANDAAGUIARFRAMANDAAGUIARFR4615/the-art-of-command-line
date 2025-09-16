@@ -15,7 +15,7 @@ public:
               const std::function<void()> &onDataReceived,
               const std::function<void()> &onError);
 
-    void sendData(const QString &data, const QString &ip, quint16 port);
+    void sendData(const QJsonObject &jsonObject, const QString &ip, quint16 port);
 
 private slots:
     void onDataReceivedInternal();
