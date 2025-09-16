@@ -4,7 +4,7 @@
 #include <QHostAddress>
 #include <QJsonDocument>
 
-UdpClient::UdpClient(const std::function<void()> &onDataReceived,
+UdpClient::UdpClient(const std::function<void(const QJsonObject &jsonObject)> &onDataReceived,
                      const std::function<void(QAbstractSocket::SocketError)> &onError,
                      quint16 listenPort = 0)
     : onDataReceivedCallback(onDataReceived),
@@ -19,8 +19,16 @@ UdpClient::UdpClient(const std::function<void()> &onDataReceived,
     }
 
     connect(socket, &QUdpSocket::readyRead, this,  [this]() {
-        if (onDataReceivedCallback) {
-            onDataReceivedCallback();
+        QByteArray receivedData;
+        while (socket->hasPendingDatagrams()) {
+            receivedData.resize(int(socket->pendingDatagramSize()));
+            socket->readDatagram(receivedData.data(), receivedData.size());
+
+            // 将接收到的数据缓存到缓冲区
+            buffer.append(receivedData);
+
+            // 尝试处理缓冲区中的数据包
+            processBufferedData();
         }
     });
 
@@ -63,4 +71,40 @@ void UdpClient::sendData(const QJsonObject &jsonObject, const QString &ip, quint
     // 发送数据
     socket->writeDatagram(dataToSend, QHostAddress(ip), port);
     socket->flush();
+}
+
+void UdpClient::processBufferedData()
+{
+    while (buffer.size() >= sizeof(quint64) + sizeof(quint32)) {
+        // 解析识别码
+        quint64 identifier = *reinterpret_cast<quint64*>(buffer.data());
+        if (identifier != 0xb7c2e0f542a39a3e) {
+            qDebug() << "识别码不匹配，丢弃数据";
+            buffer.clear(); // 清空缓冲区
+            return;
+        }
+
+        // 解析 JSON 数据长度
+        quint32 jsonDataLength = *reinterpret_cast<quint32*>(buffer.data() + sizeof(quint64));
+
+        // 检查缓冲区是否包含完整的数据包
+        if (buffer.size() < sizeof(quint64) + sizeof(quint32) + jsonDataLength) {
+            // 数据不完整，等待更多数据
+            return;
+        }
+
+        // 提取 JSON 数据
+        QByteArray jsonData = buffer.mid(sizeof(quint64) + sizeof(quint32), jsonDataLength);
+        QJsonDocument doc = QJsonDocument::fromJson(jsonData);
+        if (!doc.isNull()) {
+            if (onDataReceivedCallback) {
+                onDataReceivedCallback(doc.object());
+            }
+        } else {
+            qDebug() << "JSON 解析失败，丢弃数据";
+        }
+
+        // 移除已处理的数据包
+        buffer.remove(0, sizeof(quint64) + sizeof(quint32) + jsonDataLength);
+    }
 }
