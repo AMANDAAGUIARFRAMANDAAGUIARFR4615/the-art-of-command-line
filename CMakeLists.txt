@@ -11,6 +11,10 @@ add_executable(${PROJECT_NAME}
     mainwindow.cpp
     videoplayer.h
     videoplayer.cpp
+    TcpClient.h
+    TcpClient.cpp
+    UdpClient.h
+    UdpClient.cpp
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
