@@ -29,6 +29,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     // 左侧导航栏
     auto sideBarWidget = new QWidget(this);
     sideBarWidget->setFixedWidth(100);
+    sideBarWidget->setStyleSheet("background: transparent;");
 
     auto sideBarLayout = new QVBoxLayout(sideBarWidget);
 
