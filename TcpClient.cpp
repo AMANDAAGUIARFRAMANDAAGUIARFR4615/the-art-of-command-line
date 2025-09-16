@@ -41,11 +41,18 @@ TcpClient::TcpClient(const std::function<void()> &onConnected,
 void TcpClient::connectToServer(const QString &ip, quint16 port)
 {
     socket->connectToHost(ip, port);
+    socket->waitForConnected();
 }
 
-void TcpClient::sendData(const QString &data)
+void TcpClient::sendData(const QJsonObject &jsonObject)
 {
-    QTextStream stream(socket);
-    stream << data << Qt::endl;
+    if (socket->state() != QAbstractSocket::ConnectedState) {
+        qDebug() << "未连接到服务器，无法发送数据！";
+        return;
+    }
+
+    QJsonDocument doc(jsonObject);
+    QByteArray jsonData = doc.toJson();
+    socket->write(jsonData);
     socket->flush();
 }

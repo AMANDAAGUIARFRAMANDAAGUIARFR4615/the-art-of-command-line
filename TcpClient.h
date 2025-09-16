@@ -5,6 +5,7 @@
 #include <QTcpSocket>
 #include <functional>
 #include <QByteArray>
+#include <QJsonObject>
 
 class TcpClient : public QObject
 {
@@ -17,7 +18,7 @@ public:
               const std::function<void(QAbstractSocket::SocketError)> &onError);
 
     void connectToServer(const QString &ip, quint16 port);
-    void sendData(const QString &data);
+    void sendData(const QJsonObject &jsonObject);
 
 private:
     QTcpSocket *socket;
