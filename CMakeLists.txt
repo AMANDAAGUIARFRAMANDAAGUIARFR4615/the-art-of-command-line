@@ -15,6 +15,7 @@ add_executable(${PROJECT_NAME}
     TcpClient.cpp
     UdpClient.h
     UdpClient.cpp
+    ToastWidget.h
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES

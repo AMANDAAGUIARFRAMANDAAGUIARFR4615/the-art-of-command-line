@@ -1,8 +1,8 @@
 #include "mainwindow.h"
 #include "TcpClient.h"
+#include "ToastWidget.h"
 
 #include <QApplication>
-#include <QMessageBox>
 
 int main(int argc, char *argv[])
 {
@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
                 break;
         }
 
-        QMessageBox::critical(&w, "错误", errorMessage, QMessageBox::Ok);
+        new ToastWidget(errorMessage);
     };
 
     TcpClient client(onConnected, onDataReceived, onDisconnected, onError);

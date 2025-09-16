@@ -39,7 +39,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
     connect(tabWidget->tabBar(), &QTabBar::tabBarClicked, this, &MainWindow::onTabClicked);
 
-    // 下方 2 行 4 列的小布局区域
+    // 下方 2 行 6 列的小布局区域
     QWidget *bottomWidget = new QWidget(this);
     QGridLayout *gridLayout = new QGridLayout(bottomWidget);
 

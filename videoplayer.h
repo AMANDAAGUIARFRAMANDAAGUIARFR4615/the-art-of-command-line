@@ -1,6 +1,3 @@
-// Copyright (C) 2017 The Qt Company Ltd.
-// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
-
 #ifndef VIDEOPLAYER_H
 #define VIDEOPLAYER_H
 
@@ -21,15 +18,10 @@ public:
 
     void setUrl(const QUrl &url);
 
-public slots:
     void play();
-
-private slots:
-    void handleError();
 
 private:
     QMediaPlayer *m_mediaPlayer;
-    QLabel *m_errorLabel;
 };
 
 #endif
