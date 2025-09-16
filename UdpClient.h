@@ -11,10 +11,11 @@ class UdpClient : public QObject
     Q_OBJECT
 
 public:
-    UdpClient(const std::function<void()> &onDataReceived,
+    UdpClient(quint16 listenPort,
+              const std::function<void()> &onDataReceived,
               const std::function<void()> &onError);
 
-    void sendData(const QString &data);
+    void sendData(const QString &data, const QString &ip, quint16 port);
 
 private slots:
     void onDataReceivedInternal();
@@ -22,6 +23,7 @@ private slots:
 
 private:
     QUdpSocket *socket;
+    quint16 listenPort;
     std::function<void()> onDataReceivedCallback;
     std::function<void()> onErrorCallback;
 };

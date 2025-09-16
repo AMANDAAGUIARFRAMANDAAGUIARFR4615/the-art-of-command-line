@@ -3,22 +3,28 @@
 #include <QDebug>
 #include <QHostAddress>
 
-UdpClient::UdpClient(const std::function<void()> &onDataReceived,
+UdpClient::UdpClient(quint16 listenPort,
+                     const std::function<void()> &onDataReceived,
                      const std::function<void()> &onError)
-    : onDataReceivedCallback(onDataReceived),
+    : listenPort(listenPort),
+      onDataReceivedCallback(onDataReceived),
       onErrorCallback(onError)
 {
     socket = new QUdpSocket(this);
-    socket->bind(QHostAddress::Any, 0);  // 绑定到一个本地端口
+
+    if (!socket->bind(QHostAddress::Any, listenPort)) {
+        qDebug() << "无法绑定端口";
+        return;
+    }
 
     connect(socket, &QUdpSocket::readyRead, this, &UdpClient::onDataReceivedInternal);
     connect(socket, &QUdpSocket::errorOccurred, this, &UdpClient::onErrorInternal);
 }
 
-void UdpClient::sendData(const QString &data)
+void UdpClient::sendData(const QString &data, const QString &ip, quint16 port)
 {
     QByteArray datagram = data.toUtf8();
-    socket->writeDatagram(datagram, QHostAddress("127.0.0.1"), 3000);  // 发送到服务器
+    socket->writeDatagram(datagram, QHostAddress(ip), port);
 }
 
 void UdpClient::onDataReceivedInternal()
@@ -27,6 +33,7 @@ void UdpClient::onDataReceivedInternal()
         QByteArray datagram;
         datagram.resize(int(socket->pendingDatagramSize()));
         socket->readDatagram(datagram.data(), datagram.size());
+
         if (onDataReceivedCallback) {
             onDataReceivedCallback();
         }
