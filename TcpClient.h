@@ -13,7 +13,7 @@ class TcpClient : public QObject
 
 public:
     TcpClient(const std::function<void()> &onConnected,
-              const std::function<void(const QByteArray&)> &onDataReceived,
+              const std::function<void(const QJsonObject&)> &onDataReceived,
               const std::function<void()> &onDisconnected,
               const std::function<void(QAbstractSocket::SocketError)> &onError);
 
@@ -22,11 +22,14 @@ public:
 
 private:
     std::function<void()> onConnectedCallback;
-    std::function<void(const QByteArray&)> onDataReceivedCallback;
+    std::function<void(const QJsonObject&)> onDataReceivedCallback;
     std::function<void()> onDisconnectedCallback;
     std::function<void(QAbstractSocket::SocketError)> onErrorCallback;
 
     QTcpSocket *socket;
+
+    QByteArray buffer;
+    void processBufferedData();
 };
 
 #endif // TCPCLIENT_H

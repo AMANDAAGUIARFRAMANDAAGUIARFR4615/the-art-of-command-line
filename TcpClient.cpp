@@ -4,7 +4,7 @@
 #include <QJsonDocument>
 
 TcpClient::TcpClient(const std::function<void()> &onConnected,
-                     const std::function<void(const QByteArray&)> &onDataReceived,
+                     const std::function<void(const QJsonObject&)> &onDataReceived,
                      const std::function<void()> &onDisconnected,
                      const std::function<void(QAbstractSocket::SocketError)> &onError)
     : onConnectedCallback(onConnected),
@@ -15,9 +15,9 @@ TcpClient::TcpClient(const std::function<void()> &onConnected,
     socket = new QTcpSocket(this);
 
     connect(socket, &QTcpSocket::readyRead, [this]() {
-        if (onDataReceivedCallback) {
-            onDataReceivedCallback(socket->readAll());
-        }
+        QByteArray receivedData = socket->readAll();
+        buffer.append(receivedData);
+        processBufferedData(); // 调用处理缓存数据的方法
     });
 
     connect(socket, &QTcpSocket::connected, [this]() {
@@ -77,4 +77,40 @@ void TcpClient::sendData(const QJsonObject &jsonObject)
     // 发送数据
     socket->write(dataToSend);
     socket->flush();
+}
+
+void TcpClient::processBufferedData()
+{
+    while (buffer.size() >= sizeof(quint64) + sizeof(quint32)) {
+        // 解析识别码
+        quint64 identifier = *reinterpret_cast<quint64*>(buffer.data());
+        if (identifier != 0xc6e8f3de9a654d6b) { // 检查识别码
+            qDebug() << "识别码不匹配，丢弃数据";
+            buffer.clear(); // 清空缓冲区
+            return;
+        }
+
+        // 解析 JSON 数据长度
+        quint32 jsonDataLength = *reinterpret_cast<quint32*>(buffer.data() + sizeof(quint64));
+
+        // 检查缓冲区是否包含完整的数据包
+        if (buffer.size() < sizeof(quint64) + sizeof(quint32) + jsonDataLength) {
+            // 数据不完整，等待更多数据
+            return;
+        }
+
+        // 提取 JSON 数据
+        QByteArray jsonData = buffer.mid(sizeof(quint64) + sizeof(quint32), jsonDataLength);
+        QJsonDocument doc = QJsonDocument::fromJson(jsonData);
+        if (!doc.isNull()) {
+            if (onDataReceivedCallback) {
+                onDataReceivedCallback(doc.object());
+            }
+        } else {
+            qDebug() << "JSON 解析失败，丢弃数据";
+        }
+
+        // 移除已处理的数据包
+        buffer.remove(0, sizeof(quint64) + sizeof(quint32) + jsonDataLength);
+    }
 }
