@@ -14,7 +14,7 @@ class UdpTransport : public QObject
 public:
     UdpTransport(const std::function<void(const QJsonObject &jsonObject)> &onDataReceived,
               const std::function<void(QAbstractSocket::SocketError)> &onError,
-              quint16 listenPort);
+              quint16 listenPort = 0);
 
     void sendData(const QJsonObject &jsonObject, const QString &ip, quint16 port);
 

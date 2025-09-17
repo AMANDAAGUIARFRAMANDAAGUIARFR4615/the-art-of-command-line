@@ -6,7 +6,7 @@
 
 UdpTransport::UdpTransport(const std::function<void(const QJsonObject &jsonObject)> &onDataReceived,
                      const std::function<void(QAbstractSocket::SocketError)> &onError,
-                     quint16 listenPort = 0)
+                     quint16 listenPort)
     : onDataReceivedCallback(onDataReceived),
       onErrorCallback(onError),
       listenPort(listenPort)
