@@ -46,21 +46,20 @@ VideoPlayer::VideoPlayer(QWidget *parent) : QWidget(parent)
 
     bool isMediaLoaded = false;
 
-    QObject::connect(m_mediaPlayer, &QMediaPlayer::mediaStatusChanged,
-                     [&isMediaLoaded, timer, this](QMediaPlayer::MediaStatus status) {
-                         if (isMediaLoaded)
-                             return;
+    connect(m_mediaPlayer, &QMediaPlayer::mediaStatusChanged, [&isMediaLoaded, timer, this](QMediaPlayer::MediaStatus status) {
+        if (isMediaLoaded)
+            return;
 
-                         qDebugT() << "媒体加载中... " << status;
-                         qDebugT() << "耗时:" << timer->elapsed() << "ms";
+        qDebugT() << "媒体加载中... " << status;
+        qDebugT() << "耗时:" << timer->elapsed() << "ms";
 
-                         if (status == QMediaPlayer::LoadedMedia || status == QMediaPlayer::BufferedMedia) {
-                             isMediaLoaded = true;
-                             qDebugT() << "媒体加载完成，可以播放";
-                             m_mediaPlayer->stop();
-                             m_mediaPlayer->play();
-                         }
-                     });
+        if (status == QMediaPlayer::LoadedMedia || status == QMediaPlayer::BufferedMedia) {
+            isMediaLoaded = true;
+            qDebugT() << "媒体加载完成，可以播放";
+            m_mediaPlayer->stop();
+            m_mediaPlayer->play();
+        }
+    });
 }
 
 VideoPlayer::~VideoPlayer() {}
