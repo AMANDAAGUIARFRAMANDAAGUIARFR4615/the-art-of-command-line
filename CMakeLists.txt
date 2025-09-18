@@ -7,16 +7,12 @@ qt_standard_project_setup()
 
 add_executable(${PROJECT_NAME}
     main.cpp
-    MainWindow.h
-    MainWindow.cpp
-    VideoPlayer.h
-    VideoPlayer.cpp
-    TcpServer.h
-    TcpServer.cpp
-    TcpClient.h
-    TcpClient.cpp
-    UdpTransport.h
-    UdpTransport.cpp
+    Logger.h
+    MainWindow.h MainWindow.cpp
+    VideoPlayer.h VideoPlayer.cpp
+    TcpServer.h TcpServer.cpp
+    # TcpClient.h TcpClient.cpp
+    UdpTransport.h UdpTransport.cpp
     ToastWidget.h
     NetworkUtils.h
 )

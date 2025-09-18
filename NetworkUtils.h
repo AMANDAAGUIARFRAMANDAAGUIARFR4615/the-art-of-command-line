@@ -37,11 +37,9 @@ public:
     }
 
     // 遍历同一子网的IP地址，IP范围从 .1 到 .254
-    static QList<QHostAddress> getSubnetIPs()
+    static QList<QHostAddress> getSubnetIPs(const QString& localIP)
     {
         QList<QHostAddress> ipList;
-
-        QString localIP = getLocalIP();
 
         QHostAddress networkAddress(localIP);
         if (networkAddress.isNull()) {
