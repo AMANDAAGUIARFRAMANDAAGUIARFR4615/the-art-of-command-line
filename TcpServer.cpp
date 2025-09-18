@@ -1,4 +1,5 @@
 #include "TcpServer.h"
+#include "Logger.h"
 #include <QDebug>
 #include <QJsonDocument>
 
@@ -12,44 +13,45 @@ TcpServer::TcpServer(const std::function<void()> &onClientConnected,
       onClientDisconnectedCallback(onClientDisconnected),
       onErrorCallback(onError)
 {
-    server = new QTcpServer(this);
-    if (!server->listen(QHostAddress::Any, port)) {
-        qDebug() << "无法启动服务器！";
+    connect(&server, &QTcpServer::newConnection, this, &TcpServer::onNewConnection);
+
+    if (!server.listen(QHostAddress::AnyIPv4, port)) {
+        qCriticalT() << "无法启动服务器" << port;
         return;
     }
-    connect(server, &QTcpServer::newConnection, this, &TcpServer::onNewConnection);
 
-    if (port == 0)
-        port = server->serverPort();
-
-    qDebug() << "服务器已启动，监听端口：" << port;
+    qDebugT() << "服务器已启动,监听端口:" << server.serverPort();
 }
 
-void TcpServer::onNewConnection()
-{
-    QTcpSocket *clientSocket = server->nextPendingConnection();
-    connect(clientSocket, &QTcpSocket::readyRead, this, &TcpServer::onDataReceived);
-    connect(clientSocket, &QTcpSocket::disconnected, this, &TcpServer::onClientDisconnected);
-    connect(clientSocket, SIGNAL(error(QAbstractSocket::SocketError)),
-            this, SLOT(onError(QAbstractSocket::SocketError)));
+void TcpServer::onNewConnection() {
+    auto *clientSocket = server.nextPendingConnection();
+
+    auto ip = clientSocket->peerAddress().toString();
+    auto port = clientSocket->peerPort();
+
+    qDebugT() << "新连接来自" << ip + ":" + QString::number(port);
+
+    connect(clientSocket, &QTcpSocket::readyRead, this, &TcpServer::onReadyRead);
+    connect(clientSocket, &QTcpSocket::disconnected, this, &TcpServer::onDisconnected);
+    connect(clientSocket, &QTcpSocket::errorOccurred, this, &TcpServer::onErrorOccurred);
 
     clientBuffers[clientSocket] = QByteArray();
     onClientConnectedCallback();
 }
 
-void TcpServer::onDataReceived()
+void TcpServer::onReadyRead()
 {
-    QTcpSocket *clientSocket = qobject_cast<QTcpSocket*>(sender());
+    auto *clientSocket = qobject_cast<QTcpSocket*>(sender());
     if (clientSocket) {
-        QByteArray data = clientSocket->readAll();
+        auto data = clientSocket->readAll();
         clientBuffers[clientSocket].append(data);
         processBufferedData(clientSocket);
     }
 }
 
-void TcpServer::onClientDisconnected()
+void TcpServer::onDisconnected()
 {
-    QTcpSocket *clientSocket = qobject_cast<QTcpSocket*>(sender());
+    auto *clientSocket = qobject_cast<QTcpSocket*>(sender());
     if (clientSocket) {
         clientBuffers.remove(clientSocket);
         clientSocket->deleteLater();
@@ -57,15 +59,15 @@ void TcpServer::onClientDisconnected()
     }
 }
 
-void TcpServer::onError(QAbstractSocket::SocketError socketError)
+void TcpServer::onErrorOccurred(QAbstractSocket::SocketError socketError)
 {
-    qDebug() << "Socket error:" << socketError;
+    qCriticalT() << "Socket error:" << socketError;
     onErrorCallback(socketError);
 }
 
 void TcpServer::processBufferedData(QTcpSocket* clientSocket)
 {
-    QByteArray &buffer = clientBuffers[clientSocket];
+    auto &buffer = clientBuffers[clientSocket];
     while (buffer.size() >= 8) { // 8字节为识别码大小
         quint64 identifier;
         QDataStream identifierStream(&buffer, QIODevice::ReadOnly);
