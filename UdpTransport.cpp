@@ -1,4 +1,5 @@
 #include "UdpTransport.h"
+#include "Logger.h"
 #include <QTextStream>
 #include <QDebug>
 #include <QHostAddress>
@@ -14,7 +15,7 @@ UdpTransport::UdpTransport(const std::function<void(const QJsonObject &jsonObjec
     socket = new QUdpSocket(this);
 
     if (!socket->bind(QHostAddress::AnyIPv4, listenPort)) {
-        qDebug() << "无法绑定端口";
+        qCriticalT() << "无法绑定端口";
         return;
     }
 
@@ -42,7 +43,7 @@ UdpTransport::UdpTransport(const std::function<void(const QJsonObject &jsonObjec
 void UdpTransport::sendData(const QJsonObject &jsonObject, const QString &ip, quint16 port)
 {
     if (socket->state() != QAbstractSocket::BoundState) {
-        qDebug() << "UDP 套接字未绑定，无法发送数据！";
+        qCriticalT() << "UDP 套接字未绑定，无法发送数据！";
         return;
     }
 
@@ -79,7 +80,7 @@ void UdpTransport::processBufferedData()
         // 解析识别码
         quint64 identifier = *reinterpret_cast<quint64*>(buffer.data());
         if (identifier != 0xb7c2e0f542a39a3e) {
-            qDebug() << "识别码不匹配，丢弃数据";
+            qCriticalT() << "识别码不匹配，丢弃数据";
             buffer.clear(); // 清空缓冲区
             return;
         }
@@ -101,7 +102,7 @@ void UdpTransport::processBufferedData()
                 onDataReceivedCallback(doc.object());
             }
         } else {
-            qDebug() << "JSON 解析失败，丢弃数据";
+            qCriticalT() << "JSON 解析失败，丢弃数据";
         }
 
         // 移除已处理的数据包

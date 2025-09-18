@@ -1,4 +1,5 @@
 #include "VideoPlayer.h"
+#include "Logger.h"
 #include "ToastWidget.h"
 
 #include <QBoxLayout>
@@ -50,12 +51,12 @@ VideoPlayer::VideoPlayer(QWidget *parent) : QWidget(parent)
                          if (isMediaLoaded)
                              return;
 
-                         qDebug() << "媒体加载中... " << status;
-                         qDebug() << "耗时:" << timer->elapsed() << "ms";
+                         qDebugT() << "媒体加载中... " << status;
+                         qDebugT() << "耗时:" << timer->elapsed() << "ms";
 
                          if (status == QMediaPlayer::LoadedMedia || status == QMediaPlayer::BufferedMedia) {
                              isMediaLoaded = true;
-                             qDebug() << "媒体加载完成，可以播放";
+                             qDebugT() << "媒体加载完成，可以播放";
                              m_mediaPlayer->stop();
                              m_mediaPlayer->play();
                          }

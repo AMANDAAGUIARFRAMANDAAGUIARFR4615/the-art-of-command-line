@@ -1,4 +1,5 @@
 #include "MainWindow.h"
+#include "Logger.h"
 #include "CenteredItemDelegate.h"
 
 #include <QTabWidget>
@@ -152,17 +153,17 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
 
 void MainWindow::onTabClicked(int index)
 {
-    qDebug() << "Clicked on Tab " << index + 1;
+    qDebugT() << "Clicked on Tab " << index + 1;
     switch (index)
     {
     case 0:
-        qDebug() << "Tab 1 clicked: Video Player tab";
+        qDebugT() << "Tab 1 clicked: Video Player tab";
         break;
     case 1:
-        qDebug() << "Tab 2 clicked: Content for Tab 2";
+        qDebugT() << "Tab 2 clicked: Content for Tab 2";
         break;
     case 2:
-        qDebug() << "Tab 3 clicked: Content for Tab 3";
+        qDebugT() << "Tab 3 clicked: Content for Tab 3";
         break;
     default:
         break;
