@@ -13,7 +13,7 @@ UdpTransport::UdpTransport(const std::function<void(const QJsonObject &jsonObjec
 {
     socket = new QUdpSocket(this);
 
-    if (!socket->bind(QHostAddress::Any, listenPort)) {
+    if (!socket->bind(QHostAddress::AnyIPv4, listenPort)) {
         qDebug() << "无法绑定端口";
         return;
     }
