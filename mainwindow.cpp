@@ -81,7 +81,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     tab1->setLayout(new QVBoxLayout());
 
     auto player = new VideoPlayer();
-    player->setUrl(QString("tcp://192.168.0.102:23145"));
+    // player->setUrl(QString("tcp://192.168.0.102:23145"));
 
     tab1->layout()->addWidget(player);
     tab2->setLayout(new QVBoxLayout());
