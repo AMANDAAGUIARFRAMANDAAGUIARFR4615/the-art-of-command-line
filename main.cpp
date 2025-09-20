@@ -8,19 +8,25 @@
 
 #include <QApplication>
 
+MainWindow* mainWindow;
+
 void onClientConnected(QTcpSocket* socket) {
     // qDebugEx() << "有新的客户端连接！";
 }
 
 void onDataReceived(QTcpSocket* socket, const QJsonObject &jsonObject) {
-    qDebugEx() << "接收到数据：" << jsonObject;
+    auto event = jsonObject["event"].toString();
+    auto data = jsonObject["data"];
 
-    if (jsonObject["event"].toString() == "ping")
+    if (event == "ping")
         return;
 
-    auto x = jsonObject["event"];
+    qDebugEx() << event << data;
 
-    qDebugEx() << x.toString();
+    auto deviceName = data["deviceName"].toString();
+    auto localIp = data["localIp"].toString();
+    qDebugEx() << deviceName << localIp;
+    mainWindow->addItem("tcp://" + localIp + ":23145");
 }
 
 void onClientDisconnected(QTcpSocket* socket) {
@@ -40,7 +46,7 @@ int main(int argc, char *argv[])
     QString localIP = NetworkUtils::getLocalIP();
     qDebugEx() << "本机内网IP:" << localIP;
 
-    MainWindow mainWindow;
+    mainWindow = new MainWindow;
 
     UdpTransport udpTransport(
         [](const QJsonObject &jsonObject) {
@@ -60,12 +66,27 @@ int main(int argc, char *argv[])
     QScreen *screen = QApplication::primaryScreen();
     QRect screenGeometry = screen->availableGeometry();
 
-    int x = (screenGeometry.width() - mainWindow.width()) / 2;
-    int y = (screenGeometry.height() - mainWindow.height()) / 2;
-    mainWindow.move(x, y);
+    int x = (screenGeometry.width() - mainWindow->width()) / 2;
+    int y = (screenGeometry.height() - mainWindow->height()) / 2;
+    mainWindow->move(x, y);
 
-    // mainWindow.show();
-    mainWindow.showMinimized();
+    mainWindow->show();
+    // mainWindow->showMinimized();
+
+    // QTimer::singleShot(3000, [&mainWindow](){
+    //     qDebugEx() << "singleShot";
+    //     mainWindow.addItem();
+    //     mainWindow.addItem();
+    //     mainWindow.addItem();
+    //     mainWindow.addItem();
+    //     mainWindow.addItem();
+    // });
+
+    // auto player = new VideoPlayer();
+    // // player->setSource(QString("tcp://192.168.0.102:23145"));
+    // mainWindow.addPlayer(player);
+    // mainWindow.addPlayer(new VideoPlayer());
+    // mainWindow.addPlayer(new VideoPlayer());
 
     return application.exec();
 }
