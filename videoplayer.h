@@ -16,7 +16,7 @@ public:
     VideoPlayer(QWidget *parent = nullptr);
     ~VideoPlayer();
 
-    void setUrl(const QUrl &url);
+    void setSource(const QUrl &source);
 
     void play();
 

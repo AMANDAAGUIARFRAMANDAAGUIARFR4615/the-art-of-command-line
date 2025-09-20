@@ -77,7 +77,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     auto tab3 = new QWidget();
     tab1->setLayout(new QVBoxLayout());
     auto player = new VideoPlayer();
-    // player->setUrl(QString("tcp://192.168.0.102:23145"));
+    // player->setSource(QString("tcp://192.168.0.102:23145"));
 
     tab1->layout()->addWidget(player);
     tab2->setLayout(new QVBoxLayout());
@@ -100,20 +100,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     // 初始两行
     auto initRows = 2;
     totalCols = 6;
-    for (int row = 0; row < initRows; ++row)
-    {
-        for (int col = 0; col < totalCols; ++col)
-        {
-            auto frame = new QFrame(bottomWidget);
-            frame->setFrameShape(QFrame::Box);
 
-            auto frameLayout = new QVBoxLayout(frame);
-            auto videoPlayer = new VideoPlayer(frame);
-            // videoPlayer->setUrl(QString("tcp://192.168.0.102:23145")); // 需要时可单独设置不同的URL
-            frameLayout->addWidget(videoPlayer);
-
-            gridLayout->addWidget(frame, row, col);
-        }
+    for (int i = 0; i < initRows * totalCols; i++) {
+        addItem();
     }
 
     auto scrollArea = new QScrollArea(this);
@@ -179,7 +168,7 @@ void MainWindow::onTabClicked(int index)
     }
 }
 
-void MainWindow::addItem()
+void MainWindow::addItem(const QString& url)
 {
     int count = gridLayout->count();
 
@@ -196,7 +185,9 @@ void MainWindow::addItem()
         // 找到占位（QWidget，而不是 VideoPlayer）
         if (qobject_cast<VideoPlayer*>(w) == nullptr) {
             delete frameLayout->takeAt(0)->widget();
-            frameLayout->addWidget(new VideoPlayer(frame));
+            auto player = new VideoPlayer();
+            player->setSource(url);
+            frameLayout->addWidget(player);
             bottomWidget->adjustSize();
             return;
         }
@@ -213,9 +204,11 @@ void MainWindow::addItem()
         auto frameLayout = new QVBoxLayout(frame);
         frameLayout->setContentsMargins(0, 0, 0, 0);
 
-        if (i == 0) {
+        if (i == 0 && url != nullptr) {
             // 当前第一个放 VideoPlayer
-            frameLayout->addWidget(new VideoPlayer(frame));
+            auto player = new VideoPlayer();
+            player->setSource(url);
+            frameLayout->addWidget(player);
         } else {
             // 其他先放占位
             frameLayout->addWidget(new QWidget(frame));
@@ -224,5 +217,5 @@ void MainWindow::addItem()
         gridLayout->addWidget(frame, row, i);
     }
 
-    bottomWidget->adjustSize(); // 更新布局，触发滚动
+    bottomWidget->adjustSize();
 }

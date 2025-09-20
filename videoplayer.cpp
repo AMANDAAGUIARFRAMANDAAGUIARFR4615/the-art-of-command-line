@@ -64,9 +64,9 @@ VideoPlayer::VideoPlayer(QWidget *parent) : QWidget(parent)
 
 VideoPlayer::~VideoPlayer() {}
 
-void VideoPlayer::setUrl(const QUrl &url)
+void VideoPlayer::setSource(const QUrl &source)
 {
-    m_mediaPlayer->setSource(url);
+    m_mediaPlayer->setSource(source);
 }
 
 void VideoPlayer::play()

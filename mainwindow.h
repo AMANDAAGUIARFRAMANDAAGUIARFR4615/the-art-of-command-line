@@ -13,7 +13,7 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-    void addItem();
+    void addItem(const QString& url = nullptr);
 
 protected:
     void keyPressEvent(QKeyEvent *event) override;
