@@ -2,6 +2,7 @@ name: Build and Package Qt Application
 
 on:
   push:
+  workflow_dispatch:
 
 jobs:
   build:
