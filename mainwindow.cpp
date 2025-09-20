@@ -107,11 +107,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
             frame->setFrameShape(QFrame::Box);
             frame->setLineWidth(2);
 
-            auto label = new QLabel(QString("区域 %1,%2").arg(row + 1).arg(col + 1), frame);
-            label->setAlignment(Qt::AlignCenter);
-
             auto frameLayout = new QVBoxLayout(frame);
-            frameLayout->addWidget(label);
+
+            auto videoPlayer = new VideoPlayer(frame);
+            // videoPlayer->setUrl(QString("tcp://192.168.0.102:23145")); // 需要时可单独设置不同的URL
+            frameLayout->addWidget(videoPlayer);
 
             gridLayout->addWidget(frame, row, col);
         }
