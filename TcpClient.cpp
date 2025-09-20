@@ -49,7 +49,7 @@ void TcpClient::connectToServer(const QString &ip, quint16 port)
 void TcpClient::sendData(const QJsonObject &jsonObject)
 {
     if (socket->state() != QAbstractSocket::ConnectedState) {
-        qCriticalT() << "未连接到服务器，无法发送数据！";
+        qCriticalEx() << "未连接到服务器，无法发送数据！";
         return;
     }
 
@@ -86,7 +86,7 @@ void TcpClient::processBufferedData()
         // 解析识别码
         quint64 identifier = *reinterpret_cast<quint64*>(buffer.data());
         if (identifier != 0xc6e8f3de9a654d6b) { // 检查识别码
-            qCriticalT() << "识别码不匹配，丢弃数据";
+            qCriticalEx() << "识别码不匹配，丢弃数据";
             buffer.clear(); // 清空缓冲区
             return;
         }
@@ -108,7 +108,7 @@ void TcpClient::processBufferedData()
                 onDataReceivedCallback(doc.object());
             }
         } else {
-            qCriticalT() << "JSON 解析失败，丢弃数据";
+            qCriticalEx() << "JSON 解析失败，丢弃数据";
         }
 
         // 移除已处理的数据包

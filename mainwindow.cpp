@@ -153,17 +153,17 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
 
 void MainWindow::onTabClicked(int index)
 {
-    qDebugT() << "Clicked on Tab " << index + 1;
+    qDebugEx() << "Clicked on Tab " << index + 1;
     switch (index)
     {
     case 0:
-        qDebugT() << "Tab 1 clicked: Video Player tab";
+        qDebugEx() << "Tab 1 clicked: Video Player tab";
         break;
     case 1:
-        qDebugT() << "Tab 2 clicked: Content for Tab 2";
+        qDebugEx() << "Tab 2 clicked: Content for Tab 2";
         break;
     case 2:
-        qDebugT() << "Tab 3 clicked: Content for Tab 3";
+        qDebugEx() << "Tab 3 clicked: Content for Tab 3";
         break;
     default:
         break;

@@ -12,14 +12,14 @@ void WebSocketClient::connectToServer(const QUrl &url) {
 }
 
 void WebSocketClient::onConnected() {
-    qDebugT() << "WebSocket connected!";
+    qDebugEx() << "WebSocket connected!";
     m_webSocket.sendTextMessage("Hello, WebSocket!");
 }
 
 void WebSocketClient::onDisconnected() {
-    qDebugT() << "WebSocket disconnected!";
+    qDebugEx() << "WebSocket disconnected!";
 }
 
 void WebSocketClient::onTextMessageReceived(const QString &message) {
-    qDebugT() << "Message received: " << message;
+    qDebugEx() << "Message received: " << message;
 }

@@ -9,19 +9,26 @@
 #include <QApplication>
 
 void onClientConnected(QTcpSocket* socket) {
-    // qDebugT() << "有新的客户端连接！";
+    // qDebugEx() << "有新的客户端连接！";
 }
 
 void onDataReceived(QTcpSocket* socket, const QJsonObject &jsonObject) {
-    qDebugT() << "接收到数据：" << jsonObject;
+    qDebugEx() << "接收到数据：" << jsonObject;
+
+    if (jsonObject["event"].toString() == "ping")
+        return;
+
+    auto x = jsonObject["event"];
+
+    qDebugEx() << x.toString();
 }
 
 void onClientDisconnected(QTcpSocket* socket) {
-    // qDebugT() << "客户端断开连接！";
+    // qDebugEx() << "客户端断开连接！";
 }
 
 void onError(QTcpSocket* socket, QAbstractSocket::SocketError socketError) {
-    qCriticalT() << "发生错误：" << socketError;
+    qCriticalEx() << "发生错误：" << socketError;
 }
 
 int main(int argc, char *argv[])
@@ -31,22 +38,22 @@ int main(int argc, char *argv[])
     TcpServer server(onClientConnected, onDataReceived, onClientDisconnected, onError, 12345);
 
     QString localIP = NetworkUtils::getLocalIP();
-    qDebugT() << "本机内网IP:" << localIP;
+    qDebugEx() << "本机内网IP:" << localIP;
 
     MainWindow mainWindow;
 
     UdpTransport udpTransport(
         [](const QJsonObject &jsonObject) {
-            qDebugT() << "Received Data:" << jsonObject;
+            qDebugEx() << "Received Data:" << jsonObject;
         },
         [](QAbstractSocket::SocketError error) {
-            qCriticalT() << "Error:" << error;
+            qCriticalEx() << "Error:" << error;
         }
     );
 
     QList<QHostAddress> subnetIPs = NetworkUtils::getSubnetIPs(localIP);
     for (const QHostAddress &ip : subnetIPs) {
-        // qDebugT() << "同子网IP: " << ip.toString();
+        // qDebugEx() << "同子网IP: " << ip.toString();
         udpTransport.sendData(QJsonObject{{"ip", localIP}, {"port", server.serverPort()}}, ip, 32838);
     }
 

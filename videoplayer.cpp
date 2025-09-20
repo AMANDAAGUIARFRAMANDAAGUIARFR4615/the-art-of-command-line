@@ -50,12 +50,12 @@ VideoPlayer::VideoPlayer(QWidget *parent) : QWidget(parent)
         if (isMediaLoaded)
             return;
 
-        qDebugT() << "媒体加载中... " << status;
-        qDebugT() << "耗时:" << timer->elapsed() << "ms";
+        qDebugEx() << "媒体加载中... " << status;
+        qDebugEx() << "耗时:" << timer->elapsed() << "ms";
 
         if (status == QMediaPlayer::LoadedMedia || status == QMediaPlayer::BufferedMedia) {
             isMediaLoaded = true;
-            qDebugT() << "媒体加载完成，可以播放";
+            qDebugEx() << "媒体加载完成，可以播放";
             m_mediaPlayer->stop();
             m_mediaPlayer->play();
         }

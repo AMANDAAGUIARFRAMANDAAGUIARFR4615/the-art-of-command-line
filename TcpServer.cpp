@@ -16,11 +16,11 @@ TcpServer::TcpServer(const std::function<void(QTcpSocket*)> &onClientConnected,
     connect(this, &QTcpServer::newConnection, this, &TcpServer::onNewConnection);
 
     if (!this->listen(QHostAddress::AnyIPv4, port)) {
-        qCriticalT() << "无法启动服务器" << port;
+        qCriticalEx() << "无法启动服务器" << port;
         return;
     }
 
-    qDebugT() << "服务器已启动,监听端口:" << this->serverPort();
+    qDebugEx() << "服务器已启动,监听端口:" << this->serverPort();
 }
 
 void TcpServer::sendData(QTcpSocket* socket, const QJsonObject &jsonObject)
@@ -47,7 +47,7 @@ void TcpServer::onNewConnection() {
     auto ip = socket->peerAddress().toString();
     auto port = socket->peerPort();
 
-    qDebugT() << "连接成功" << ip + ":" + QString::number(port);
+    qDebugEx() << "连接成功" << ip + ":" + QString::number(port);
 
     connect(socket, &QTcpSocket::readyRead, this, &TcpServer::onReadyRead);
     connect(socket, &QTcpSocket::disconnected, this, &TcpServer::onDisconnected);
@@ -74,7 +74,7 @@ void TcpServer::onDisconnected()
     auto ip = socket->peerAddress().toString();
     auto port = socket->peerPort();
 
-    qDebugT() << "连接断开" << ip + ":" + QString::number(port);
+    qDebugEx() << "连接断开" << ip + ":" + QString::number(port);
 
     clientBuffers.remove(socket);
     if (onClientDisconnectedCallback) {
@@ -86,7 +86,7 @@ void TcpServer::onDisconnected()
 void TcpServer::onErrorOccurred(QAbstractSocket::SocketError socketError)
 {
     auto *socket = qobject_cast<QTcpSocket*>(sender());
-    qCriticalT() << "Socket error:" << socketError;
+    qCriticalEx() << "Socket error:" << socketError;
     if (onErrorCallback && socket) {
         onErrorCallback(socket, socketError);
     }
@@ -99,7 +99,7 @@ void TcpServer::processBufferedData(QTcpSocket* socket)
     while (buffer.size() >= sizeof(quint64) + sizeof(quint32)) {
         auto identifier = *reinterpret_cast<quint64*>(buffer.data());
         if (identifier != 0xb7c2e0f542a39a3e) {
-            qCriticalT() << "识别码不匹配，丢弃数据" << QString("0x%1").arg(identifier, 0, 16);
+            qCriticalEx() << "识别码不匹配，丢弃数据" << QString("0x%1").arg(identifier, 0, 16);
             buffer.clear(); // 清空缓冲区
             return;
         }
@@ -107,7 +107,7 @@ void TcpServer::processBufferedData(QTcpSocket* socket)
         auto jsonDataLength = *reinterpret_cast<quint32*>(buffer.data() + sizeof(quint64));
 
         if (buffer.size() < static_cast<int>(sizeof(quint64) + sizeof(quint32) + jsonDataLength)) {
-            qDebugT() << "数据不完整，等待更多数据" << buffer.size() << sizeof(quint64) + sizeof(quint32) + jsonDataLength;
+            // qDebugEx() << "数据不完整，等待更多数据" << buffer.size() << sizeof(quint64) + sizeof(quint32) + jsonDataLength;
             return;
         }
 
@@ -121,7 +121,7 @@ void TcpServer::processBufferedData(QTcpSocket* socket)
                 onDataReceivedCallback(socket, doc.object());
             }
         } else {
-            qCriticalT() << "JSON 解析失败，丢弃数据";
+            qCriticalEx() << "JSON 解析失败，丢弃数据";
         }
     }
 }

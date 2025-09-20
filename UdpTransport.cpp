@@ -15,7 +15,7 @@ UdpTransport::UdpTransport(const std::function<void(const QJsonObject &jsonObjec
     socket = new QUdpSocket(this);
 
     if (!socket->bind(QHostAddress::AnyIPv4, listenPort)) {
-        qCriticalT() << "无法绑定端口";
+        qCriticalEx() << "无法绑定端口";
         return;
     }
 
@@ -43,7 +43,7 @@ UdpTransport::UdpTransport(const std::function<void(const QJsonObject &jsonObjec
 void UdpTransport::sendData(const QJsonObject &jsonObject, const QHostAddress &host, quint16 port)
 {
     if (socket->state() != QAbstractSocket::BoundState) {
-        qCriticalT() << "UDP 套接字未绑定，无法发送数据！";
+        qCriticalEx() << "UDP 套接字未绑定，无法发送数据！";
         return;
     }
 
@@ -68,7 +68,7 @@ void UdpTransport::processBufferedData()
     while (buffer.size() >= sizeof(quint64) + sizeof(quint32)) {
         quint64 identifier = *reinterpret_cast<quint64*>(buffer.data());
         if (identifier != 0xb7c2e0f542a39a3e) {
-            qCriticalT() << "识别码不匹配，丢弃数据" << QString("0x%1").arg(identifier, 0, 16);
+            qCriticalEx() << "识别码不匹配，丢弃数据" << QString("0x%1").arg(identifier, 0, 16);
             buffer.clear(); // 清空缓冲区
             return;
         }
@@ -76,7 +76,7 @@ void UdpTransport::processBufferedData()
         quint32 jsonDataLength = *reinterpret_cast<quint32*>(buffer.data() + sizeof(quint64));
 
         if (buffer.size() < sizeof(quint64) + sizeof(quint32) + jsonDataLength) {
-            qDebugT() << "数据不完整，等待更多数据" << buffer.size() << sizeof(quint64) + sizeof(quint32) + jsonDataLength;
+            qDebugEx() << "数据不完整，等待更多数据" << buffer.size() << sizeof(quint64) + sizeof(quint32) + jsonDataLength;
             return;
         }
 
@@ -90,7 +90,7 @@ void UdpTransport::processBufferedData()
                 onDataReceivedCallback(doc.object());
             }
         } else {
-            qCriticalT() << "JSON 解析失败，丢弃数据";
+            qCriticalEx() << "JSON 解析失败，丢弃数据";
         }
     }
 }
