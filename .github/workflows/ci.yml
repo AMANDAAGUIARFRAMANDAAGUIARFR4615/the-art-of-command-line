@@ -1,0 +1,55 @@
+name: macOS Build and Package Qt App
+
+on:
+  push:
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      # 1. 检出代码
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # 2. 安装 Homebrew
+      - name: Install Homebrew
+        run: |
+          if ! command -v brew &> /dev/null
+          then
+            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          fi
+
+      # 3. 安装 Qt 和其他依赖
+      - name: Install Qt 6.9.2
+        run: |
+          brew install qt@6
+          brew link --force --overwrite qt@6
+
+      # 4. 安装其他依赖 (例如 CMake)
+      - name: Install CMake
+        run: |
+          brew install cmake
+
+      # 5. 配置项目 (假设你使用 CMake，若使用 qmake 则修改为适合的命令)
+      - name: Build with CMake
+        run: |
+          mkdir build
+          cd build
+          cmake ..
+          cmake --build .
+
+      # 6. 创建 macOS 包
+      - name: Create macOS Package
+        run: |
+          cd build
+          macdeployqt YourApp.app -dmg
+
+      # 7. 上传生成的 dmg 文件 (如果需要的话)
+      - name: Upload DMG Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: your-app-macos
+          path: build/*.dmg
+
+  # 可选: 你也可以添加部署的步骤，例如上传到一个服务器或 GitHub Release。
