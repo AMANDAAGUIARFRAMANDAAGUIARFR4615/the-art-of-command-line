@@ -21,8 +21,6 @@ protected:
 
     QWidget* bottomWidget;
     QGridLayout* gridLayout;
-    int rowHeight;
-    int totalCols;
 };
 
 #endif // MAINWINDOW_H

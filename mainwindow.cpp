@@ -76,10 +76,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     auto tab2 = new QWidget();
     auto tab3 = new QWidget();
     tab1->setLayout(new QVBoxLayout());
-    auto player = new VideoPlayer();
-    // player->setSource(QString("tcp://192.168.0.102:23145"));
-
-    tab1->layout()->addWidget(player);
+    tab1->layout()->addWidget(new QLabel("这是标签页 1 的内容"));
     tab2->setLayout(new QVBoxLayout());
     tab2->layout()->addWidget(new QLabel("这是标签页 2 的内容"));
     tab3->setLayout(new QVBoxLayout());
@@ -97,29 +94,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     gridLayout->setSpacing(0);
     gridLayout->setContentsMargins(0, 0, 0, 0);
 
-    // 初始两行
-    auto initRows = 2;
-    totalCols = 6;
-
-    for (int i = 0; i < initRows * totalCols; i++) {
-        addItem();
-    }
-
     auto scrollArea = new QScrollArea(this);
     scrollArea->setWidget(bottomWidget);
     scrollArea->setWidgetResizable(true);
     scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-
-    // 延迟计算行高
-    QTimer::singleShot(0, [this, initRows]() {
-        int twoRowHeight = bottomWidget->height();
-        rowHeight = twoRowHeight / initRows;
-
-        for (int row = 0; row < initRows; ++row) {
-            gridLayout->setRowMinimumHeight(row, rowHeight);
-        }
-    });
 
     rightLayout->addWidget(tabWidget, 2);
     rightLayout->addWidget(scrollArea, 1);
@@ -172,30 +151,32 @@ void MainWindow::addItem(const QString& url)
 {
     int count = gridLayout->count();
 
-    // 遍历查找第一个占位
-    for (int i = 0; i < count; i++) {
-        auto frame = qobject_cast<QFrame*>(gridLayout->itemAt(i)->widget());
-        if (!frame) continue;
+    if (url != nullptr) {
+        // 遍历查找第一个占位
+        for (int i = 0; i < count; i++) {
+            auto frame = qobject_cast<QFrame*>(gridLayout->itemAt(i)->widget());
+            if (!frame) continue;
 
-        auto frameLayout = qobject_cast<QVBoxLayout*>(frame->layout());
-        if (!frameLayout || frameLayout->count() == 0) continue;
+            auto frameLayout = qobject_cast<QVBoxLayout*>(frame->layout());
+            if (!frameLayout || frameLayout->count() == 0) continue;
 
-        auto w = frameLayout->itemAt(0)->widget();
+            auto w = frameLayout->itemAt(0)->widget();
 
-        // 找到占位（QWidget，而不是 VideoPlayer）
-        if (qobject_cast<VideoPlayer*>(w) == nullptr) {
-            delete frameLayout->takeAt(0)->widget();
-            auto player = new VideoPlayer();
-            player->setSource(url);
-            frameLayout->addWidget(player);
-            bottomWidget->adjustSize();
-            return;
+            if (qobject_cast<VideoPlayer*>(w) == nullptr) {
+                qDebugEx() << "找到占位" << i;
+                delete w;
+                auto player = new VideoPlayer();
+                player->setSource(url);
+                frameLayout->addWidget(player);
+                bottomWidget->adjustSize();
+                return;
+            }
         }
     }
 
     // 如果没有占位，说明要新开一行
+    int totalCols = 6;
     int row = count / totalCols;
-    gridLayout->setRowMinimumHeight(row, rowHeight);
 
     for (int i = 0; i < totalCols; i++) {
         auto frame = new QFrame(bottomWidget);
@@ -205,17 +186,20 @@ void MainWindow::addItem(const QString& url)
         frameLayout->setContentsMargins(0, 0, 0, 0);
 
         if (i == 0 && url != nullptr) {
-            // 当前第一个放 VideoPlayer
+            qDebugEx() << "当前第一个放 VideoPlayer" << url;
             auto player = new VideoPlayer();
             player->setSource(url);
             frameLayout->addWidget(player);
         } else {
             // 其他先放占位
-            frameLayout->addWidget(new QWidget(frame));
+            frameLayout->addWidget(new QWidget());
         }
 
         gridLayout->addWidget(frame, row, i);
     }
 
     bottomWidget->adjustSize();
+
+    if (bottomWidget->height() < 1000)
+        gridLayout->setRowMinimumHeight(row, bottomWidget->height());
 }
