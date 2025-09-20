@@ -43,7 +43,8 @@ jobs:
       - name: Create macOS Package
         run: |
           cd build
-          macdeployqt YourApp.app -dmg
+          ls
+          macdeployqt RemotePro.app -dmg
 
       # 7. 上传生成的 dmg 文件 (如果需要的话)
       - name: Upload DMG Artifact
