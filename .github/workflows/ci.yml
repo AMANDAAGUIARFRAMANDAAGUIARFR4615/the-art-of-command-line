@@ -24,7 +24,7 @@ jobs:
       - name: Install Qt 6.9.2
         run: |
           brew install qt@6
-          brew link --force --overwrite qt@6
+          brew link --force qt@6
 
       # 4. 安装其他依赖 (例如 CMake)
       - name: Install CMake
@@ -44,7 +44,7 @@ jobs:
         run: |
           cd build
           ls
-          macdeployqt RemotePro.app -dmg
+          macdeployqt RemotePro.app -dmg -verbose 1
 
       # 7. 上传生成的 dmg 文件 (如果需要的话)
       - name: Upload DMG Artifact
