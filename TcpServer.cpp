@@ -65,50 +65,54 @@ void TcpServer::onErrorOccurred(QAbstractSocket::SocketError socketError)
     onErrorCallback(socketError);
 }
 
-void TcpServer::processBufferedData(QTcpSocket* clientSocket)
+void TcpServer::processBufferedData(QTcpSocket* socket)
 {
-    auto &buffer = clientBuffers[clientSocket];
-    while (buffer.size() >= 8) {
-        quint64 identifier;
-        QDataStream dataStream(&buffer, QIODevice::ReadOnly);
-        dataStream >> identifier;
+    auto &buffer = clientBuffers[socket];
 
-        if (buffer.size() < 8 + sizeof(quint32)) {
-            qCriticalT() << "数据不足，退出处理";
-            break;
+    while (buffer.size() >= sizeof(quint64) + sizeof(quint32)) {
+        quint64 identifier = *reinterpret_cast<quint64*>(buffer.data());
+        if (identifier != 0xb7c2e0f542a39a3e) {
+            qCriticalT() << "识别码不匹配，丢弃数据" << QString("0x%1").arg(identifier, 0, 16);
+            buffer.clear(); // 清空缓冲区
+            return;
         }
 
-        quint32 dataSize;
-        dataStream >> dataSize;
+        quint32 jsonDataLength = *reinterpret_cast<quint32*>(buffer.data() + sizeof(quint64));
 
-        if (buffer.size() < 8 + sizeof(quint32) + dataSize) {
-            qCriticalT() << "数据不完整，等待更多数据" << buffer.size() << 8 + sizeof(quint32) + dataSize;
-            break;
+        if (buffer.size() < sizeof(quint64) + sizeof(quint32) + jsonDataLength) {
+            qDebugT() << "数据不完整，等待更多数据";
+            return;
         }
 
-        QByteArray jsonData = buffer.mid(8 + sizeof(quint32), dataSize);
-        buffer.remove(0, 8 + sizeof(quint32) + dataSize);
-
+        QByteArray jsonData = buffer.mid(sizeof(quint64) + sizeof(quint32), jsonDataLength);
+        // 移除已处理的数据包
+        buffer.remove(0, sizeof(quint64) + sizeof(quint32) + jsonDataLength);
         QJsonDocument doc = QJsonDocument::fromJson(jsonData);
-        if (doc.isObject()) {
-            QJsonObject jsonObject = doc.object();
-            onDataReceivedCallback(jsonObject);
+        
+        if (!doc.isNull()) {
+            if (onDataReceivedCallback) {
+                onDataReceivedCallback(doc.object());
+            }
+        } else {
+            qCriticalT() << "JSON 解析失败，丢弃数据";
         }
     }
 }
 
-void TcpServer::sendData(QTcpSocket* clientSocket, const QJsonObject &jsonObject)
+void TcpServer::sendData(QTcpSocket* socket, const QJsonObject &jsonObject)
 {
-    QJsonDocument doc(jsonObject);
-    QByteArray data = doc.toJson();
-
-    QByteArray packet;
     quint64 identifier = 0xc6e8f3de9a654d6b;
-    quint32 dataSize = data.size();
 
-    QDataStream stream(&packet, QIODevice::WriteOnly);
-    stream << identifier << dataSize;
-    packet.append(data);
+    QJsonDocument doc(jsonObject);
+    QByteArray jsonData = doc.toJson();
 
-    clientSocket->write(packet);
+    quint32 jsonDataLength = jsonData.size();
+
+    QByteArray dataToSend;
+    dataToSend.append(reinterpret_cast<const char*>(&identifier), sizeof(identifier));
+    dataToSend.append(reinterpret_cast<const char*>(&jsonDataLength), sizeof(jsonDataLength));
+    dataToSend.append(jsonData);
+
+    socket->write(dataToSend);
+    socket->flush();
 }

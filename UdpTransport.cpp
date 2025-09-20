@@ -47,29 +47,18 @@ void UdpTransport::sendData(const QJsonObject &jsonObject, const QHostAddress &h
         return;
     }
 
-    // 8字节识别码
     quint64 identifier = 0xc6e8f3de9a654d6b;
 
-    // 将 JSON 数据转换为 QByteArray
     QJsonDocument doc(jsonObject);
     QByteArray jsonData = doc.toJson();
 
-    // 获取 JSON 数据的长度
     quint32 jsonDataLength = jsonData.size();
 
-    // 创建数据包，并按顺序添加识别码、长度、JSON 数据
     QByteArray dataToSend;
-
-    // 添加识别码
     dataToSend.append(reinterpret_cast<const char*>(&identifier), sizeof(identifier));
-
-    // 添加 JSON 数据的长度
     dataToSend.append(reinterpret_cast<const char*>(&jsonDataLength), sizeof(jsonDataLength));
-
-    // 添加 JSON 数据
     dataToSend.append(jsonData);
 
-    // 发送数据
     socket->writeDatagram(dataToSend, host, port);
     socket->flush();
 }
@@ -77,26 +66,25 @@ void UdpTransport::sendData(const QJsonObject &jsonObject, const QHostAddress &h
 void UdpTransport::processBufferedData()
 {
     while (buffer.size() >= sizeof(quint64) + sizeof(quint32)) {
-        // 解析识别码
         quint64 identifier = *reinterpret_cast<quint64*>(buffer.data());
         if (identifier != 0xb7c2e0f542a39a3e) {
-            qCriticalT() << "识别码不匹配，丢弃数据";
+            qCriticalT() << "识别码不匹配，丢弃数据" << QString("0x%1").arg(identifier, 0, 16);
             buffer.clear(); // 清空缓冲区
             return;
         }
 
-        // 解析 JSON 数据长度
         quint32 jsonDataLength = *reinterpret_cast<quint32*>(buffer.data() + sizeof(quint64));
 
-        // 检查缓冲区是否包含完整的数据包
         if (buffer.size() < sizeof(quint64) + sizeof(quint32) + jsonDataLength) {
-            // 数据不完整，等待更多数据
+            qDebugT() << "数据不完整，等待更多数据";
             return;
         }
 
-        // 提取 JSON 数据
         QByteArray jsonData = buffer.mid(sizeof(quint64) + sizeof(quint32), jsonDataLength);
+        // 移除已处理的数据包
+        buffer.remove(0, sizeof(quint64) + sizeof(quint32) + jsonDataLength);
         QJsonDocument doc = QJsonDocument::fromJson(jsonData);
+        
         if (!doc.isNull()) {
             if (onDataReceivedCallback) {
                 onDataReceivedCallback(doc.object());
@@ -104,8 +92,5 @@ void UdpTransport::processBufferedData()
         } else {
             qCriticalT() << "JSON 解析失败，丢弃数据";
         }
-
-        // 移除已处理的数据包
-        buffer.remove(0, sizeof(quint64) + sizeof(quint32) + jsonDataLength);
     }
 }
