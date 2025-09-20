@@ -14,6 +14,7 @@ public:
     ~MainWindow();
 
     void addRow();
+    void addItem();
 
 protected:
     void keyPressEvent(QKeyEvent *event) override;

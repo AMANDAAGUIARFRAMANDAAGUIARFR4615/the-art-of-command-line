@@ -106,7 +106,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
         {
             auto frame = new QFrame(bottomWidget);
             frame->setFrameShape(QFrame::Box);
-            frame->setLineWidth(2);
 
             auto frameLayout = new QVBoxLayout(frame);
             auto videoPlayer = new VideoPlayer(frame);
@@ -187,7 +186,6 @@ void MainWindow::addRow()
     {
         auto frame = new QFrame(bottomWidget);
         frame->setFrameShape(QFrame::Box);
-        frame->setLineWidth(2);
 
         auto frameLayout = new QVBoxLayout(frame);
         auto videoPlayer = new VideoPlayer(frame);
@@ -196,9 +194,30 @@ void MainWindow::addRow()
         gridLayout->addWidget(frame, row, col);
     }
 
-    // 新行固定高度
-    gridLayout->setRowStretch(row, 0);
     gridLayout->setRowMinimumHeight(row, rowHeight);
 
     bottomWidget->adjustSize(); // 通知布局更新，触发滚动
+}
+
+void MainWindow::addItem()
+{
+    int count = gridLayout->count();
+
+    int row = count / totalCols;
+    int col = count % totalCols;
+
+    if (col == 0) {
+        gridLayout->setRowMinimumHeight(row, rowHeight);
+    }
+
+    auto frame = new QFrame(bottomWidget);
+    frame->setFrameShape(QFrame::Box);
+
+    auto frameLayout = new QVBoxLayout(frame);
+    auto videoPlayer = new VideoPlayer(frame);
+    frameLayout->addWidget(videoPlayer);
+
+    gridLayout->addWidget(frame, row, col);
+
+    bottomWidget->adjustSize(); // 更新布局，触发滚动
 }
