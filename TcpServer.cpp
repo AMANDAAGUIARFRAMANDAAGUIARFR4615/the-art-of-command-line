@@ -68,22 +68,22 @@ void TcpServer::onErrorOccurred(QAbstractSocket::SocketError socketError)
 void TcpServer::processBufferedData(QTcpSocket* clientSocket)
 {
     auto &buffer = clientBuffers[clientSocket];
-    while (buffer.size() >= 8) { // 8字节为识别码大小
+    while (buffer.size() >= 8) {
         quint64 identifier;
-        QDataStream identifierStream(&buffer, QIODevice::ReadOnly);
-        identifierStream >> identifier;
+        QDataStream dataStream(&buffer, QIODevice::ReadOnly);
+        dataStream >> identifier;
 
         if (buffer.size() < 8 + sizeof(quint32)) {
-            break; // 如果数据不足，退出处理
+            qCriticalT() << "数据不足，退出处理";
+            break;
         }
 
         quint32 dataSize;
-        QDataStream sizeStream(&buffer, QIODevice::ReadOnly);
-        sizeStream.skipRawData(8); // 跳过识别码
-        sizeStream >> dataSize;
+        dataStream >> dataSize;
 
         if (buffer.size() < 8 + sizeof(quint32) + dataSize) {
-            break; // 数据不完整，等待更多数据
+            qCriticalT() << "数据不完整，等待更多数据" << buffer.size() << 8 + sizeof(quint32) + dataSize;
+            break;
         }
 
         QByteArray jsonData = buffer.mid(8 + sizeof(quint32), dataSize);

@@ -1,13 +1,54 @@
+#include "Logger.h"
 #include "MainWindow.h"
-#include "TcpClient.h"
+#include "TcpServer.h"
+#include "UdpTransport.h"
+#include "UdpTransport.h"
 #include "ToastWidget.h"
+#include "NetworkUtils.h"
 
 #include <QApplication>
+
+void onClientConnected() {
+    qDebugT() << "有新的客户端连接！";
+}
+
+void onDataReceived(const QJsonObject &jsonObject) {
+    qDebugT() << "接收到数据：" << jsonObject;
+}
+
+void onClientDisconnected() {
+    qDebugT() << "客户端断开连接！";
+}
+
+void onError(QAbstractSocket::SocketError socketError) {
+    qCriticalT() << "发生错误：" << socketError;
+}
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+
+    TcpServer server(onClientConnected, onDataReceived, onClientDisconnected, onError, 12345);
+
+    QString localIP = NetworkUtils::getLocalIP();
+    qDebugT() << "本机内网IP:" << localIP;
+
     MainWindow w;
+
+    UdpTransport udpTransport(
+        [](const QJsonObject &jsonObject) {
+            qDebugT() << "Received Data:" << jsonObject;
+        },
+        [](QAbstractSocket::SocketError error) {
+            qCriticalT() << "Error:" << error;
+        }
+    );
+
+    QList<QHostAddress> subnetIPs = NetworkUtils::getSubnetIPs(localIP);
+    for (const QHostAddress &ip : subnetIPs) {
+        // qDebugT() << "同子网IP: " << ip.toString();
+        udpTransport.sendData(QJsonObject{{"ip", localIP}, {"port", server.serverPort()}}, ip, 32838);
+    }
 
     QScreen *screen = QApplication::primaryScreen();
     QRect screenGeometry = screen->availableGeometry();
@@ -16,50 +57,8 @@ int main(int argc, char *argv[])
     int y = (screenGeometry.height() - w.height()) / 2;
     w.move(x, y);
 
-    w.show();
-
-    auto onConnected = []() {
-        qDebug() << "与服务器连接成功！";
-    };
-
-    auto onDataReceived = [](const QByteArray &data) {
-        qDebug() << "收到数据: " << data;
-    };
-
-    auto onDisconnected = []() {
-        qDebug() << "与服务器断开连接";
-    };
-
-    auto onError = [&w](QAbstractSocket::SocketError error) {
-        QString errorMessage;
-
-        switch (error) {
-            case QAbstractSocket::HostNotFoundError:
-                errorMessage = "无法找到主机，检查IP地址是否正确。";
-                break;
-            case QAbstractSocket::ConnectionRefusedError:
-                errorMessage = "连接被拒绝，目标主机未响应。";
-                break;
-            case QAbstractSocket::RemoteHostClosedError:
-                errorMessage = "远程主机关闭了连接。";
-                break;
-            case QAbstractSocket::SocketTimeoutError:
-                errorMessage = "连接超时，请检查网络。";
-                break;
-            default:
-                errorMessage = "发生未知错误，错误代码：" + QString::number(error);
-                break;
-        }
-
-        new ToastWidget(errorMessage);
-    };
-
-    TcpClient client(onConnected, onDataReceived, onDisconnected, onError);
-    client.connectToServer("127.0.0.1", 3000);
-    QJsonObject jsonObject;
-    jsonObject["key1"] = "value1";
-    jsonObject["key2"] = "value2";
-    client.sendData(jsonObject);
+    // w.show();
+    w.showMinimized();
 
     return a.exec();
 }

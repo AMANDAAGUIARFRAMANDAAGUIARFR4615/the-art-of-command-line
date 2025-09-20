@@ -40,7 +40,7 @@ UdpTransport::UdpTransport(const std::function<void(const QJsonObject &jsonObjec
     });
 }
 
-void UdpTransport::sendData(const QJsonObject &jsonObject, const QString &ip, quint16 port)
+void UdpTransport::sendData(const QJsonObject &jsonObject, const QHostAddress &host, quint16 port)
 {
     if (socket->state() != QAbstractSocket::BoundState) {
         qCriticalT() << "UDP 套接字未绑定，无法发送数据！";
@@ -70,7 +70,7 @@ void UdpTransport::sendData(const QJsonObject &jsonObject, const QString &ip, qu
     dataToSend.append(jsonData);
 
     // 发送数据
-    socket->writeDatagram(dataToSend, QHostAddress(ip), port);
+    socket->writeDatagram(dataToSend, host, port);
     socket->flush();
 }
 

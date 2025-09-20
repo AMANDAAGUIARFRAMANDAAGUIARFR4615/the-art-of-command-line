@@ -16,7 +16,7 @@ public:
               const std::function<void(QAbstractSocket::SocketError)> &onError,
               quint16 listenPort = 0);
 
-    void sendData(const QJsonObject &jsonObject, const QString &ip, quint16 port);
+    void sendData(const QJsonObject &jsonObject, const QHostAddress &host, quint16 port);
 
 private:
     std::function<void(const QJsonObject &jsonObject)> onDataReceivedCallback;

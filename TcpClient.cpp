@@ -18,7 +18,7 @@ TcpClient::TcpClient(const std::function<void()> &onConnected,
     connect(socket, &QTcpSocket::readyRead, [this]() {
         QByteArray receivedData = socket->readAll();
         buffer.append(receivedData);
-        processBufferedData(); // 调用处理缓存数据的方法
+        processBufferedData();
     });
 
     connect(socket, &QTcpSocket::connected, [this]() {
