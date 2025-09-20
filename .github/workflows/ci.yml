@@ -1,7 +1,12 @@
-name: macOS Build and Package Qt App
+name: Build and Package Qt 6.9.2 Application
 
 on:
   push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build:
@@ -20,35 +25,39 @@ jobs:
             /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
           fi
 
-      # 3. 安装 Qt 和其他依赖
+      # 3. 安装 Qt 6.9.2
       - name: Install Qt 6.9.2
         run: |
           brew install qt@6
           brew link --force qt@6
 
-      # 4. 安装其他依赖 (例如 CMake)
+      # 4. 安装 CMake
       - name: Install CMake
         run: |
           brew install cmake
 
-      # 5. 配置项目 (假设你使用 CMake，若使用 qmake 则修改为适合的命令)
-      - name: Build with CMake
+      # 5. 配置 CMake 构建
+      - name: Configure CMake
         run: |
           mkdir build
           cd build
-          cmake ..
-          cmake --build .
+          cmake .. -DCMAKE_BUILD_TYPE=Release
 
-      # 6. 创建 macOS 包
-      - name: Create macOS Package
+      # 6. 编译项目
+      - name: Build project
         run: |
           cd build
-          ls
-          macdeployqt RemotePro.app -dmg -verbose 1
+          cmake --build .
 
-      # 7. 上传生成的 dmg 文件 (如果需要的话)
-      - name: Upload DMG Artifact
+      # 7. 打包项目
+      - name: Package Application
+        run: |
+          cd build
+          macdeployqt RemotePro.app
+
+      # 8. 上传打包后的应用
+      - name: Upload Application
         uses: actions/upload-artifact@v4
         with:
-          name: your-app-macos
-          path: build/*.dmg
+          name: RemotePro
+          path: build/RemotePro.app
