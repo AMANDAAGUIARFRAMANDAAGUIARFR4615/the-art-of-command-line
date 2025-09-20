@@ -98,7 +98,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     gridLayout->setContentsMargins(0, 0, 0, 0);
 
     // 初始两行
-    initRows = 2;
+    auto initRows = 2;
     totalCols = 6;
     for (int row = 0; row < initRows; ++row)
     {
@@ -123,7 +123,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
 
     // 延迟计算行高
-    QTimer::singleShot(0, [this, scrollArea]() {
+    QTimer::singleShot(0, [this, initRows]() {
         int twoRowHeight = bottomWidget->height();
         rowHeight = twoRowHeight / initRows;
 
@@ -179,45 +179,50 @@ void MainWindow::onTabClicked(int index)
     }
 }
 
-void MainWindow::addRow()
-{
-    int row = gridLayout->rowCount(); // 新行序号
-    for (int col = 0; col < totalCols; ++col)
-    {
-        auto frame = new QFrame(bottomWidget);
-        frame->setFrameShape(QFrame::Box);
-
-        auto frameLayout = new QVBoxLayout(frame);
-        auto videoPlayer = new VideoPlayer(frame);
-        frameLayout->addWidget(videoPlayer);
-
-        gridLayout->addWidget(frame, row, col);
-    }
-
-    gridLayout->setRowMinimumHeight(row, rowHeight);
-
-    bottomWidget->adjustSize(); // 通知布局更新，触发滚动
-}
-
 void MainWindow::addItem()
 {
     int count = gridLayout->count();
 
-    int row = count / totalCols;
-    int col = count % totalCols;
+    // 遍历查找第一个占位
+    for (int i = 0; i < count; i++) {
+        auto frame = qobject_cast<QFrame*>(gridLayout->itemAt(i)->widget());
+        if (!frame) continue;
 
-    if (col == 0) {
-        gridLayout->setRowMinimumHeight(row, rowHeight);
+        auto frameLayout = qobject_cast<QVBoxLayout*>(frame->layout());
+        if (!frameLayout || frameLayout->count() == 0) continue;
+
+        auto w = frameLayout->itemAt(0)->widget();
+
+        // 找到占位（QWidget，而不是 VideoPlayer）
+        if (qobject_cast<VideoPlayer*>(w) == nullptr) {
+            delete frameLayout->takeAt(0)->widget();
+            frameLayout->addWidget(new VideoPlayer(frame));
+            bottomWidget->adjustSize();
+            return;
+        }
     }
 
-    auto frame = new QFrame(bottomWidget);
-    frame->setFrameShape(QFrame::Box);
+    // 如果没有占位，说明要新开一行
+    int row = count / totalCols;
+    gridLayout->setRowMinimumHeight(row, rowHeight);
 
-    auto frameLayout = new QVBoxLayout(frame);
-    auto videoPlayer = new VideoPlayer(frame);
-    frameLayout->addWidget(videoPlayer);
+    for (int i = 0; i < totalCols; i++) {
+        auto frame = new QFrame(bottomWidget);
+        frame->setFrameShape(QFrame::Box);
 
-    gridLayout->addWidget(frame, row, col);
+        auto frameLayout = new QVBoxLayout(frame);
+        frameLayout->setContentsMargins(0, 0, 0, 0);
+
+        if (i == 0) {
+            // 当前第一个放 VideoPlayer
+            frameLayout->addWidget(new VideoPlayer(frame));
+        } else {
+            // 其他先放占位
+            frameLayout->addWidget(new QWidget(frame));
+        }
+
+        gridLayout->addWidget(frame, row, i);
+    }
 
     bottomWidget->adjustSize(); // 更新布局，触发滚动
 }

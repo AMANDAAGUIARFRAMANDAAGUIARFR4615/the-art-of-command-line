@@ -13,7 +13,6 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-    void addRow();
     void addItem();
 
 protected:
@@ -23,7 +22,6 @@ protected:
     QWidget* bottomWidget;
     QGridLayout* gridLayout;
     int rowHeight;
-    int initRows;
     int totalCols;
 };
 
