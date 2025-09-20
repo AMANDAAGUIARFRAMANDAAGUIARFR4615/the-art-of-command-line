@@ -18,13 +18,14 @@
 #include <QListWidgetItem>
 #include <QStyle>
 #include <QIcon>
+#include <QScrollArea>
+#include <QTimer>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
     auto central = new QWidget(this);
-    auto mainLayout = new QHBoxLayout(central);  // 使用 QHBoxLayout 使左侧和右侧在一行内排列
+    auto mainLayout = new QHBoxLayout(central);
 
-    // 创建 QSplitter 用于分隔左右面板
     auto splitter = new QSplitter(Qt::Horizontal, this);
     splitter->setStyleSheet("QSplitter::handle {"
                             "background-color: #B0B0B0;"
@@ -39,8 +40,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     auto sideBarLayout = new QVBoxLayout(sideBarWidget);
 
     auto sideBarList = new QListWidget(sideBarWidget);
-
-    // 设置列表项显示样式
     sideBarList->setViewMode(QListView::ListMode);
     sideBarList->setIconSize(QSize(36, 36));
     sideBarList->setSpacing(5);
@@ -63,23 +62,20 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     sideBarList->addItem(item2);
     sideBarList->addItem(item3);
     sideBarList->addItem(item4);
-
     sideBarLayout->addWidget(sideBarList);
 
     splitter->addWidget(sideBarWidget);
 
-    // 右侧区域：Tab 和底部小布局
+    // 右侧区域
     auto rightWidget = new QWidget(this);
     auto rightLayout = new QVBoxLayout(rightWidget);
 
-    // 上方大区域：Tab 标签页
+    // 上方 Tab 区域
     auto tabWidget = new QTabWidget(this);
     auto tab1 = new QWidget();
     auto tab2 = new QWidget();
     auto tab3 = new QWidget();
-
     tab1->setLayout(new QVBoxLayout());
-
     auto player = new VideoPlayer();
     // player->setUrl(QString("tcp://192.168.0.102:23145"));
 
@@ -95,20 +91,24 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
     connect(tabWidget->tabBar(), &QTabBar::tabBarClicked, this, &MainWindow::onTabClicked);
 
-    // 下方 2 行 6 列的小布局区域
-    auto bottomWidget = new QWidget(this);
-    auto gridLayout = new QGridLayout(bottomWidget);
+    // ==== 下方区域（可滚动） ====
+    bottomWidget = new QWidget(this);
+    gridLayout = new QGridLayout(bottomWidget);
+    gridLayout->setSpacing(0);
+    gridLayout->setContentsMargins(0, 0, 0, 0);
 
-    for (int row = 0; row < 2; ++row)
+    // 初始两行
+    initRows = 2;
+    totalCols = 6;
+    for (int row = 0; row < initRows; ++row)
     {
-        for (int col = 0; col < 6; ++col)
+        for (int col = 0; col < totalCols; ++col)
         {
             auto frame = new QFrame(bottomWidget);
             frame->setFrameShape(QFrame::Box);
             frame->setLineWidth(2);
 
             auto frameLayout = new QVBoxLayout(frame);
-
             auto videoPlayer = new VideoPlayer(frame);
             // videoPlayer->setUrl(QString("tcp://192.168.0.102:23145")); // 需要时可单独设置不同的URL
             frameLayout->addWidget(videoPlayer);
@@ -117,22 +117,32 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
         }
     }
 
-    // 将 Tab 和底部布局添加到右侧区域
+    auto scrollArea = new QScrollArea(this);
+    scrollArea->setWidget(bottomWidget);
+    scrollArea->setWidgetResizable(true);
+    scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+
+    // 延迟计算行高
+    QTimer::singleShot(0, [this, scrollArea]() {
+        int twoRowHeight = bottomWidget->height();
+        rowHeight = twoRowHeight / initRows;
+
+        for (int row = 0; row < initRows; ++row) {
+            gridLayout->setRowMinimumHeight(row, rowHeight);
+        }
+    });
+
     rightLayout->addWidget(tabWidget, 2);
-    rightLayout->addWidget(bottomWidget, 1);
+    rightLayout->addWidget(scrollArea, 1);
 
-    splitter->addWidget(rightWidget);  // 将右侧内容区域添加到 splitter
-
-    mainLayout->addWidget(splitter);  // 将整个 splitter 放入主布局
+    splitter->addWidget(rightWidget);
+    mainLayout->addWidget(splitter);
 
     setCentralWidget(central);
-    setWindowTitle("Qt 多布局示例");
 
     QRect screenGeometry = QGuiApplication::primaryScreen()->geometry();
-    int screenWidth = screenGeometry.width();
-    int screenHeight = screenGeometry.height();
-
-    resize(screenWidth * 0.8, screenHeight * 0.8);
+    resize(screenGeometry.width() * 0.8, screenGeometry.height() * 0.8);
 }
 
 MainWindow::~MainWindow()
@@ -168,4 +178,27 @@ void MainWindow::onTabClicked(int index)
     default:
         break;
     }
+}
+
+void MainWindow::addRow()
+{
+    int row = gridLayout->rowCount(); // 新行序号
+    for (int col = 0; col < totalCols; ++col)
+    {
+        auto frame = new QFrame(bottomWidget);
+        frame->setFrameShape(QFrame::Box);
+        frame->setLineWidth(2);
+
+        auto frameLayout = new QVBoxLayout(frame);
+        auto videoPlayer = new VideoPlayer(frame);
+        frameLayout->addWidget(videoPlayer);
+
+        gridLayout->addWidget(frame, row, col);
+    }
+
+    // 新行固定高度
+    gridLayout->setRowStretch(row, 0);
+    gridLayout->setRowMinimumHeight(row, rowHeight);
+
+    bottomWidget->adjustSize(); // 通知布局更新，触发滚动
 }

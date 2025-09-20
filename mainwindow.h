@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QKeyEvent>
+#include <QGridLayout>
 
 class MainWindow : public QMainWindow
 {
@@ -12,9 +13,17 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+    void addRow();
+
 protected:
     void keyPressEvent(QKeyEvent *event) override;
     void onTabClicked(int index);
+
+    QWidget* bottomWidget;
+    QGridLayout* gridLayout;
+    int rowHeight;
+    int initRows;
+    int totalCols;
 };
 
 #endif // MAINWINDOW_H
