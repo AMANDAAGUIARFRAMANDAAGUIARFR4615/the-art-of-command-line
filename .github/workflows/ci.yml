@@ -1,12 +1,7 @@
-name: Build and Package Qt 6.9.2 Application
+name: Build and Package Qt Application
 
 on:
   push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
 
 jobs:
   build:
@@ -30,6 +25,7 @@ jobs:
         run: |
           brew install qt@6
           brew link --force qt@6
+          lipo -info /opt/homebrew/lib/QtCore.framework/Versions/A/QtCore
 
       # 4. 安装 CMake
       - name: Install CMake
@@ -47,7 +43,7 @@ jobs:
       - name: Build project
         run: |
           cd build
-          cmake --build .
+          cmake --build . --verbose
 
       # 7. 打包项目
       - name: Package Application

@@ -80,7 +80,7 @@ void TcpServer::processBufferedData(QTcpSocket* socket)
         quint32 jsonDataLength = *reinterpret_cast<quint32*>(buffer.data() + sizeof(quint64));
 
         if (buffer.size() < sizeof(quint64) + sizeof(quint32) + jsonDataLength) {
-            qDebugT() << "数据不完整，等待更多数据";
+            qDebugT() << "数据不完整，等待更多数据" << buffer.size() << sizeof(quint64) + sizeof(quint32) + jsonDataLength;
             return;
         }
 
