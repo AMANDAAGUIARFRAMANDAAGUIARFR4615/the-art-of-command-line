@@ -13,18 +13,18 @@ TcpServer::TcpServer(const std::function<void()> &onClientConnected,
       onClientDisconnectedCallback(onClientDisconnected),
       onErrorCallback(onError)
 {
-    connect(&server, &QTcpServer::newConnection, this, &TcpServer::onNewConnection);
+    connect(this, &QTcpServer::newConnection, this, &TcpServer::onNewConnection);
 
-    if (!server.listen(QHostAddress::AnyIPv4, port)) {
+    if (!this->listen(QHostAddress::AnyIPv4, port)) {
         qCriticalT() << "无法启动服务器" << port;
         return;
     }
 
-    qDebugT() << "服务器已启动,监听端口:" << server.serverPort();
+    qDebugT() << "服务器已启动,监听端口:" << this->serverPort();
 }
 
 void TcpServer::onNewConnection() {
-    auto *clientSocket = server.nextPendingConnection();
+    auto *clientSocket = this->nextPendingConnection();
 
     auto ip = clientSocket->peerAddress().toString();
     auto port = clientSocket->peerPort();

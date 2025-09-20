@@ -8,7 +8,7 @@
 #include <QJsonObject>
 #include <QMap>
 
-class TcpServer : public QObject
+class TcpServer : public QTcpServer
 {
     Q_OBJECT
 
@@ -19,8 +19,6 @@ public:
               const std::function<void(QAbstractSocket::SocketError)> &onError,
               quint16 port = 0);
 
-    quint16 getPort() const { return server.serverPort(); }
-
 private slots:
     void onNewConnection();
     void onReadyRead();
@@ -28,7 +26,6 @@ private slots:
     void onErrorOccurred(QAbstractSocket::SocketError socketError);
 
 private:
-    QTcpServer server;
     QMap<QTcpSocket*, QByteArray> clientBuffers; // 保存每个客户端的缓冲区
     std::function<void()> onClientConnectedCallback;
     std::function<void(const QJsonObject&)> onDataReceivedCallback;
