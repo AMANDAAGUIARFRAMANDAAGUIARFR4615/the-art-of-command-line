@@ -25,34 +25,28 @@ jobs:
       - name: Install Qt 6.9.2
         run: |
           brew install qt@6
-          brew link --force qt@6
           lipo -info /opt/homebrew/lib/QtCore.framework/Versions/A/QtCore
 
-      # 4. 安装 CMake
-      - name: Install CMake
-        run: |
-          brew install cmake
-
-      # 5. 配置 CMake 构建
+      # 4. 配置 CMake 构建
       - name: Configure CMake
         run: |
           mkdir build
           cd build
           cmake .. -DCMAKE_BUILD_TYPE=Release
 
-      # 6. 编译项目
+      # 5. 编译项目
       - name: Build project
         run: |
           cd build
           cmake --build . --verbose
 
-      # 7. 打包项目
+      # 6. 打包项目
       - name: Package Application
         run: |
           cd build
           macdeployqt RemotePro.app
 
-      # 8. 上传打包后的应用
+      # 7. 上传打包后的应用
       - name: Upload Application
         uses: actions/upload-artifact@v4
         with:
