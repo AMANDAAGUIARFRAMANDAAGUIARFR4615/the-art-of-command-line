@@ -1,7 +1,7 @@
 name: Build and Package Qt Application
 
 on:
-  push:
+  # push:
   workflow_dispatch:
 
 jobs:
@@ -32,19 +32,9 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake .. -DCMAKE_BUILD_TYPE=Release
-
-      # 5. 编译项目
-      - name: Build project
-        run: |
-          cd build
+          cmake .. -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" -DQt6_DIR=/Users/lin/Qt/6.9.2/macos/lib/cmake/Qt6 -DCMAKE_BUILD_TYPE=Release
           cmake --build . --verbose
-
-      # 6. 打包项目
-      - name: Package Application
-        run: |
-          cd build
-          macdeployqt RemotePro.app
+          /Users/lin/Qt/6.9.2/macos/bin/macdeployqt RemotePro.app
 
       # 7. 上传打包后的应用
       - name: Upload Application

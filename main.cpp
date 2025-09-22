@@ -5,8 +5,10 @@
 #include "UdpTransport.h"
 #include "ToastWidget.h"
 #include "NetworkUtils.h"
+#include "LogWindow.h"
 
 #include <QApplication>
+#include <QShortcut>
 
 MainWindow* mainWindow;
 
@@ -41,12 +43,16 @@ int main(int argc, char *argv[])
 {
     QApplication application(argc, argv);
 
+    mainWindow = new MainWindow;
+    auto logWindow = new LogWindow(mainWindow);
+    // logWindow->hide(); 
+    auto *shortcut = new QShortcut(QKeySequence(Qt::Key_F5), mainWindow);
+    QObject::connect(shortcut, &QShortcut::activated, logWindow, &LogWindow::toggleVisibility);
+
     TcpServer server(onClientConnected, onDataReceived, onClientDisconnected, onError, 12345);
 
     QString localIP = NetworkUtils::getLocalIP();
     qDebugEx() << "本机内网IP:" << localIP;
-
-    mainWindow = new MainWindow;
 
     UdpTransport udpTransport(
         [](const QJsonObject &jsonObject) {
