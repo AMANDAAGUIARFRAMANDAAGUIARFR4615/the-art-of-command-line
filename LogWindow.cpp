@@ -23,7 +23,9 @@ void messageHandler(QtMsgType type, const QMessageLogContext &context, const QSt
         break;
     }
 
-    LogWindow::getInstance()->append(logMessage);
+    QMetaObject::invokeMethod(LogWindow::getInstance(), [logMessage]() {
+        LogWindow::getInstance()->append(logMessage);
+    });
 }
 
 LogWindow* LogWindow::m_instance = nullptr;
