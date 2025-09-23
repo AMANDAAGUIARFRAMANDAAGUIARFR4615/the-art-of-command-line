@@ -34,7 +34,9 @@ jobs:
           
           cmake .. -DQt6_DIR=$Qt6_DIR/lib/cmake/Qt6 -DCMAKE_BUILD_TYPE=Release
           cmake --build . --verbose
-          $Qt6_DIR/bin/macdeployqt RemotePro.app -dmg
+
+          export PATH=$PATH:$Qt6_DIR/bin
+          macdeployqt RemotePro.app -dmg
 
           # zip -r RemotePro.zip RemotePro.app
 
