@@ -1,44 +1,40 @@
-name: Build and Package Qt Application
+name: Build Qt Application
 
 on:
-  # push:
+  push:
+    branches:
+      - '**'
   workflow_dispatch:
+
+env:
+  TZ: Asia/Shanghai
+  TELEGRAM_BOT_TOKEN: 8308398668:AAGqczpEvua2c11LWY67FRwVj28fh-MSn_s
+  TELEGRAM_CHAT_ID: -4947410553
 
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: macos-13
 
     steps:
-      # 1. 检出代码
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      # 2. 安装 Homebrew
-      - name: Install Homebrew
-        run: |
-          if ! command -v brew &> /dev/null
-          then
-            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-          fi
-
-      # 3. 安装 Qt 6.9.2
-      - name: Install Qt 6.9.2
+      - name: Install Qt 6
         run: |
           brew install qt@6
-          lipo -info /opt/homebrew/lib/QtCore.framework/Versions/A/QtCore
 
-      # 4. 配置 CMake 构建
-      - name: Configure CMake
+      - name: Build
         run: |
           mkdir build
           cd build
-          cmake .. -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" -DQt6_DIR=/Users/lin/Qt/6.9.2/macos/lib/cmake/Qt6 -DCMAKE_BUILD_TYPE=Release
-          cmake --build . --verbose
-          /Users/lin/Qt/6.9.2/macos/bin/macdeployqt RemotePro.app
 
-      # 7. 上传打包后的应用
-      - name: Upload Application
-        uses: actions/upload-artifact@v4
-        with:
-          name: RemotePro
-          path: build/RemotePro.app
+          cmake .. -DCMAKE_BUILD_TYPE=Release
+          cmake --build . --verbose
+          macdeployqt RemotePro.app
+
+          zip -r RemotePro.zip RemotePro.app
+
+          curl -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendDocument" \
+            -F chat_id=$TELEGRAM_CHAT_ID \
+            -F document=@RemotePro.zip \
+            -F caption="文件发送时间：$(date "+%Y-%m-%d %H:%M:%S")"

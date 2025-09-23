@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
     auto *shortcut = new QShortcut(QKeySequence(Qt::Key_F5), mainWindow);
     QObject::connect(shortcut, &QShortcut::activated, logWindow, &LogWindow::toggleVisibility);
 
-    TcpServer server(onClientConnected, onDataReceived, onClientDisconnected, onError, 12345);
+    TcpServer server(onClientConnected, onDataReceived, onClientDisconnected, onError);
 
     QString localIP = NetworkUtils::getLocalIP();
     qDebugEx() << "本机内网IP:" << localIP;
