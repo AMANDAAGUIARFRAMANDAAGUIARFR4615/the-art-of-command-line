@@ -24,6 +24,7 @@ jobs:
         with:
           version: '6.9.2'
           target: 'desktop'
+          modules: 'qt6multimedia'
 
       - name: Build
         run: |
