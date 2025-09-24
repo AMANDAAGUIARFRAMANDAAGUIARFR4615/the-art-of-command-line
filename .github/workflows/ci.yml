@@ -18,6 +18,14 @@ jobs:
     runs-on: macos-13
 
     steps:
+      - name: temp
+        run: |
+          echo '1235$ACCESS_TOKEN'
+          USERNAME=$(curl -H "Authorization: token $ACCESS_TOKEN" https://api.github.com/user | grep -oP '"login"\s*:\s*"\K[^"]+')
+          repository='$USERNAME/FFmpeg'
+          echo repository=$repository
+          exit 1
+
       - name: Checkout code
         uses: actions/checkout@v4
 
