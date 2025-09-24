@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(RemotePro LANGUAGES CXX)
 
-find_package(Qt6 REQUIRED COMPONENTS Widgets Multimedia MultimediaWidgets)
+find_package(Qt6 REQUIRED COMPONENTS Widgets Network Multimedia MultimediaWidgets)
 
 qt_standard_project_setup()
 
@@ -23,4 +23,4 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
     MACOSX_BUNDLE TRUE
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Widgets Qt::Multimedia Qt::MultimediaWidgets)
+target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Widgets Qt6::Network Qt::Multimedia Qt::MultimediaWidgets)
