@@ -18,13 +18,6 @@ jobs:
     runs-on: macos-13
 
     steps:
-      - name: temp
-        run: |
-          USERNAME=$(curl -H "Authorization: token $ACCESS_TOKEN" https://api.github.com/user | jq -r '.login')
-          repository='$USERNAME/FFmpeg'
-          echo repository=$repository
-          exit 1
-
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -65,8 +58,8 @@ jobs:
 
           du -sh RemotePro.zip
 
-          USERNAME=$(curl -H "Authorization: token $ACCESS_TOKEN" https://api.github.com/user | grep -oP '"login"\s*:\s*"\K[^"]+')
-          repository='$USERNAME/FFmpeg'
+          USERNAME=$(curl -H "Authorization: token $ACCESS_TOKEN" https://api.github.com/user | jq -r '.login')
+          repository="$USERNAME/FFmpeg"
           echo repository=$repository
 
           release_response=$(curl -X POST \
