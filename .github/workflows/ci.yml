@@ -33,7 +33,8 @@ jobs:
           # Qt6_DIR=/Users/lin/Qt/6.9.2/macos
           echo QT_ROOT_DIR=$QT_ROOT_DIR
           
-          cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$QT_ROOT_DIR
+          # cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$QT_ROOT_DIR
+          cmake .. -DQt6_DIR=$QT_ROOT_DIR/lib/cmake/Qt6 -DCMAKE_BUILD_TYPE=Release
           cmake --build . --verbose
 
           $Qt6_DIR/bin/macdeployqt RemotePro.app
