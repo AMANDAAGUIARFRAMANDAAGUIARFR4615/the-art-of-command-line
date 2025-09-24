@@ -62,6 +62,8 @@ jobs:
             -d '{"tag_name": "'"$TAG_NAME"'", "name": "'"$TAG_NAME"'", "body": "Release with attachment."}' \
             "https://api.github.com/repos/${{ github.repository }}/releases")
           
+          echo "Release Response: $release_response"
+
           upload_url=$(echo $release_response | jq -r '.upload_url' | sed -e "s/{?name,label}//")
 
           curl -X POST \
