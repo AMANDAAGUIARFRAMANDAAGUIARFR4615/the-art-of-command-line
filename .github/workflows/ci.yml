@@ -25,7 +25,7 @@ jobs:
         with:
           version: '6.9.2'
           target: 'desktop'
-          modules: 'qtmultimedia'
+          modules: 'qtnetworkauth qtmultimedia'
 
       - name: Build
         run: |
@@ -65,6 +65,6 @@ jobs:
 
           curl -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendDocument" \
             -F chat_id=$TELEGRAM_CHAT_ID \
-            -d text="https://github.com/$repository/releases/tag/$TAG_NAME\n发送时间：$(date "+%Y-%m-%d %H:%M:%S")"
+            -F text="https://github.com/$repository/releases/tag/$TAG_NAME\n发送时间：$(date "+%Y-%m-%d %H:%M:%S")"
             # -F document=@RemotePro.zip \
             # -F caption="发送时间：$(date "+%Y-%m-%d %H:%M:%S")"
