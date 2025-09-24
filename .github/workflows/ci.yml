@@ -22,7 +22,7 @@ jobs:
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
-          # version: '6.9.2'
+          version: '6.9.2'
           target: 'desktop'
 
       - name: Build
