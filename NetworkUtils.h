@@ -14,18 +14,17 @@ public:
     static QString getLocalIP()
     {
         // 获取所有网络接口
-        QList<QNetworkInterface> interfaces = QNetworkInterface::allInterfaces();
+        auto interfaces = QNetworkInterface::allInterfaces();
         
-        for (const QNetworkInterface &interface : interfaces) {
-            // 排除虚拟网卡接口，比如 vEthernet(WSL) 等
-            if (interface.humanReadableName().contains("vEthernet") ||
-                !interface.flags().testFlag(QNetworkInterface::IsUp) ||
+        for (const auto &interface : interfaces) {
+            // 排除虚拟网卡和回环接口
+            if (!interface.flags().testFlag(QNetworkInterface::IsUp) ||
                 interface.flags().testFlag(QNetworkInterface::IsLoopBack)) {
-                continue; // 跳过虚拟网卡接口
+                continue;
             }
 
-            QList<QNetworkAddressEntry> entries = interface.addressEntries();
-            for (const QNetworkAddressEntry &entry : entries) {
+            auto entries = interface.addressEntries();
+            for (const auto &entry : entries) {
                 if (entry.ip().protocol() == QAbstractSocket::IPv4Protocol) {
                     // 返回第一个有效的 IPv4 地址
                     return entry.ip().toString();

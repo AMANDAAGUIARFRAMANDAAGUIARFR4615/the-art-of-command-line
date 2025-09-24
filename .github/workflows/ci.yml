@@ -11,7 +11,6 @@ env:
   TELEGRAM_BOT_TOKEN: 8308398668:AAGqczpEvua2c11LWY67FRwVj28fh-MSn_s
   TELEGRAM_CHAT_ID: -4947410553
   ACCESS_TOKEN: ghp_${{ 'uco6azeC3TQJRa6wI0Wy3t4Pn8LUJs3oB3RO' }}
-  TAG_NAME: tag-${{ github.run_id }}
 
 jobs:
   build:
@@ -35,23 +34,9 @@ jobs:
 
           # QT_ROOT_DIR=/Users/lin/Qt/6.9.2/macos
           echo QT_ROOT_DIR=$QT_ROOT_DIR
-          
-          # cd $QT_ROOT_DIR
-          # ls
-          # echo "cd lib"
-          # cd lib
-          # ls
-          # echo "cd cmake"
-          # cd cmake
-          # ls
-          # echo "cd Qt6"
-          # cd Qt6
-          # ls
 
-          # cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$QT_ROOT_DIR
           cmake .. -DQt6_DIR=$QT_ROOT_DIR/lib/cmake/Qt6 -DCMAKE_BUILD_TYPE=Release
           cmake --build . --verbose
-
           $QT_ROOT_DIR/bin/macdeployqt RemotePro.app
 
           zip -r RemotePro.zip RemotePro.app
@@ -60,11 +45,12 @@ jobs:
 
           USERNAME=$(curl -H "Authorization: token $ACCESS_TOKEN" https://api.github.com/user | jq -r '.login')
           repository="$USERNAME/FFmpeg"
-          echo repository=$repository
+          
+          TAG_NAME="v$(date +%Y%m%d%H%M%S)"
 
           release_response=$(curl -X POST \
             -H "Authorization: token ${{ env.ACCESS_TOKEN }}" \
-            -d '{"tag_name": "'"$TAG_NAME"'", "name": "'"$TAG_NAME"'", "body": "Release with attachment."}' \
+            -d '{"tag_name": "$TAG_NAME", "name": "${{ github.event.head_commit.message }}", "body": "$(date "+%Y-%m-%d %H:%M:%S")"}' \
             "https://api.github.com/repos/$repository/releases")
           
           echo "Release Response: $release_response"
@@ -79,5 +65,6 @@ jobs:
 
           curl -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendDocument" \
             -F chat_id=$TELEGRAM_CHAT_ID \
-            -F document=@RemotePro.zip \
-            -F caption="发送时间：$(date "+%Y-%m-%d %H:%M:%S")"
+            -d text="https://github.com/$repository/releases/tag/$TAG_NAME\n发送时间：$(date "+%Y-%m-%d %H:%M:%S")"
+            # -F document=@RemotePro.zip \
+            # -F caption="发送时间：$(date "+%Y-%m-%d %H:%M:%S")"
