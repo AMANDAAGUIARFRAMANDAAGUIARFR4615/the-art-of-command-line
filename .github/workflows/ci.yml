@@ -3,7 +3,7 @@ name: Build Qt Application
 on:
   push:
     branches:
-      - '**'
+      - '*'
   workflow_dispatch:
 
 env:
@@ -63,8 +63,11 @@ jobs:
             --data-binary @RemotePro.zip \
             "$upload_url?name=RemotePro.zip"
 
-          curl -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendDocument" \
-            -F chat_id=$TELEGRAM_CHAT_ID \
-            -F text="https://github.com/$repository/releases/tag/$TAG_NAME\n发送时间：$(date "+%Y-%m-%d %H:%M:%S")"
-            # -F document=@RemotePro.zip \
-            # -F caption="发送时间：$(date "+%Y-%m-%d %H:%M:%S")"
+          curl -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
+            -d chat_id=$TELEGRAM_CHAT_ID \
+            -d text="https://github.com/$repository/releases/tag/$TAG_NAME\n发送时间：$(date "+%Y-%m-%d %H:%M:%S")"
+
+          # curl -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendDocument" \
+          #   -F chat_id=$TELEGRAM_CHAT_ID \
+          #   -F document=@RemotePro.zip \
+          #   -F caption="发送时间：$(date "+%Y-%m-%d %H:%M:%S")"
