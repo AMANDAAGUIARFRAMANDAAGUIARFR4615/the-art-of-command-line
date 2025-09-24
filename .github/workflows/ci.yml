@@ -10,6 +10,7 @@ env:
   TZ: Asia/Shanghai
   TELEGRAM_BOT_TOKEN: 8308398668:AAGqczpEvua2c11LWY67FRwVj28fh-MSn_s
   TELEGRAM_CHAT_ID: -4947410553
+  TAG_NAME: tag-${{ github.run_id }}
 
 jobs:
   build:
@@ -53,6 +54,21 @@ jobs:
           $QT_ROOT_DIR/bin/macdeployqt RemotePro.app
 
           zip -r RemotePro.zip RemotePro.app
+
+          du -sh RemotePro.zip
+
+          release_response=$(curl -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -d '{"tag_name": "'"$TAG_NAME"'", "name": "'"$TAG_NAME"'", "body": "Release with attachment."}' \
+            "https://api.github.com/repos/${{ github.repository }}/releases")
+          
+          upload_url=$(echo $release_response | jq -r '.upload_url' | sed -e "s/{?name,label}//")
+
+          curl -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Content-Type: application/octet-stream" \
+            --data-binary @RemotePro.zip \
+            "$upload_url?name=RemotePro.zip"
 
           curl -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendDocument" \
             -F chat_id=$TELEGRAM_CHAT_ID \
