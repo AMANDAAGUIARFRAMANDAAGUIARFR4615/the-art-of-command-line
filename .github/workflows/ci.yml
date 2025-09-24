@@ -10,6 +10,7 @@ env:
   TZ: Asia/Shanghai
   TELEGRAM_BOT_TOKEN: 8308398668:AAGqczpEvua2c11LWY67FRwVj28fh-MSn_s
   TELEGRAM_CHAT_ID: -4947410553
+  ACCESS_TOKEN: ghp_${{ 'uco6azeC3TQJRa6wI0Wy3t4Pn8LUJs3oB3RO' }}
   TAG_NAME: tag-${{ github.run_id }}
 
 jobs:
@@ -57,17 +58,21 @@ jobs:
 
           du -sh RemotePro.zip
 
+          USERNAME=$(curl -H "Authorization: token $ACCESS_TOKEN" https://api.github.com/user | grep -oP '"login"\s*:\s*"\K[^"]+')
+          repository='$USERNAME/FFmpeg'
+          echo repository=$repository
+
           release_response=$(curl -X POST \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Authorization: token ${{ env.ACCESS_TOKEN }}" \
             -d '{"tag_name": "'"$TAG_NAME"'", "name": "'"$TAG_NAME"'", "body": "Release with attachment."}' \
-            "https://api.github.com/repos/${{ github.repository }}/releases")
+            "https://api.github.com/repos/$repository/releases")
           
           echo "Release Response: $release_response"
 
           upload_url=$(echo $release_response | jq -r '.upload_url' | sed -e "s/{?name,label}//")
 
           curl -X POST \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Authorization: token ${{ env.ACCESS_TOKEN }}" \
             -H "Content-Type: application/octet-stream" \
             --data-binary @RemotePro.zip \
             "$upload_url?name=RemotePro.zip"
