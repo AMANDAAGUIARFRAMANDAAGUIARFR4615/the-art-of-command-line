@@ -30,14 +30,27 @@ jobs:
           mkdir build
           cd build
 
-          # Qt6_DIR=/Users/lin/Qt/6.9.2/macos
+          # QT_ROOT_DIR=/Users/lin/Qt/6.9.2/macos
           echo QT_ROOT_DIR=$QT_ROOT_DIR
           
+          cd $QT_ROOT_DIR
+          ls
+          echo "cd lib"
+          cd lib
+          ls
+          echo "cd cmake"
+          cd cmake
+          ls
+          echo "cd Qt6"
+          cd Qt6
+          ls
+          exit 0
+
           # cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$QT_ROOT_DIR
           cmake .. -DQt6_DIR=$QT_ROOT_DIR/lib/cmake/Qt6 -DCMAKE_BUILD_TYPE=Release
           cmake --build . --verbose
 
-          $Qt6_DIR/bin/macdeployqt RemotePro.app
+          $QT_ROOT_DIR/bin/macdeployqt RemotePro.app
 
           zip -r RemotePro.zip RemotePro.app
 
