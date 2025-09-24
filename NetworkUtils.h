@@ -1,9 +1,10 @@
 #ifndef NETWORKUTILS_H
 #define NETWORKUTILS_H
 
+#include <QOperatingSystemVersion>
+#include <QProcess>
 #include <QNetworkInterface>
 #include <QHostAddress>
-#include <QDebug>
 #include <QString>
 #include <QList>
 
@@ -13,7 +14,23 @@ public:
     // 获取本机内网IP地址
     static QString getLocalIP()
     {
-        // 获取所有网络接口
+        if (QOperatingSystemVersion::current().type() == QOperatingSystemVersion::MacOS) {
+            QProcess process;
+            process.start("networksetup", QStringList() << "-getinfo" << "Wi-Fi");
+            process.waitForFinished();
+
+            auto output = process.readAllStandardOutput();
+            auto lines = output.split('\n');
+
+            // 查找IP地址所在行
+            for (const auto &line : lines) {
+                if (line.startsWith("IP address:")) {
+                    qDebugEx() << "networksetup" << line;
+                    return line.mid(12).trimmed();
+                }
+            }
+        }
+
         auto interfaces = QNetworkInterface::allInterfaces();
         
         for (const auto &interface : interfaces) {
