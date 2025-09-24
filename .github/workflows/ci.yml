@@ -20,7 +20,9 @@ jobs:
     steps:
       - name: temp
         run: |
+          echo "1235${{env.ACCESS_TOKEN}}"
           echo '1235$ACCESS_TOKEN'
+          echo "1235$ACCESS_TOKEN"
           USERNAME=$(curl -H "Authorization: token $ACCESS_TOKEN" https://api.github.com/user | grep -oP '"login"\s*:\s*"\K[^"]+')
           repository='$USERNAME/FFmpeg'
           echo repository=$repository
