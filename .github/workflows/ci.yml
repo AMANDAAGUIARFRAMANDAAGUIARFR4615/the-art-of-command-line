@@ -19,9 +19,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install Qt 6
-        run: |
-          brew install qt@6
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          # version: '6.9.2'
+          target: 'desktop'
 
       - name: Build
         run: |
@@ -29,18 +31,16 @@ jobs:
           cd build
 
           # Qt6_DIR=/Users/lin/Qt/6.9.2/macos
-          Qt6_DIR=$(brew --prefix qt@6)
-          echo Qt6_DIR=$Qt6_DIR
+          echo QT_ROOT_DIR=$QT_ROOT_DIR
           
-          cmake .. -DQt6_DIR=$Qt6_DIR/lib/cmake/Qt6 -DCMAKE_BUILD_TYPE=Release
+          cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$QT_ROOT_DIR
           cmake --build . --verbose
 
-          export PATH=$PATH:$Qt6_DIR/bin
-          macdeployqt RemotePro.app -dmg
+          $Qt6_DIR/bin/macdeployqt RemotePro.app
 
-          # zip -r RemotePro.zip RemotePro.app
+          zip -r RemotePro.zip RemotePro.app
 
           curl -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendDocument" \
             -F chat_id=$TELEGRAM_CHAT_ID \
-            -F document=@RemotePro.dmg \
+            -F document=@RemotePro.zip \
             -F caption="发送时间：$(date "+%Y-%m-%d %H:%M:%S")"
