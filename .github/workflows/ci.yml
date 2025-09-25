@@ -18,8 +18,8 @@ env:
 
 jobs:
   build:
-    # runs-on: macos-13
-    runs-on: macos-latest
+    runs-on: macos-13
+    # runs-on: macos-latest
 
     steps:
       - name: Checkout code
@@ -117,25 +117,26 @@ jobs:
           type = "tcp"
           localIP = "127.0.0.1"
           localPort = 5900
-          remotePort = 5900
+          # remotePort = 5900
+          remotePort = 0
           EOF
 
+      - name: frpc
+        run: |
           sudo sysadminctl -addUser newuser -password password
           sudo dscl . -append /Groups/admin GroupMembership newuser
           # dscl . -read /Groups/admin GroupMembership
 
           # brew install socat
           # socat TCP-LISTEN:1234,fork TCP:127.0.0.1:5900 &
-          
+
           chmod +x ./frpc-$(uname -m)
           ./frpc-$(uname -m) -c frpc.toml &
           
-          # sleep 5
-          # curl -u admin:admin http://127.0.0.1:7400/api/status
+          sleep 5
+          curl -u admin:admin http://127.0.0.1:7400/api/status
 
-      - name: frpc
-        if: false
-        shell: bash
+      - name: 共享
         run: |
           brew install cliclick
           brew install tesseract
@@ -220,7 +221,7 @@ jobs:
           screencapture -C -x images/screenshot_5.png
 
           echo 关闭
-          cliclick -m verbose c:517,190
+          cliclick -m verbose c:628,154
           screencapture -C -x images/screenshot_6.png
 
           recognize_and_click 966 434 110 28 "Share Screen" 120
