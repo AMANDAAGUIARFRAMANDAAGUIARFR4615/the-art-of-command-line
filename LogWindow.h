@@ -11,13 +11,10 @@ class LogWindow : public QWidget
 public:
     explicit LogWindow(QWidget *parent = nullptr);
 
-    static LogWindow* getInstance();
     void append(const QString &text);
     void toggleVisibility();
 
 private:
-    static LogWindow* m_instance;
-
     QTextBrowser *logText;
 };
 
