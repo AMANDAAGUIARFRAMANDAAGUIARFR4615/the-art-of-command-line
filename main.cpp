@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
 
     mainWindow = new MainWindow;
     auto logWindow = new LogWindow(mainWindow);
-    // logWindow->hide(); 
+    logWindow->resize(600, 400);
     auto *shortcut = new QShortcut(QKeySequence(Qt::Key_F5), mainWindow);
     QObject::connect(shortcut, &QShortcut::activated, logWindow, &LogWindow::toggleVisibility);
 
