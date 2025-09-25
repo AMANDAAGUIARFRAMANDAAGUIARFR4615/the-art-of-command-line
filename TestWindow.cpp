@@ -99,7 +99,7 @@ bool TestWindow::event(QEvent *event)
     {
         auto pos = static_cast<QMouseEvent *>(event)->pos();
         auto x = pos.x(), y = pos.y();
-        qDebugEx() << "event" << event->type() << x << y;
+        // qDebugEx() << "event" << event->type() << x << y;
 
         QJsonObject dataObject;
         dataObject["type"] = type;
@@ -113,4 +113,38 @@ bool TestWindow::event(QEvent *event)
     }
 
     return QWidget::event(event);
+}
+
+void TestWindow::keyPressEvent(QKeyEvent *event)
+{
+    qDebugEx() << "Key Pressed:" << event->key();
+
+    QJsonObject dataObject;
+    dataObject["type"] = "keyPress";
+    dataObject["key"] = event->key();
+
+    QJsonObject jsonObject;
+    jsonObject["event"] = "keyboard";
+    jsonObject["data"] = dataObject;
+
+    TcpServer::sendData(socket, jsonObject);
+
+    QWidget::keyPressEvent(event);
+}
+
+void TestWindow::keyReleaseEvent(QKeyEvent *event)
+{
+    qDebugEx() << "Key Released:" << event->key();
+
+    QJsonObject dataObject;
+    dataObject["type"] = "keyRelease";
+    dataObject["key"] = event->key();
+
+    QJsonObject jsonObject;
+    jsonObject["event"] = "keyboard";
+    jsonObject["data"] = dataObject;
+
+    TcpServer::sendData(socket, jsonObject);
+
+    QWidget::keyReleaseEvent(event);
 }
