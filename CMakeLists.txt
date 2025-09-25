@@ -16,6 +16,7 @@ add_executable(${PROJECT_NAME}
     UdpTransport.h UdpTransport.cpp
     ToastWidget.h
     NetworkUtils.h
+    TestWindow.h TestWindow.cpp
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES

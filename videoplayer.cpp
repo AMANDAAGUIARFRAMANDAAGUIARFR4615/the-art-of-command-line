@@ -1,12 +1,15 @@
 #include "VideoPlayer.h"
 #include "Logger.h"
 #include "ToastWidget.h"
+#include "TestWindow.h"
 
 #include <QMediaPlayer>
 #include <QString>
 #include <QStyle>
 #include <QVideoWidget>
 #include <QElapsedTimer>
+#include <QVBoxLayout>
+#include <QMouseEvent>
 
 VideoPlayer::VideoPlayer(QWidget *parent) : QWidget(parent)
 {
@@ -23,7 +26,7 @@ VideoPlayer::VideoPlayer(QWidget *parent) : QWidget(parent)
         if (m_mediaPlayer->error() == QMediaPlayer::NoError)
             return;
 
-        const QString errorString = m_mediaPlayer->errorString();
+        const auto errorString = m_mediaPlayer->errorString();
         QString message = "Error: ";
         if (errorString.isEmpty())
             message += " #" + QString::number(int(m_mediaPlayer->error()));
@@ -33,10 +36,10 @@ VideoPlayer::VideoPlayer(QWidget *parent) : QWidget(parent)
         new ToastWidget(message);
     });
 
-    QElapsedTimer *timer = new QElapsedTimer;
+    auto *timer = new QElapsedTimer;
     timer->start();
 
-    bool isMediaLoaded = false;
+    auto isMediaLoaded = false;
 
     connect(m_mediaPlayer, &QMediaPlayer::mediaStatusChanged, [&isMediaLoaded, timer, this](QMediaPlayer::MediaStatus status) {
         if (isMediaLoaded)
@@ -64,4 +67,13 @@ void VideoPlayer::setSource(const QUrl &source)
 void VideoPlayer::play()
 {
     m_mediaPlayer->play();
+}
+
+void VideoPlayer::mouseDoubleClickEvent(QMouseEvent *event)
+{
+    QWidget::mouseDoubleClickEvent(event);
+
+    auto *win = new TestWindow;
+    win->setAttribute(Qt::WA_DeleteOnClose);
+    win->show();
 }

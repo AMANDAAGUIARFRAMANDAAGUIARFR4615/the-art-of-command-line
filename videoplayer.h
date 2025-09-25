@@ -1,27 +1,23 @@
-#ifndef VIDEOPLAYER_H
-#define VIDEOPLAYER_H
+#pragma once
 
-#include <QMediaPlayer>
 #include <QWidget>
+#include <QUrl>
 
-QT_BEGIN_NAMESPACE
-class QLabel;
-class QUrl;
-QT_END_NAMESPACE
+class QMediaPlayer;
 
 class VideoPlayer : public QWidget
 {
     Q_OBJECT
 public:
-    VideoPlayer(QWidget *parent = nullptr);
+    explicit VideoPlayer(QWidget *parent = nullptr);
     ~VideoPlayer();
 
     void setSource(const QUrl &source);
-
     void play();
 
-private:
-    QMediaPlayer *m_mediaPlayer;
-};
+protected:
+    void mouseDoubleClickEvent(QMouseEvent *event) override;
 
-#endif
+private:
+    QMediaPlayer *m_mediaPlayer = nullptr;
+};
