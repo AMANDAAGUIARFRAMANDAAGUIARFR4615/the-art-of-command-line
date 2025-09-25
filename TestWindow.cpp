@@ -95,7 +95,7 @@ bool TestWindow::event(QEvent *event)
         break;
     }
 
-    if (type != 0 && button == Qt::LeftButton)
+    if ((type == 1 || type == 2) && button == Qt::LeftButton || type == 3)
     {
         auto pos = static_cast<QMouseEvent *>(event)->pos();
         auto x = pos.x(), y = pos.y();
