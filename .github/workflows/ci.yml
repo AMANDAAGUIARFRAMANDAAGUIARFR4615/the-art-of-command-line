@@ -43,31 +43,175 @@ jobs:
 
           du -sh RemotePro.zip
 
-          USERNAME=$(curl -H "Authorization: token $ACCESS_TOKEN" https://api.github.com/user | jq -r '.login')
-          repository="$USERNAME/FFmpeg"
+          # USERNAME=$(curl -H "Authorization: token $ACCESS_TOKEN" https://api.github.com/user | jq -r '.login')
+          # repository="$USERNAME/FFmpeg"
           
-          TAG_NAME="v$(date +%Y%m%d%H%M%S)"
+          # TAG_NAME="v$(date +%Y%m%d%H%M%S)"
 
-          release_response=$(curl -X POST \
-            -H "Authorization: token ${{ env.ACCESS_TOKEN }}" \
-            -d "{\"tag_name\": \"$TAG_NAME\", \"name\": \"${{ github.event.head_commit.message }}\", \"body\": \"$(date "+%Y-%m-%d %H:%M:%S")\"}" \
-            "https://api.github.com/repos/$repository/releases")
+          # release_response=$(curl -X POST \
+          #   -H "Authorization: token ${{ env.ACCESS_TOKEN }}" \
+          #   -d "{\"tag_name\": \"$TAG_NAME\", \"name\": \"${{ github.event.head_commit.message }}\", \"body\": \"$(date "+%Y-%m-%d %H:%M:%S")\"}" \
+          #   "https://api.github.com/repos/$repository/releases")
           
-          echo "Release Response: $release_response"
+          # echo "Release Response: $release_response"
 
-          upload_url=$(echo $release_response | jq -r '.upload_url' | sed -e "s/{?name,label}//")
+          # upload_url=$(echo $release_response | jq -r '.upload_url' | sed -e "s/{?name,label}//")
 
-          curl -X POST \
-            -H "Authorization: token ${{ env.ACCESS_TOKEN }}" \
-            -H "Content-Type: application/octet-stream" \
-            --data-binary @RemotePro.zip \
-            "$upload_url?name=RemotePro.zip"
+          # curl -X POST \
+          #   -H "Authorization: token ${{ env.ACCESS_TOKEN }}" \
+          #   -H "Content-Type: application/octet-stream" \
+          #   --data-binary @RemotePro.zip \
+          #   "$upload_url?name=RemotePro.zip"
 
-          curl -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
-            -d chat_id=$TELEGRAM_CHAT_ID \
-            -d text="https://github.com/$repository/releases/tag/$TAG_NAME\n发送时间：$(date "+%Y-%m-%d %H:%M:%S")"
+          # curl -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
+          #   -d chat_id=$TELEGRAM_CHAT_ID \
+          #   -d text="https://github.com/$repository/releases/tag/$TAG_NAME\n发送时间：$(date "+%Y-%m-%d %H:%M:%S")"
 
           # curl -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendDocument" \
           #   -F chat_id=$TELEGRAM_CHAT_ID \
           #   -F document=@RemotePro.zip \
           #   -F caption="发送时间：$(date "+%Y-%m-%d %H:%M:%S")"
+
+      - name: Write to frpc.toml
+        shell: bash
+        run: |
+          brew install displayplacer
+          
+          displays=$(displayplacer list)
+          echo "$displays"
+
+          # 提取 Persistent screen id
+          display_id=$(echo "$displays" | grep -o 'Persistent screen id: [^ ]*' | awk '{print $4}' | head -n 1)
+
+          if [ -n "$display_id" ]; then
+            echo "当前显示器 ID: $display_id"
+            displayplacer "id:$display_id res:1920x1080"
+          else
+            echo "未找到显示器 ID"
+          fi
+
+          cat << EOF > frpc.toml
+          user = "mac-mini"
+
+          serverAddr = "165.154.244.104"
+          serverPort = 7000
+          loginFailExit = true
+
+          auth.method = "token"
+          auth.token = "2f1d3a0e-9b64-4b91-b76b-8cb4a2f2e5d3"
+
+          webServer.addr = "127.0.0.1"
+          webServer.port = 7400
+          webServer.user = "admin"
+          webServer.password = "admin"
+
+          [[proxies]]
+          name = "vnc"
+          type = "tcp"
+          localIP = "127.0.0.1"
+          localPort = 5900
+          remotePort = 5900
+          EOF
+
+          sudo sysadminctl -addUser newuser -password password
+          sudo dscl . -append /Groups/admin GroupMembership newuser
+          dscl . -read /Groups/admin GroupMembership
+
+          mkdir -p images
+
+          brew install cliclick
+
+          cliclick -m verbose c:28,14
+          sleep 2
+          screencapture -C -x images/screenshot_0.png
+
+          echo 系统设置
+          cliclick -m verbose c:47,75
+          sleep 2
+          screencapture -C -x images/screenshot_1.png
+          
+          echo 输入区域
+          cliclick -m verbose c:710,196
+          sleep 1
+          cliclick -m verbose dc:710,196
+          screencapture -C -x images/screenshot_2.png
+          echo 输入中...
+          cliclick -m verbose t:"Screen Sharing"
+          echo 输入结束
+          sleep 5
+          screencapture -C -x images/screenshot_3.png
+
+          echo 共享
+          cliclick -m verbose c:666,316
+          sleep 2
+          screencapture -C -x images/screenshot_4.png
+
+          echo 开启
+          cliclick -m verbose c:1240,343
+          sleep 2
+          screencapture -C -x images/screenshot_5.png
+
+          echo 关闭
+          cliclick -m verbose c:517,190
+          screencapture -C -x images/screenshot_6.png
+
+          # brew install socat
+          # socat TCP-LISTEN:1234,fork TCP:127.0.0.1:5900 &
+          
+          ./frpc -c frpc.toml &
+          
+          # sleep 5
+          # curl -u admin:admin http://127.0.0.1:7400/api/status
+
+          brew install tesseract
+          # brew install tesseract-lang
+
+          echo 等待授权
+
+          recognize_and_click() {
+            local left=$1
+            local top=$2
+            local width=$3
+            local height=$4
+            local target_text=$5
+            local max_wait_time=${6:-30}  # 默认最大等待时间为30秒
+
+            for ((i=1; i<=max_wait_time; i++)); do
+              echo "[$target_text]识别中... $i"
+              screencapture -C -x -R${left},${top},${width},${height} images/screenshot.png
+
+              # 使用tesseract识别截图中的文字
+              recognized_text=$(tesseract images/screenshot.png -)
+
+              # 如果识别到目标文本，模拟点击区域中心
+              local center_x=$((left + width / 2))
+              local center_y=$((top + height / 2))
+
+              if [[ "$recognized_text" == *"$target_text"* ]]; then
+                echo "识别到目标文本 '$target_text'，正在点击..."
+                cliclick -m verbose c:$(($center_x)),$(($center_y))
+                return 0
+              fi
+
+              sleep 1
+              echo "未识别到目标文本 '$target_text'，已等待 $i 秒..."
+            done
+
+            echo "未在 $max_wait_time 秒内识别到目标文本 '$target_text'，退出。"
+            return 1
+          }
+
+          recognize_and_click 966 434 110 28 "Share Screen" 300
+          recognize_and_click 847 430 226 26 "Allow" 5
+
+      - name: 上传
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshot
+          path: images/*
+
+      - name: 等待
+        run: |
+          # sleep 1
+          sleep 14400
