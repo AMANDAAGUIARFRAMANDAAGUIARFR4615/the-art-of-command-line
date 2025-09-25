@@ -27,6 +27,13 @@ void onDataReceived(QTcpSocket* socket, const QJsonObject &jsonObject) {
 
     auto deviceName = data["deviceName"].toString();
     auto localIp = data["localIp"].toString();
+    auto orientation = data["orientation"];
+
+    // 1  Portrait 
+    // 2  PortraitUpsideDown
+    // 3  LandscapeRight
+    // 4  LandscapeLeft
+
     qDebugEx() << deviceName << localIp;
     mainWindow->addItem("tcp://" + localIp + ":23145");
 }
