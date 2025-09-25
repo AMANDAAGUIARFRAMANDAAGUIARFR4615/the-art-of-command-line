@@ -20,4 +20,5 @@ protected:
 
 private:
     QMediaPlayer *m_mediaPlayer = nullptr;
+    int videoWidth, videoHeight;
 };
