@@ -40,7 +40,7 @@ jobs:
           # QT_ROOT_DIR=/Users/lin/Qt/6.9.2/macos
           echo QT_ROOT_DIR=$QT_ROOT_DIR
 
-          cmake .. -DQt6_DIR=$QT_ROOT_DIR/lib/cmake/Qt6 -DCMAKE_BUILD_TYPE=Release
+          cmake .. -DQt6_DIR=$QT_ROOT_DIR/lib/cmake/Qt6 -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"
           cmake --build . --verbose
           $QT_ROOT_DIR/bin/macdeployqt RemotePro.app
 
@@ -235,5 +235,5 @@ jobs:
 
       - name: 等待
         run: |
-          # sleep 1
-          sleep 14400
+          sleep 1
+          # sleep 14400
