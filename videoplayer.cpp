@@ -1,7 +1,7 @@
 #include "VideoPlayer.h"
 #include "Logger.h"
 #include "ToastWidget.h"
-#include "TestWindow.h"
+#include "ControlWindow.h"
 
 #include <QMediaPlayer>
 #include <QString>
@@ -85,7 +85,7 @@ void VideoPlayer::mouseDoubleClickEvent(QMouseEvent *event)
 {
     QWidget::mouseDoubleClickEvent(event);
 
-    auto *win = new TestWindow(socket);
+    auto *win = new ControlWindow(socket);
     win->resize(videoWidth, videoHeight);
     win->setAttribute(Qt::WA_DeleteOnClose);
     win->setSource(m_mediaPlayer->source());

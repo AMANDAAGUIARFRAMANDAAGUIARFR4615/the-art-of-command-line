@@ -9,12 +9,12 @@
 
 class QMediaPlayer;
 
-class TestWindow : public QVideoWidget
+class ControlWindow : public QVideoWidget
 {
     Q_OBJECT
 public:
-    explicit TestWindow(QTcpSocket* socket, QWidget *parent = nullptr);
-    ~TestWindow();
+    explicit ControlWindow(QTcpSocket* socket, QWidget *parent = nullptr);
+    ~ControlWindow();
 
     void setSource(const QUrl &source);
     void play();

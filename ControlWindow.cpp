@@ -1,7 +1,7 @@
 #include "VideoPlayer.h"
 #include "Logger.h"
 #include "ToastWidget.h"
-#include "TestWindow.h"
+#include "ControlWindow.h"
 #include "TcpServer.h"
 
 #include <QMediaPlayer>
@@ -12,7 +12,7 @@
 #include <QVBoxLayout>
 #include <QMouseEvent>
 
-TestWindow::TestWindow(QTcpSocket *socket, QWidget *parent) : socket(socket), QVideoWidget(parent)
+ControlWindow::ControlWindow(QTcpSocket *socket, QWidget *parent) : socket(socket), QVideoWidget(parent)
 {
     m_mediaPlayer = new QMediaPlayer(this);
 
@@ -53,26 +53,26 @@ TestWindow::TestWindow(QTcpSocket *socket, QWidget *parent) : socket(socket), QV
         } });
 }
 
-TestWindow::~TestWindow() {}
+ControlWindow::~ControlWindow() {}
 
-void TestWindow::setSource(const QUrl &source)
+void ControlWindow::setSource(const QUrl &source)
 {
     m_mediaPlayer->setSource(source);
 }
 
-void TestWindow::play()
+void ControlWindow::play()
 {
     m_mediaPlayer->play();
 }
 
-void TestWindow::mouseDoubleClickEvent(QMouseEvent *event)
+void ControlWindow::mouseDoubleClickEvent(QMouseEvent *event)
 {
     QWidget::mouseDoubleClickEvent(event);
 
     qDebugEx() << "双击";
 }
 
-bool TestWindow::event(QEvent *event)
+bool ControlWindow::event(QEvent *event)
 {
     int type = 0;
     Qt::MouseButton button = Qt::NoButton;
@@ -115,7 +115,7 @@ bool TestWindow::event(QEvent *event)
     return QWidget::event(event);
 }
 
-void TestWindow::keyPressEvent(QKeyEvent *event)
+void ControlWindow::keyPressEvent(QKeyEvent *event)
 {
     qDebugEx() << "Key Pressed:" << event->key();
 
@@ -132,7 +132,7 @@ void TestWindow::keyPressEvent(QKeyEvent *event)
     QWidget::keyPressEvent(event);
 }
 
-void TestWindow::keyReleaseEvent(QKeyEvent *event)
+void ControlWindow::keyReleaseEvent(QKeyEvent *event)
 {
     qDebugEx() << "Key Released:" << event->key();
 
