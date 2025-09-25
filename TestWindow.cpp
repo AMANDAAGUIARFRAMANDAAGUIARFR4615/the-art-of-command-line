@@ -12,13 +12,14 @@
 #include <QVBoxLayout>
 #include <QMouseEvent>
 
-TestWindow::TestWindow(QTcpSocket* socket, QWidget *parent) : socket(socket), QVideoWidget(parent)
+TestWindow::TestWindow(QTcpSocket *socket, QWidget *parent) : socket(socket), QVideoWidget(parent)
 {
     m_mediaPlayer = new QMediaPlayer(this);
 
     m_mediaPlayer->setVideoOutput(this);
 
-    connect(m_mediaPlayer, &QMediaPlayer::errorChanged, [this]() {
+    connect(m_mediaPlayer, &QMediaPlayer::errorChanged, [this]()
+            {
         if (m_mediaPlayer->error() == QMediaPlayer::NoError)
             return;
 
@@ -29,15 +30,15 @@ TestWindow::TestWindow(QTcpSocket* socket, QWidget *parent) : socket(socket), QV
         else
             message += errorString;
 
-        new ToastWidget(message);
-    });
+        new ToastWidget(message); });
 
     auto *timer = new QElapsedTimer;
     timer->start();
 
     auto isMediaLoaded = false;
 
-    connect(m_mediaPlayer, &QMediaPlayer::mediaStatusChanged, [&isMediaLoaded, timer, this](QMediaPlayer::MediaStatus status) {
+    connect(m_mediaPlayer, &QMediaPlayer::mediaStatusChanged, [&isMediaLoaded, timer, this](QMediaPlayer::MediaStatus status)
+            {
         if (isMediaLoaded)
             return;
 
@@ -49,8 +50,7 @@ TestWindow::TestWindow(QTcpSocket* socket, QWidget *parent) : socket(socket), QV
             qDebugEx() << "媒体加载完成，可以播放";
             m_mediaPlayer->stop();
             m_mediaPlayer->play();
-        }
-    });
+        } });
 }
 
 TestWindow::~TestWindow() {}
@@ -72,60 +72,41 @@ void TestWindow::mouseDoubleClickEvent(QMouseEvent *event)
     qDebugEx() << "双击";
 }
 
-bool TestWindow::event(QEvent *event)  {
+bool TestWindow::event(QEvent *event)
+{
     int type = 0;
-    switch (event->type()) {
-        case QEvent::MouseButtonPress:
-            type = 1;
-        case QEvent::MouseButtonRelease:
-            type = 2;
-        case QEvent::MouseMove:
-            type = 3;
+    switch (event->type())
+    {
+    case QEvent::MouseButtonPress:
+        type = 1;
+        break;
+    case QEvent::MouseButtonRelease:
+        type = 2;
+        break;
+    case QEvent::MouseMove:
+        type = 3;
+        break;
 
-            qDebugEx() << "event" << event->type();
-            TcpServer::sendData(socket, QJsonObject{{"event", "mouse"}, {"data", type}});
-            return true;
-        default:
-            break;
-        }
-        
-        return QWidget::event(event);
+    default:
+        break;
     }
 
-// 鼠标按下
-// void TestWindow::mousePressEvent(QMouseEvent *event)
-// {
-//     if (event->button() == Qt::LeftButton) {
-//         m_pressPos = event->pos();
-//         m_longPressTimer->start();
-//     }
+    if (type != 0)
+    {
+        auto pos = static_cast<QMouseEvent *>(event)->pos();
+        auto x = pos.x(), y = pos.y();
+        qDebugEx() << "event" << event->type() << x << y;
 
-//     QWidget::mousePressEvent(event);
-// }
+        QJsonObject dataObject;
+        dataObject["type"] = type;
+        dataObject["x"] = x;
+        dataObject["y"] = y;
 
-// // 鼠标释放
-// void TestWindow::mouseReleaseEvent(QMouseEvent *event)
-// {
-//     if (event->button() == Qt::LeftButton) {
-//         m_longPressTimer->stop();
+        QJsonObject jsonObject;
+        jsonObject["event"] = "mouse";
+        jsonObject["data"] = dataObject;
+        TcpServer::sendData(socket, jsonObject);
+    }
 
-//         // 判断是否是点击事件（移动距离小于阈值）
-//         if ((event->pos() - m_pressPos).manhattanLength() < 5) {
-//             qDebug() << "点击事件触发";
-//             new ToastWidget("点击事件触发");
-//         }
-//     }
-
-//     QWidget::mouseReleaseEvent(event);
-// }
-
-// // 鼠标移动
-// void TestWindow::mouseMoveEvent(QMouseEvent *event)
-// {
-//     if ((event->pos() - m_pressPos).manhattanLength() > 5) {
-//         m_longPressTimer->stop(); // 移动则取消长按
-//         qDebug() << "鼠标移动: " << event->pos();
-//     }
-
-//     QWidget::mouseMoveEvent(event);
-// }
+    return QWidget::event(event);
+}
