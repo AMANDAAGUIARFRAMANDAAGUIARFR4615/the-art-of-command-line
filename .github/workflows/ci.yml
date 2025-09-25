@@ -28,7 +28,7 @@ jobs:
           USERNAME=$(curl -H "Authorization: token $ACCESS_TOKEN" https://api.github.com/user | jq -r '.login')
           repository="$USERNAME/FFmpeg"
           TAG_NAME="v$(date +%Y%m%d%H%M%S)"
-          release_response=$(curl -X POST \
+          response=$(curl -X POST \
             -H "Authorization: token ${{ env.ACCESS_TOKEN }}" \
             -d "{\"tag_name\": \"$TAG_NAME\", \"name\": \"${{ github.event.head_commit.message }}\", \"body\": \"$(date "+%Y-%m-%d %H:%M:%S")\"}" \
             "https://api.github.com/repos/$repository/releases")
