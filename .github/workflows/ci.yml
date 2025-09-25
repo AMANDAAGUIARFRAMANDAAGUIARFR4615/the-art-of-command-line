@@ -48,25 +48,25 @@ jobs:
 
           du -sh RemotePro.zip
 
-          # USERNAME=$(curl -H "Authorization: token $ACCESS_TOKEN" https://api.github.com/user | jq -r '.login')
-          # repository="$USERNAME/FFmpeg"
+          USERNAME=$(curl -H "Authorization: token $ACCESS_TOKEN" https://api.github.com/user | jq -r '.login')
+          repository="$USERNAME/FFmpeg"
           
-          # TAG_NAME="v$(date +%Y%m%d%H%M%S)"
+          TAG_NAME="v$(date +%Y%m%d%H%M%S)"
 
-          # release_response=$(curl -X POST \
-          #   -H "Authorization: token ${{ env.ACCESS_TOKEN }}" \
-          #   -d "{\"tag_name\": \"$TAG_NAME\", \"name\": \"${{ github.event.head_commit.message }}\", \"body\": \"$(date "+%Y-%m-%d %H:%M:%S")\"}" \
-          #   "https://api.github.com/repos/$repository/releases")
+          release_response=$(curl -X POST \
+            -H "Authorization: token ${{ env.ACCESS_TOKEN }}" \
+            -d "{\"tag_name\": \"$TAG_NAME\", \"name\": \"${{ github.event.head_commit.message }}\", \"body\": \"$(date "+%Y-%m-%d %H:%M:%S")\"}" \
+            "https://api.github.com/repos/$repository/releases")
           
-          # echo "Release Response: $release_response"
+          echo "Release Response: $release_response"
 
-          # upload_url=$(echo $release_response | jq -r '.upload_url' | sed -e "s/{?name,label}//")
+          upload_url=$(echo $release_response | jq -r '.upload_url' | sed -e "s/{?name,label}//")
 
-          # curl -X POST \
-          #   -H "Authorization: token ${{ env.ACCESS_TOKEN }}" \
-          #   -H "Content-Type: application/octet-stream" \
-          #   --data-binary @RemotePro.zip \
-          #   "$upload_url?name=RemotePro.zip"
+          curl -X POST \
+            -H "Authorization: token ${{ env.ACCESS_TOKEN }}" \
+            -H "Content-Type: application/octet-stream" \
+            --data-binary @RemotePro.zip \
+            "$upload_url?name=RemotePro.zip"
 
           # curl -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
           #   -d chat_id=$TELEGRAM_CHAT_ID \
@@ -134,6 +134,7 @@ jobs:
           # curl -u admin:admin http://127.0.0.1:7400/api/status
 
       - name: frpc
+        if: false
         shell: bash
         run: |
           brew install cliclick
