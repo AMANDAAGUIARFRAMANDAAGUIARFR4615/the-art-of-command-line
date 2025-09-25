@@ -75,13 +75,17 @@ void TestWindow::mouseDoubleClickEvent(QMouseEvent *event)
 bool TestWindow::event(QEvent *event)
 {
     int type = 0;
+    Qt::MouseButton button = Qt::NoButton;
+
     switch (event->type())
     {
     case QEvent::MouseButtonPress:
         type = 1;
+        button = static_cast<QMouseEvent *>(event)->button();
         break;
     case QEvent::MouseButtonRelease:
         type = 2;
+        button = static_cast<QMouseEvent *>(event)->button();
         break;
     case QEvent::MouseMove:
         type = 3;
@@ -91,7 +95,7 @@ bool TestWindow::event(QEvent *event)
         break;
     }
 
-    if (type != 0)
+    if (type != 0 && button == Qt::LeftButton)
     {
         auto pos = static_cast<QMouseEvent *>(event)->pos();
         auto x = pos.x(), y = pos.y();
