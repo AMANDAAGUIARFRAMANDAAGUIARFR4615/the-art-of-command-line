@@ -72,8 +72,7 @@ jobs:
           #   -F document=@RemotePro.zip \
           #   -F caption="发送时间：$(date "+%Y-%m-%d %H:%M:%S")"
 
-      - name: Write to frpc.toml
-        shell: bash
+      - name: displayplacer
         run: |
           brew install displayplacer
           
@@ -90,6 +89,9 @@ jobs:
             echo "未找到显示器 ID"
           fi
 
+      - name: frpc
+        shell: bash
+        run: |
           cat << EOF > frpc.toml
           user = "mac-mini"
 
@@ -115,11 +117,25 @@ jobs:
 
           sudo sysadminctl -addUser newuser -password password
           sudo dscl . -append /Groups/admin GroupMembership newuser
-          dscl . -read /Groups/admin GroupMembership
+          # dscl . -read /Groups/admin GroupMembership
 
-          mkdir -p images
+          # brew install socat
+          # socat TCP-LISTEN:1234,fork TCP:127.0.0.1:5900 &
+          
+          ./frpc -c frpc.toml &
+          
+          # sleep 5
+          # curl -u admin:admin http://127.0.0.1:7400/api/status
 
+
+      - name: frpc
+        shell: bash
+        run: |
           brew install cliclick
+          brew install tesseract
+          # brew install tesseract-lang
+          
+          mkdir -p images
 
           cliclick -m verbose c:28,14
           sleep 2
@@ -154,17 +170,6 @@ jobs:
           echo 关闭
           cliclick -m verbose c:517,190
           screencapture -C -x images/screenshot_6.png
-
-          # brew install socat
-          # socat TCP-LISTEN:1234,fork TCP:127.0.0.1:5900 &
-          
-          ./frpc -c frpc.toml &
-          
-          # sleep 5
-          # curl -u admin:admin http://127.0.0.1:7400/api/status
-
-          brew install tesseract
-          # brew install tesseract-lang
 
           echo 等待授权
 
