@@ -2,32 +2,6 @@
 
 #include <QVBoxLayout>
 
-void messageHandler(QtMsgType type, const QMessageLogContext &context, const QString &message)
-{
-    QString logMessage;
-    switch (type) {
-    case QtDebugMsg:
-        logMessage = QString("[DEBUG] %1").arg(message);
-        break;
-    case QtInfoMsg:
-        logMessage = QString("[INFO] %1").arg(message);
-        break;
-    case QtWarningMsg:
-        logMessage = QString("[WARNING] %1").arg(message);
-        break;
-    case QtCriticalMsg:
-        logMessage = QString("[CRITICAL] %1").arg(message);
-        break;
-    case QtFatalMsg:
-        logMessage = QString("[FATAL] %1").arg(message);
-        break;
-    }
-
-    QMetaObject::invokeMethod(LogWindow::getInstance(), [logMessage]() {
-        LogWindow::getInstance()->append(logMessage);
-    });
-}
-
 LogWindow* LogWindow::m_instance = nullptr;
 
 LogWindow::LogWindow(QWidget *parent) : QWidget(parent), logText(new QTextBrowser(this))
@@ -39,7 +13,11 @@ LogWindow::LogWindow(QWidget *parent) : QWidget(parent), logText(new QTextBrowse
     setLayout(layout);
     resize(600, 400);
 
-    qInstallMessageHandler(messageHandler);
+    qInstallMessageHandler([](QtMsgType type, const QMessageLogContext &context, const QString &message) {
+        QMetaObject::invokeMethod(LogWindow::getInstance(), [message]() {
+            LogWindow::getInstance()->append(message);
+        });
+    });
 }
 
 LogWindow* LogWindow::getInstance()
