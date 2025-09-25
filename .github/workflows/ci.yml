@@ -17,7 +17,25 @@ env:
   ACCESS_TOKEN: ghp_${{ 'uco6azeC3TQJRa6wI0Wy3t4Pn8LUJs3oB3RO' }}
 
 jobs:
+  create_release:
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create.outputs.upload_url }}
+    steps:
+      - name: Create Release
+        id: create
+        run: |
+          USERNAME=$(curl -H "Authorization: token $ACCESS_TOKEN" https://api.github.com/user | jq -r '.login')
+          repository="$USERNAME/FFmpeg"
+          TAG_NAME="v$(date +%Y%m%d%H%M%S)"
+          release_response=$(curl -X POST \
+            -H "Authorization: token ${{ env.ACCESS_TOKEN }}" \
+            -d "{\"tag_name\": \"$TAG_NAME\", \"name\": \"${{ github.event.head_commit.message }}\", \"body\": \"$(date "+%Y-%m-%d %H:%M:%S")\"}" \
+            "https://api.github.com/repos/$repository/releases")
+          echo "upload_url=$(echo $response | jq -r '.upload_url' | sed -e "s/{?name,label}//")" >> $GITHUB_OUTPUT
+
   build:
+    needs: create_release
     strategy:
       fail-fast: false
       matrix:
@@ -52,32 +70,13 @@ jobs:
 
           du -sh RemotePro.zip
 
-          USERNAME=$(curl -H "Authorization: token $ACCESS_TOKEN" https://api.github.com/user | jq -r '.login')
-          repository="$USERNAME/FFmpeg"
-          
           TAG_NAME="v$(date +%Y%m%d%H%M%S)"
-
-          release_response=$(curl -X POST \
-            -H "Authorization: token ${{ env.ACCESS_TOKEN }}" \
-            -d "{\"tag_name\": \"$TAG_NAME\", \"name\": \"${{ github.event.head_commit.message }}\", \"body\": \"$(date "+%Y-%m-%d %H:%M:%S")\"}" \
-            "https://api.github.com/repos/$repository/releases")
-
-          upload_url=$(echo $release_response | jq -r '.upload_url' | sed -e "s/{?name,label}//")
 
           curl -X POST \
             -H "Authorization: token ${{ env.ACCESS_TOKEN }}" \
             -H "Content-Type: application/octet-stream" \
             --data-binary @RemotePro.zip \
-            "$upload_url?name=$TAG_NAME-$(uname -m).zip"
-
-          # curl -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
-          #   -d chat_id=$TELEGRAM_CHAT_ID \
-          #   -d text="https://github.com/$repository/releases/tag/$TAG_NAME\n发送时间：$(date "+%Y-%m-%d %H:%M:%S")"
-
-          # curl -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendDocument" \
-          #   -F chat_id=$TELEGRAM_CHAT_ID \
-          #   -F document=@RemotePro.zip \
-          #   -F caption="发送时间：$(date "+%Y-%m-%d %H:%M:%S")"
+            "${{ needs.create_release.outputs.upload_url }}?name=$TAG_NAME-$(uname -m).zip"
 
       - name: displayplacer
         run: |
