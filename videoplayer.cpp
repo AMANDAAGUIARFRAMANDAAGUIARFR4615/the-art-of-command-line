@@ -2,15 +2,7 @@
 #include "Logger.h"
 #include "ToastWidget.h"
 
-#include <QBoxLayout>
-#include <QFileDialog>
-#include <QHBoxLayout>
-#include <QLabel>
 #include <QMediaPlayer>
-#include <QPushButton>
-#include <QSizePolicy>
-#include <QSlider>
-#include <QStandardPaths>
 #include <QString>
 #include <QStyle>
 #include <QVideoWidget>
