@@ -18,8 +18,12 @@ env:
 
 jobs:
   build:
-    runs-on: macos-13
-    # runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-13, macos-latest]
+
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout code
@@ -57,8 +61,6 @@ jobs:
             -H "Authorization: token ${{ env.ACCESS_TOKEN }}" \
             -d "{\"tag_name\": \"$TAG_NAME\", \"name\": \"${{ github.event.head_commit.message }}\", \"body\": \"$(date "+%Y-%m-%d %H:%M:%S")\"}" \
             "https://api.github.com/repos/$repository/releases")
-          
-          echo "Release Response: $release_response"
 
           upload_url=$(echo $release_response | jq -r '.upload_url' | sed -e "s/{?name,label}//")
 
@@ -66,7 +68,7 @@ jobs:
             -H "Authorization: token ${{ env.ACCESS_TOKEN }}" \
             -H "Content-Type: application/octet-stream" \
             --data-binary @RemotePro.zip \
-            "$upload_url?name=RemotePro.zip"
+            "$upload_url?name=$TAG_NAME-$(uname -m).zip"
 
           # curl -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
           #   -d chat_id=$TELEGRAM_CHAT_ID \
@@ -137,6 +139,7 @@ jobs:
           curl -u admin:admin http://127.0.0.1:7400/api/status
 
       - name: 共享
+        if: ${{ matrix.os == 'macos-latest' }}
         run: |
           brew install cliclick
           brew install tesseract
