@@ -2,6 +2,7 @@
 #include "Logger.h"
 #include "ToastWidget.h"
 #include "TestWindow.h"
+#include "TcpServer.h"
 
 #include <QMediaPlayer>
 #include <QString>
@@ -11,16 +12,9 @@
 #include <QVBoxLayout>
 #include <QMouseEvent>
 
-TestWindow::TestWindow(QWidget *parent) : QVideoWidget(parent)
+TestWindow::TestWindow(QTcpSocket* socket, QWidget *parent) : socket(socket), QVideoWidget(parent)
 {
     m_mediaPlayer = new QMediaPlayer(this);
-
-    // auto *videoWidget = new QVideoWidget(this);
-    // videoWidget->setGeometry(rect()); // 初始大小填满窗口
-    // videoWidget->show();
-    // auto *layout = new QVBoxLayout;
-    // layout->addWidget(videoWidget);
-    // setLayout(layout);
 
     m_mediaPlayer->setVideoOutput(this);
 
@@ -75,7 +69,63 @@ void TestWindow::mouseDoubleClickEvent(QMouseEvent *event)
 {
     QWidget::mouseDoubleClickEvent(event);
 
-    auto *win = new TestWindow;
-    win->setAttribute(Qt::WA_DeleteOnClose);
-    win->show();
+    qDebugEx() << "双击";
 }
+
+bool TestWindow::event(QEvent *event)  {
+    int type = 0;
+    switch (event->type()) {
+        case QEvent::MouseButtonPress:
+            type = 1;
+        case QEvent::MouseButtonRelease:
+            type = 2;
+        case QEvent::MouseMove:
+            type = 3;
+
+            qDebugEx() << "event" << event->type();
+            TcpServer::sendData(socket, QJsonObject{{"event", "mouse"}, {"data", type}});
+            return true;
+        default:
+            break;
+        }
+        
+        return QWidget::event(event);
+    }
+
+// 鼠标按下
+// void TestWindow::mousePressEvent(QMouseEvent *event)
+// {
+//     if (event->button() == Qt::LeftButton) {
+//         m_pressPos = event->pos();
+//         m_longPressTimer->start();
+//     }
+
+//     QWidget::mousePressEvent(event);
+// }
+
+// // 鼠标释放
+// void TestWindow::mouseReleaseEvent(QMouseEvent *event)
+// {
+//     if (event->button() == Qt::LeftButton) {
+//         m_longPressTimer->stop();
+
+//         // 判断是否是点击事件（移动距离小于阈值）
+//         if ((event->pos() - m_pressPos).manhattanLength() < 5) {
+//             qDebug() << "点击事件触发";
+//             new ToastWidget("点击事件触发");
+//         }
+//     }
+
+//     QWidget::mouseReleaseEvent(event);
+// }
+
+// // 鼠标移动
+// void TestWindow::mouseMoveEvent(QMouseEvent *event)
+// {
+//     if ((event->pos() - m_pressPos).manhattanLength() > 5) {
+//         m_longPressTimer->stop(); // 移动则取消长按
+//         qDebug() << "鼠标移动: " << event->pos();
+//     }
+
+//     QWidget::mouseMoveEvent(event);
+// }

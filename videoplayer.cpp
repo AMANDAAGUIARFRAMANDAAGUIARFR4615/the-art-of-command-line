@@ -12,7 +12,7 @@
 #include <QMouseEvent>
 #include <QMediaMetaData>
 
-VideoPlayer::VideoPlayer(QWidget *parent) : QWidget(parent)
+VideoPlayer::VideoPlayer(QTcpSocket* socket, QWidget *parent) : socket(socket), QWidget(parent)
 {
     m_mediaPlayer = new QMediaPlayer(this);
 
@@ -85,7 +85,7 @@ void VideoPlayer::mouseDoubleClickEvent(QMouseEvent *event)
 {
     QWidget::mouseDoubleClickEvent(event);
 
-    auto *win = new TestWindow;
+    auto *win = new TestWindow(socket);
     win->resize(videoWidth, videoHeight);
     win->setAttribute(Qt::WA_DeleteOnClose);
     win->setSource(m_mediaPlayer->source());

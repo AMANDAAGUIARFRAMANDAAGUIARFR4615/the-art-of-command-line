@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QKeyEvent>
 #include <QGridLayout>
+#include <QTcpSocket>
 
 class MainWindow : public QMainWindow
 {
@@ -13,7 +14,7 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-    void addItem(const QString& url = nullptr);
+    void addItem(const QString& url = nullptr, QTcpSocket* socket = nullptr);
 
 protected:
     void keyPressEvent(QKeyEvent *event) override;

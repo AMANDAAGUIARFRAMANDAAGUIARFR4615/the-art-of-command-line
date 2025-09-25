@@ -147,7 +147,7 @@ void MainWindow::onTabClicked(int index)
     }
 }
 
-void MainWindow::addItem(const QString& url)
+void MainWindow::addItem(const QString& url, QTcpSocket* socket)
 {
     int count = gridLayout->count();
 
@@ -165,7 +165,7 @@ void MainWindow::addItem(const QString& url)
             if (qobject_cast<VideoPlayer*>(w) == nullptr) {
                 qDebugEx() << "找到占位" << i;
                 delete w;
-                auto player = new VideoPlayer();
+                auto player = new VideoPlayer(socket);
                 player->setSource(url);
                 frameLayout->addWidget(player);
                 bottomWidget->adjustSize();
@@ -187,7 +187,7 @@ void MainWindow::addItem(const QString& url)
 
         if (i == 0 && url != nullptr) {
             qDebugEx() << "当前第一个放 VideoPlayer" << url;
-            auto player = new VideoPlayer();
+            auto player = new VideoPlayer(socket);
             player->setSource(url);
             frameLayout->addWidget(player);
         } else {

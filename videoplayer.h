@@ -2,6 +2,7 @@
 
 #include <QWidget>
 #include <QUrl>
+#include <QTcpSocket>
 
 class QMediaPlayer;
 
@@ -9,7 +10,7 @@ class VideoPlayer : public QWidget
 {
     Q_OBJECT
 public:
-    explicit VideoPlayer(QWidget *parent = nullptr);
+    explicit VideoPlayer(QTcpSocket* socket, QWidget *parent = nullptr);
     ~VideoPlayer();
 
     void setSource(const QUrl &source);
@@ -18,7 +19,7 @@ public:
 protected:
     void mouseDoubleClickEvent(QMouseEvent *event) override;
 
-private:
+    QTcpSocket* socket;
     QMediaPlayer *m_mediaPlayer = nullptr;
     int videoWidth, videoHeight;
 };

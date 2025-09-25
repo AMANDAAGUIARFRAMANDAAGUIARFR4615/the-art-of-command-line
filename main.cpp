@@ -35,7 +35,7 @@ void onDataReceived(QTcpSocket* socket, const QJsonObject &jsonObject) {
     // 4  LandscapeLeft
 
     qDebugEx() << deviceName << localIp;
-    mainWindow->addItem("tcp://" + localIp + ":23145");
+    mainWindow->addItem("tcp://" + localIp + ":23145", socket);
 }
 
 void onClientDisconnected(QTcpSocket* socket) {
