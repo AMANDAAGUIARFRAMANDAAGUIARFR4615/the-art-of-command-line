@@ -11,16 +11,18 @@
 #include <QVBoxLayout>
 #include <QMouseEvent>
 
-TestWindow::TestWindow(QWidget *parent) : QWidget(parent)
+TestWindow::TestWindow(QWidget *parent) : QVideoWidget(parent)
 {
     m_mediaPlayer = new QMediaPlayer(this);
 
-    auto *videoWidget = new QVideoWidget;
-    auto *layout = new QVBoxLayout;
-    layout->addWidget(videoWidget);
-    setLayout(layout);
+    // auto *videoWidget = new QVideoWidget(this);
+    // videoWidget->setGeometry(rect()); // 初始大小填满窗口
+    // videoWidget->show();
+    // auto *layout = new QVBoxLayout;
+    // layout->addWidget(videoWidget);
+    // setLayout(layout);
 
-    m_mediaPlayer->setVideoOutput(videoWidget);
+    m_mediaPlayer->setVideoOutput(this);
 
     connect(m_mediaPlayer, &QMediaPlayer::errorChanged, [this]() {
         if (m_mediaPlayer->error() == QMediaPlayer::NoError)

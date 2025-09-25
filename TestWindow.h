@@ -1,11 +1,12 @@
 #pragma once
 
+#include <QVideoWidget>
 #include <QWidget>
 #include <QUrl>
 
 class QMediaPlayer;
 
-class TestWindow : public QWidget
+class TestWindow : public QVideoWidget
 {
     Q_OBJECT
 public:
