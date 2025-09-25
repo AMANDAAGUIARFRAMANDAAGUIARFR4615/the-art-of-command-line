@@ -8,6 +8,7 @@ qt_standard_project_setup()
 add_executable(${PROJECT_NAME}
     main.cpp
     Logger.h
+    LogWindow.h
     MainWindow.h MainWindow.cpp
     VideoPlayer.h VideoPlayer.cpp
     TcpServer.h TcpServer.cpp
@@ -15,7 +16,6 @@ add_executable(${PROJECT_NAME}
     UdpTransport.h UdpTransport.cpp
     ToastWidget.h
     NetworkUtils.h
-    LogWindow.h LogWindow.cpp
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
