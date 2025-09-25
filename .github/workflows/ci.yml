@@ -70,13 +70,13 @@ jobs:
 
           du -sh RemotePro.zip
 
-          commit_time=$(date -d "${{ github.event.head_commit.timestamp }}" "+%Y%m%d%H%M%S")
+          # commit_time=$(date -d "${{ github.event.head_commit.timestamp }}" "+%Y%m%d%H%M%S")
 
           curl -X POST \
             -H "Authorization: token ${{ env.ACCESS_TOKEN }}" \
             -H "Content-Type: application/octet-stream" \
             --data-binary @RemotePro.zip \
-            "${{ needs.create_release.outputs.upload_url }}?name=v$commit_time-$(uname -m).zip"
+            "${{ needs.create_release.outputs.upload_url }}?name=v1-$(uname -m).zip"
 
       - name: displayplacer
         run: |
