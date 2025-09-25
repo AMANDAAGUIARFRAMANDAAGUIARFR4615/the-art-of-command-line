@@ -177,7 +177,6 @@ jobs:
             local max_wait_time=${6:-30}  # 默认最大等待时间为30秒
 
             for ((i=1; i<=max_wait_time; i++)); do
-              echo "[$target_text]识别中... $i"
               screencapture -C -x -R${left},${top},${width},${height} images/screenshot.png
 
               # 使用tesseract识别截图中的文字
