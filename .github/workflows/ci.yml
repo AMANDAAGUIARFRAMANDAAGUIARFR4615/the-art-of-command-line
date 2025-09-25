@@ -40,7 +40,7 @@ jobs:
           # QT_ROOT_DIR=/Users/lin/Qt/6.9.2/macos
           echo QT_ROOT_DIR=$QT_ROOT_DIR
 
-          cmake .. -DQt6_DIR=$QT_ROOT_DIR/lib/cmake/Qt6 -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"
+          cmake .. -DQt6_DIR=$QT_ROOT_DIR/lib/cmake/Qt6 -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="$(uname -m)"
           cmake --build . --verbose
           $QT_ROOT_DIR/bin/macdeployqt RemotePro.app
 

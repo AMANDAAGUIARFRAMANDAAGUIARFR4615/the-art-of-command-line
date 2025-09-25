@@ -17,10 +17,10 @@ public:
             QMetaObject::invokeMethod(logWindow, [type, message]() {
                 if (type == QtCriticalMsg || type == QtFatalMsg || type == QtWarningMsg) {
                     // 红色显示错误、警告、致命信息
-                    logWindow->append(QString("<span style='color:red;'>%1</span>").arg(message.toHtmlEscaped()));
+                    logWindow->append(QString("<span style='color:red;'>%1</span>").arg(message));
                 } else {
                     // 普通信息默认黑色
-                    logWindow->append(message.toHtmlEscaped());
+                    logWindow->append(message);
                 }
             });
         });
