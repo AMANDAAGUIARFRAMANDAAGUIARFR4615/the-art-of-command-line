@@ -12,7 +12,7 @@ add_executable(${PROJECT_NAME}
     EventHub.h EventHub.cpp
     MainWindow.h MainWindow.cpp
     DeviceInfo.h DeviceControl.h
-    VideoPlayer.h VideoPlayer.cpp
+    RemoteDevice.h RemoteDevice.cpp
     TcpServer.h TcpServer.cpp
     # TcpClient.h TcpClient.cpp
     UdpTransport.h UdpTransport.cpp

@@ -1,4 +1,4 @@
-#include "VideoPlayer.h"
+#include "RemoteDevice.h"
 #include "Logger.h"
 #include "ToastWidget.h"
 #include "ControlWindow.h"

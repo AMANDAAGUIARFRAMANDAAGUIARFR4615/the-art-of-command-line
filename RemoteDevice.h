@@ -7,12 +7,12 @@
 
 class QMediaPlayer;
 
-class VideoPlayer : public QWidget
+class RemoteDevice : public QWidget
 {
     Q_OBJECT
 public:
-    explicit VideoPlayer(QTcpSocket* socket, const DeviceInfo* deviceInfo, QWidget *parent = nullptr);
-    ~VideoPlayer();
+    explicit RemoteDevice(QTcpSocket* socket, const DeviceInfo* deviceInfo, QWidget *parent = nullptr);
+    ~RemoteDevice();
 
     void setSource(const QUrl &source);
     void play();

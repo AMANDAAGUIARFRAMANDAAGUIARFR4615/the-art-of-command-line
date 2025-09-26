@@ -1,4 +1,4 @@
-#include "VideoPlayer.h"
+#include "RemoteDevice.h"
 #include "Logger.h"
 #include "ToastWidget.h"
 #include "ControlWindow.h"
@@ -13,7 +13,7 @@
 #include <QMouseEvent>
 #include <QMenu>
 
-VideoPlayer::VideoPlayer(QTcpSocket* socket, const DeviceInfo* deviceInfo, QWidget *parent) : socket(socket), deviceInfo(deviceInfo), QWidget(parent)
+RemoteDevice::RemoteDevice(QTcpSocket* socket, const DeviceInfo* deviceInfo, QWidget *parent) : socket(socket), deviceInfo(deviceInfo), QWidget(parent)
 {
     m_mediaPlayer = new QMediaPlayer(this);
 
@@ -59,19 +59,19 @@ VideoPlayer::VideoPlayer(QTcpSocket* socket, const DeviceInfo* deviceInfo, QWidg
     });
 }
 
-VideoPlayer::~VideoPlayer() {}
+RemoteDevice::~RemoteDevice() {}
 
-void VideoPlayer::setSource(const QUrl &source)
+void RemoteDevice::setSource(const QUrl &source)
 {
     m_mediaPlayer->setSource(source);
 }
 
-void VideoPlayer::play()
+void RemoteDevice::play()
 {
     m_mediaPlayer->play();
 }
 
-void VideoPlayer::mouseDoubleClickEvent(QMouseEvent *event)
+void RemoteDevice::mouseDoubleClickEvent(QMouseEvent *event)
 {
     QWidget::mouseDoubleClickEvent(event);
 
@@ -83,7 +83,7 @@ void VideoPlayer::mouseDoubleClickEvent(QMouseEvent *event)
     win->show();
 }
 
-void VideoPlayer::contextMenuEvent(QContextMenuEvent *event)
+void RemoteDevice::contextMenuEvent(QContextMenuEvent *event)
 {
     QMenu contextMenu(this);
 
