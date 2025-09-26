@@ -97,12 +97,12 @@ void RemoteDevice::mouseDoubleClickEvent(QMouseEvent *event)
 {
     QWidget::mouseDoubleClickEvent(event);
 
-    auto *win = new ControlWindow(socket, deviceInfo);
-    win->resize(deviceInfo->screenWidth, deviceInfo->screenHeight);
-    win->setAttribute(Qt::WA_DeleteOnClose);
-    win->setSource(m_mediaPlayer->source());
-    win->play();
-    win->show();
+    auto *window = new ControlWindow(socket, deviceInfo);
+    window->resize(deviceInfo->screenWidth * deviceInfo->scaleFactor, deviceInfo->screenHeight * deviceInfo->scaleFactor);
+    window->setAttribute(Qt::WA_DeleteOnClose);
+    window->setSource(m_mediaPlayer->source());
+    window->play();
+    window->show();
 }
 
 void RemoteDevice::contextMenuEvent(QContextMenuEvent *event)
@@ -112,7 +112,7 @@ void RemoteDevice::contextMenuEvent(QContextMenuEvent *event)
     QAction *fileAction = new QAction("文件传输", this);
     connect(fileAction, &QAction::triggered, [this]() {
         auto window = new RemoteFileExplorer(socket);
-        window->resize(deviceInfo->screenWidth, deviceInfo->screenHeight);
+        window->resize(deviceInfo->screenWidth * deviceInfo->scaleFactor, deviceInfo->screenHeight * deviceInfo->scaleFactor);
         window->show();
     });
 

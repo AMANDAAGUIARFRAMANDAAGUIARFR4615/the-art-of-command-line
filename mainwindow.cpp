@@ -109,8 +109,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
     setCentralWidget(central);
 
-    QRect screenGeometry = QGuiApplication::primaryScreen()->geometry();
-    resize(screenGeometry.width() * 0.8, screenGeometry.height() * 0.8);
+    QSize screenSize = QGuiApplication::primaryScreen()->size();
+    resize(screenSize.width() * 0.8, screenSize.height() * 0.8);
 
     EventHub::StartListening("deviceInfo", [this](const QJsonObject &jsonObject, QTcpSocket* socket) {
         auto deviceInfo = new DeviceInfo(jsonObject);

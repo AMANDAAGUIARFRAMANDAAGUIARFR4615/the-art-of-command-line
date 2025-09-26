@@ -3,7 +3,8 @@
 
 #include <QJsonObject>
 #include <QString>
-#include <QDebug>
+#include <QGuiApplication>
+#include <QScreen>
 
 class DeviceInfo {
 public:
@@ -17,7 +18,17 @@ public:
           platform(json["platform"].toString()),
           screenHeight(json["screenHeight"].toInt()),
           screenWidth(json["screenWidth"].toInt()),
-          version(json["version"].toString()) {}
+          version(json["version"].toString()) {
+
+        auto screenSize = QGuiApplication::primaryScreen()->size();
+        auto maxWidth = screenSize.width() * 0.8;
+        auto maxHeight = screenSize.height() * 0.8;
+
+        if (screenWidth > maxWidth || screenHeight > maxHeight) {
+            // 选择最小的缩放比例，保证宽高都不会超过屏幕
+            scaleFactor = std::min(maxWidth / screenWidth, maxHeight / screenHeight);
+        }
+    }
 
     QString toString() const {
         return QString("DeviceInfo(deviceId: %1, deviceName: %2, inuse: %3, jbType: %4, "
@@ -45,6 +56,7 @@ public:
     const int screenHeight;
     const int screenWidth;
     const QString version;
+    float scaleFactor = 1;
 
     friend QDebug operator<<(QDebug dbg, const DeviceInfo &deviceInfo) {
         dbg.nospace() << "DeviceInfo(deviceId: " << deviceInfo.deviceId
