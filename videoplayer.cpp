@@ -2,7 +2,8 @@
 #include "Logger.h"
 #include "ToastWidget.h"
 #include "ControlWindow.h"
-
+#include "DeviceControl.h"
+#include "RemoteFileExplorerWidget.h"
 #include <QMediaPlayer>
 #include <QString>
 #include <QStyle>
@@ -10,6 +11,7 @@
 #include <QElapsedTimer>
 #include <QVBoxLayout>
 #include <QMouseEvent>
+#include <QMenu>
 
 VideoPlayer::VideoPlayer(QTcpSocket* socket, const DeviceInfo* deviceInfo, QWidget *parent) : socket(socket), deviceInfo(deviceInfo), QWidget(parent)
 {
@@ -79,4 +81,38 @@ void VideoPlayer::mouseDoubleClickEvent(QMouseEvent *event)
     win->setSource(m_mediaPlayer->source());
     win->play();
     win->show();
+}
+
+void VideoPlayer::contextMenuEvent(QContextMenuEvent *event)
+{
+    QMenu contextMenu(this);
+
+    QAction *fileAction = new QAction("文件传输", this);
+    connect(fileAction, &QAction::triggered, [this]() {
+        auto window = new RemoteFileExplorerWidget;
+        window->resize(deviceInfo->screenWidth, deviceInfo->screenHeight);
+        window->show();
+    });
+
+    QAction *unlockAction = new QAction("解锁", this);
+    connect(unlockAction, &QAction::triggered, [this]() {
+        DeviceControl::unlockScreen(socket);
+    });
+
+    QAction *lockAction = new QAction("锁屏", this);
+    connect(lockAction, &QAction::triggered, [this]() {
+        DeviceControl::lockScreen(socket);
+    });
+
+    QAction *rebootAction = new QAction("重启", this);
+    connect(rebootAction, &QAction::triggered, [this]() {
+        DeviceControl::reboot(socket);
+    });
+
+    contextMenu.addAction(fileAction);
+    contextMenu.addAction(unlockAction);
+    contextMenu.addAction(lockAction);
+    contextMenu.addAction(rebootAction);
+
+    contextMenu.exec(event->globalPos());
 }

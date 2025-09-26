@@ -77,8 +77,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     auto tab2 = new QWidget();
     auto tab3 = new QWidget();
     tab1->setLayout(new QVBoxLayout());
-    auto window = new RemoteFileExplorerWidget;
-    tab1->layout()->addWidget(window);
+    tab1->layout()->addWidget(new QLabel("这是标签页 2 的内容"));
     tab2->setLayout(new QVBoxLayout());
     tab2->layout()->addWidget(new QLabel("这是标签页 2 的内容"));
     tab3->setLayout(new QVBoxLayout());

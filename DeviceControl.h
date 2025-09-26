@@ -8,14 +8,14 @@
 
 class DeviceControl {
 public:
-    // 锁屏
-    static void lockScreen(QTcpSocket* socket) {
-        sendEvent(socket, "changeScreenLockedStatus", 1);
-    }
-
     // 解锁
     static void unlockScreen(QTcpSocket* socket) {
         sendEvent(socket, "changeScreenLockedStatus", 0);
+    }
+
+    // 锁屏
+    static void lockScreen(QTcpSocket* socket) {
+        sendEvent(socket, "changeScreenLockedStatus", 1);
     }
 
     // 重启
