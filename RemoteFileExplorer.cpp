@@ -1,4 +1,4 @@
-#include "RemoteFileExplorerWidget.h"
+#include "RemoteFileExplorer.h"
 #include "Logger.h"
 #include "EventHub.h"
 
@@ -13,7 +13,7 @@
 #include <QApplication>
 #include <QFileIconProvider>
 
-RemoteFileExplorerWidget::RemoteFileExplorerWidget(QWidget *parent) : QWidget(parent), manager(new QNetworkAccessManager(this))
+RemoteFileExplorer::RemoteFileExplorer(QWidget *parent) : QWidget(parent), manager(new QNetworkAccessManager(this))
 {
     treeView = new QTreeView(this);
     auto layout = new QVBoxLayout(this);
@@ -26,7 +26,7 @@ RemoteFileExplorerWidget::RemoteFileExplorerWidget(QWidget *parent) : QWidget(pa
     model->setHorizontalHeaderLabels({"文件夹名称"});
     treeView->setModel(model);
 
-    connect(treeView, &QTreeView::expanded, this, &RemoteFileExplorerWidget::onDirectoryExpanded);
+    connect(treeView, &QTreeView::expanded, this, &RemoteFileExplorer::onDirectoryExpanded);
     getDirectoryList("/");
 
     // std::function<void(QJsonObject)> listener = [](QJsonObject data) {
@@ -35,7 +35,7 @@ RemoteFileExplorerWidget::RemoteFileExplorerWidget(QWidget *parent) : QWidget(pa
     // EventHub::StartListening("TestEvent", listener, 10);
 }
 
-void RemoteFileExplorerWidget::getDirectoryList(const QString &path)
+void RemoteFileExplorer::getDirectoryList(const QString &path)
 {
     // QUrl url("http://192.168.0.112:8080/list?path=" + QUrl::toPercentEncoding(path));
     // QNetworkRequest request(url);
@@ -46,7 +46,7 @@ void RemoteFileExplorerWidget::getDirectoryList(const QString &path)
 
 }
 
-void RemoteFileExplorerWidget::onReplyFinished(QNetworkReply *reply, const QString &path)
+void RemoteFileExplorer::onReplyFinished(QNetworkReply *reply, const QString &path)
 {
     // auto parentItem = findItemByPath(path);
     // parentItem->removeRows(0, parentItem->rowCount());
@@ -86,7 +86,7 @@ void RemoteFileExplorerWidget::onReplyFinished(QNetworkReply *reply, const QStri
     // reply->deleteLater();
 }
 
-QStandardItem* RemoteFileExplorerWidget::findItemByPath(const QString &path)
+QStandardItem* RemoteFileExplorer::findItemByPath(const QString &path)
 {
     qDebugEx() << "findItemByPath" << path;
 
@@ -97,7 +97,7 @@ QStandardItem* RemoteFileExplorerWidget::findItemByPath(const QString &path)
     return findItemByPathRecursive(model->invisibleRootItem(), pathParts);
 }
 
-QStandardItem* RemoteFileExplorerWidget::findItemByPathRecursive(QStandardItem* parentItem, const QStringList &pathParts)
+QStandardItem* RemoteFileExplorer::findItemByPathRecursive(QStandardItem* parentItem, const QStringList &pathParts)
 {
     if (pathParts.isEmpty()) return parentItem;
 
@@ -114,7 +114,7 @@ QStandardItem* RemoteFileExplorerWidget::findItemByPathRecursive(QStandardItem* 
     return nullptr;  // 如果没有找到对应项
 }
 
-void RemoteFileExplorerWidget::onDirectoryExpanded(const QModelIndex &index)
+void RemoteFileExplorer::onDirectoryExpanded(const QModelIndex &index)
 {
     QString path = index.data(Qt::UserRole).toString();
     qDebug() << "展开目录路径: " << path;

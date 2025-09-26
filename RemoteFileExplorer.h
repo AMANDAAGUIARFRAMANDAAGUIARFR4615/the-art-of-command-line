@@ -1,5 +1,5 @@
-#ifndef REMOTEFILEEXPLORERWIDGET_H
-#define REMOTEFILEEXPLORERWIDGET_H
+#ifndef REMOTEFILEEXPLORER_H
+#define REMOTEFILEEXPLORER_H
 
 #include <QWidget>
 #include <QNetworkAccessManager>
@@ -7,13 +7,13 @@
 #include <QStandardItemModel>
 #include <QMap>
 
-class RemoteFileExplorerWidget : public QWidget
+class RemoteFileExplorer : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit RemoteFileExplorerWidget(QWidget *parent = nullptr);
-    ~RemoteFileExplorerWidget() = default;
+    explicit RemoteFileExplorer(QWidget *parent = nullptr);
+    ~RemoteFileExplorer() = default;
 
 private:
     void getDirectoryList(const QString &path);
@@ -27,4 +27,4 @@ private:
     QStandardItemModel *model;
 };
 
-#endif // REMOTEFILEEXPLORERWIDGET_H
+#endif // REMOTEFILEEXPLORER_H

@@ -1,7 +1,7 @@
 #include "MainWindow.h"
 #include "Logger.h"
 #include "CenteredItemDelegate.h"
-#include "RemoteFileExplorerWidget.h"
+#include "RemoteFileExplorer.h"
 #include "EventHub.h"
 #include <QTabWidget>
 #include <QWidget>
