@@ -9,7 +9,7 @@ add_executable(${PROJECT_NAME}
     main.cpp
     Logger.h
     LogWindow.h
-    EventHub.h
+    EventHub.h EventHub.cpp
     MainWindow.h MainWindow.cpp
     DeviceInfo.h DeviceControl.h
     VideoPlayer.h VideoPlayer.cpp
