@@ -10,7 +10,6 @@
 #include <QElapsedTimer>
 #include <QVBoxLayout>
 #include <QMouseEvent>
-#include <QMediaMetaData>
 
 VideoPlayer::VideoPlayer(QTcpSocket* socket, const DeviceInfo* deviceInfo, QWidget *parent) : socket(socket), deviceInfo(deviceInfo), QWidget(parent)
 {
@@ -46,17 +45,6 @@ VideoPlayer::VideoPlayer(QTcpSocket* socket, const DeviceInfo* deviceInfo, QWidg
         if (isMediaLoaded)
             return;
 
-        if (videoWidth == 0 || videoHeight == 0) {
-            auto resolution = m_mediaPlayer->metaData().value(QMediaMetaData::Resolution).toSize();
-            if(resolution.isValid()){
-                videoWidth = resolution.width();
-                videoHeight = resolution.height();
-                qDebug() << "视频宽高:" << videoWidth << videoHeight;
-            } else {
-                qDebug() << "无法获取视频宽高";
-            }
-        }
-
         qDebugEx() << "媒体加载中... " << status;
         qDebugEx() << "耗时:" << timer->elapsed() << "ms";
 
@@ -86,7 +74,7 @@ void VideoPlayer::mouseDoubleClickEvent(QMouseEvent *event)
     QWidget::mouseDoubleClickEvent(event);
 
     auto *win = new ControlWindow(socket, deviceInfo);
-    win->resize(videoWidth, videoHeight);
+    win->resize(deviceInfo->screenWidth, deviceInfo->screenHeight);
     win->setAttribute(Qt::WA_DeleteOnClose);
     win->setSource(m_mediaPlayer->source());
     win->play();
