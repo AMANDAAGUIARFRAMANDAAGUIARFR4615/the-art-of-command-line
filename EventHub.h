@@ -10,11 +10,12 @@
 #include <QString>
 #include <memory>
 #include <algorithm>
+#include <QTcpSocket>
 
 class EventHub
 {
 public:
-    static void StartListening(const QString& eventName, std::function<void(QJsonObject)> listener, int priority = 0)
+    static void StartListening(const QString& eventName, std::function<void(QJsonObject, QTcpSocket*)> listener, int priority = 0)
     {
         listeners[eventName].emplace_back(listener, priority);
 
@@ -25,7 +26,7 @@ public:
         });
     }
 
-    static void StopListening(const QString& eventName, std::function<void(QJsonObject)> listener = nullptr)
+    static void StopListening(const QString& eventName, std::function<void(QJsonObject, QTcpSocket*)> listener = nullptr)
     {
         if (listeners.contains(eventName))
         {
@@ -45,21 +46,21 @@ public:
         }
     }
 
-    static void TriggerEvent(const QString& eventName, const QJsonObject& data = QJsonObject())
+    static void TriggerEvent(const QString& eventName, const QJsonObject& data = QJsonObject(), QTcpSocket* socket = nullptr)
     {
         if (listeners.contains(eventName))
         {
             for (const auto& action : listeners[eventName])
             {
-                action.first(data);
+                action.first(data, socket);
             }
         }
     }
 
 private:
-    static QMap<QString, QList<std::pair<std::function<void(QJsonObject)>, int>>> listeners;
+    static QMap<QString, QList<std::pair<std::function<void(QJsonObject, QTcpSocket*)>, int>>> listeners;
 };
 
-QMap<QString, QList<std::pair<std::function<void(QJsonObject)>, int>>> EventHub::listeners;
+QMap<QString, QList<std::pair<std::function<void(QJsonObject, QTcpSocket*)>, int>>> EventHub::listeners;
 
 #endif // EVENTHUB_H

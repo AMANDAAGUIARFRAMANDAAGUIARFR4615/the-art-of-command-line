@@ -1,5 +1,6 @@
 #include "RemoteFileExplorerWidget.h"
 #include "Logger.h"
+#include "EventHub.h"
 
 #include <QVBoxLayout>
 #include <QNetworkReply>
@@ -27,68 +28,62 @@ RemoteFileExplorerWidget::RemoteFileExplorerWidget(QWidget *parent) : QWidget(pa
 
     connect(treeView, &QTreeView::expanded, this, &RemoteFileExplorerWidget::onDirectoryExpanded);
     getDirectoryList("/");
+
+    // std::function<void(QJsonObject)> listener = [](QJsonObject data) {
+    //     qDebug() << "Received event data:" << data;
+    // };
+    // EventHub::StartListening("TestEvent", listener, 10);
 }
 
 void RemoteFileExplorerWidget::getDirectoryList(const QString &path)
 {
-    QUrl url("http://192.168.0.112:8080/list?path=" + QUrl::toPercentEncoding(path));
-    QNetworkRequest request(url);
-    auto reply = manager->get(request);
+    // QUrl url("http://192.168.0.112:8080/list?path=" + QUrl::toPercentEncoding(path));
+    // QNetworkRequest request(url);
+    // auto reply = manager->get(request);
 
-    connect(reply, &QNetworkReply::finished, this, [this, reply, path] { onReplyFinished(reply, path); });
+    // connect(reply, &QNetworkReply::finished, this, [this, reply, path] { onReplyFinished(reply, path); });
+
+
 }
 
 void RemoteFileExplorerWidget::onReplyFinished(QNetworkReply *reply, const QString &path)
 {
-    if (reply->error() != QNetworkReply::NoError) {
-        QMessageBox::warning(this, "错误", "无法连接到服务器: " + reply->errorString());
-        reply->deleteLater();
-        return;
-    }
+    // auto parentItem = findItemByPath(path);
+    // parentItem->removeRows(0, parentItem->rowCount());
 
-    auto jsonDoc = QJsonDocument::fromJson(reply->readAll());
-    if (!jsonDoc.isArray()) {
-        QMessageBox::warning(this, "错误", "返回的数据格式错误");
-        reply->deleteLater();
-        return;
-    }
+    // auto directories = jsonDoc.array();
+    // if (directories.count() == 0) {
+    //     qDebugEx() << path << "没有数据";
+    //     return;
+    // }
 
-    auto parentItem = findItemByPath(path);
-    parentItem->removeRows(0, parentItem->rowCount());
+    // qDebugEx() << "onReplyFinished" << directories.count();
 
-    auto directories = jsonDoc.array();
-    if (directories.count() == 0) {
-        qDebugEx() << path << "没有数据";
-        return;
-    }
+    // QFileIconProvider iconProvider;
 
-    qDebugEx() << "onReplyFinished" << directories.count();
+    // for (const auto &value : directories) {
+    //     auto obj = value.toObject();
+    //     auto name = obj["name"].toString();
+    //     auto type = obj["type"].toString();
+    //     auto myPath = path == '/' ? '/' + name : path + '/' + name;
 
-    QFileIconProvider iconProvider;
+    //     auto item = new QStandardItem(name);
+    //     item->setData(myPath, Qt::UserRole);
 
-    for (const auto &value : directories) {
-        auto obj = value.toObject();
-        auto name = obj["name"].toString();
-        auto type = obj["type"].toString();
-        auto myPath = path == '/' ? '/' + name : path + '/' + name;
+    //     if (type == "folder") {
+    //         item->setIcon(iconProvider.icon(QFileIconProvider::Folder));
+    //     } else {
+    //         QFileInfo fileInfo(name);
+    //         item->setIcon(iconProvider.icon(fileInfo));
+    //     }
 
-        auto item = new QStandardItem(name);
-        item->setData(myPath, Qt::UserRole);
+    //     item->setEditable(type == "folder");
+    //     if (type == "folder") item->setChild(0, nullptr);
 
-        if (type == "folder") {
-            item->setIcon(iconProvider.icon(QFileIconProvider::Folder));
-        } else {
-            QFileInfo fileInfo(name);
-            item->setIcon(iconProvider.icon(fileInfo));
-        }
+    //     parentItem->appendRow(item);
+    // }
 
-        item->setEditable(type == "folder");
-        if (type == "folder") item->setChild(0, nullptr);
-
-        parentItem->appendRow(item);
-    }
-
-    reply->deleteLater();
+    // reply->deleteLater();
 }
 
 QStandardItem* RemoteFileExplorerWidget::findItemByPath(const QString &path)

@@ -7,7 +7,7 @@
 #include "NetworkUtils.h"
 #include "LogWindow.h"
 #include "DeviceInfo.h"
-
+#include "EventHub.h"
 #include <QApplication>
 #include <QShortcut>
 
@@ -24,22 +24,9 @@ void onDataReceived(QTcpSocket* socket, const QJsonObject &jsonObject) {
     if (event == "ping")
         return;
 
-    if (event == "deviceInfo") {
-        auto deviceInfo = new DeviceInfo(data.toObject());
-        // auto deviceName = data["deviceName"].toString();
-        // auto localIp = data["localIp"].toString();
-        // auto orientation = data["orientation"];
-
-        // 1  Portrait 
-        // 2  PortraitUpsideDown
-        // 3  LandscapeRight
-        // 4  LandscapeLeft
-
-        mainWindow->addItem(socket, deviceInfo);
-        return;
-    }
-
     qDebugEx() << event << data;
+
+    EventHub::TriggerEvent(event, data.toObject(), socket);
 }
 
 void onClientDisconnected(QTcpSocket* socket) {

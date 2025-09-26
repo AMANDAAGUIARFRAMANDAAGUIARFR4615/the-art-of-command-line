@@ -2,7 +2,7 @@
 #include "Logger.h"
 #include "CenteredItemDelegate.h"
 #include "RemoteFileExplorerWidget.h"
-
+#include "EventHub.h"
 #include <QTabWidget>
 #include <QWidget>
 #include <QVBoxLayout>
@@ -112,6 +112,17 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
     QRect screenGeometry = QGuiApplication::primaryScreen()->geometry();
     resize(screenGeometry.width() * 0.8, screenGeometry.height() * 0.8);
+
+    EventHub::StartListening("deviceInfo", [this](const QJsonObject &jsonObject, QTcpSocket* socket) {
+        auto deviceInfo = new DeviceInfo(jsonObject);
+
+        // 1  Portrait 
+        // 2  PortraitUpsideDown
+        // 3  LandscapeRight
+        // 4  LandscapeLeft
+
+        addItem(socket, deviceInfo);
+    });
 }
 
 MainWindow::~MainWindow()
