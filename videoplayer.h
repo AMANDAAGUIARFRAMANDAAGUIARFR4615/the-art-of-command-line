@@ -1,5 +1,6 @@
 #pragma once
 
+#include "DeviceInfo.h"
 #include <QWidget>
 #include <QUrl>
 #include <QTcpSocket>
@@ -10,7 +11,7 @@ class VideoPlayer : public QWidget
 {
     Q_OBJECT
 public:
-    explicit VideoPlayer(QTcpSocket* socket, QWidget *parent = nullptr);
+    explicit VideoPlayer(QTcpSocket* socket, const DeviceInfo* deviceInfo, QWidget *parent = nullptr);
     ~VideoPlayer();
 
     void setSource(const QUrl &source);
@@ -20,6 +21,7 @@ protected:
     void mouseDoubleClickEvent(QMouseEvent *event) override;
 
     QTcpSocket* socket;
-    QMediaPlayer *m_mediaPlayer = nullptr;
+    const DeviceInfo* deviceInfo;
+    QMediaPlayer *m_mediaPlayer;
     int videoWidth, videoHeight;
 };

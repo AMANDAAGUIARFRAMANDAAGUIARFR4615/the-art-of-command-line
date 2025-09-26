@@ -1,5 +1,6 @@
 #pragma once
 
+#include "DeviceInfo.h"
 #include <QVideoWidget>
 #include <QWidget>
 #include <QUrl>
@@ -13,7 +14,7 @@ class ControlWindow : public QVideoWidget
 {
     Q_OBJECT
 public:
-    explicit ControlWindow(QTcpSocket* socket, QWidget *parent = nullptr);
+    explicit ControlWindow(QTcpSocket* socket, const DeviceInfo* deviceInfo, QWidget *parent = nullptr);
     ~ControlWindow();
 
     void setSource(const QUrl &source);
@@ -26,5 +27,6 @@ protected:
     void keyReleaseEvent(QKeyEvent *event) override;
 
     QTcpSocket* socket;
-    QMediaPlayer *m_mediaPlayer = nullptr;
+    const DeviceInfo* deviceInfo;
+    QMediaPlayer *m_mediaPlayer;
 };

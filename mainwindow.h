@@ -1,6 +1,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include "DeviceInfo.h"
 #include <QMainWindow>
 #include <QKeyEvent>
 #include <QGridLayout>
@@ -14,7 +15,7 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-    void addItem(const QString& url = nullptr, QTcpSocket* socket = nullptr);
+    void addItem(QTcpSocket* socket = nullptr, const DeviceInfo* deviceInfo = nullptr);
 
 protected:
     void keyPressEvent(QKeyEvent *event) override;

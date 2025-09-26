@@ -12,7 +12,7 @@
 #include <QVBoxLayout>
 #include <QMouseEvent>
 
-ControlWindow::ControlWindow(QTcpSocket *socket, QWidget *parent) : socket(socket), QVideoWidget(parent)
+ControlWindow::ControlWindow(QTcpSocket* socket, const DeviceInfo* deviceInfo, QWidget *parent) : socket(socket), deviceInfo(deviceInfo), QVideoWidget(parent)
 {
     m_mediaPlayer = new QMediaPlayer(this);
 

@@ -32,7 +32,7 @@ public:
     }
 
 private:
-    inline static LogWindow* logWindow = nullptr;
+    inline static LogWindow* logWindow;
 };
 
 #endif // LOGWINDOW_H

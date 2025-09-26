@@ -61,6 +61,4 @@ public:
     }
 };
 
-extern DeviceInfo deviceInfo;
-
 #endif // DEVICEINFO_H
