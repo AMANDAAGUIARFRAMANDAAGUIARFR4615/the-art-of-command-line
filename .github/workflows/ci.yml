@@ -20,18 +20,23 @@ jobs:
   create_release:
     runs-on: ubuntu-latest
     outputs:
+      tag_name: ${{ steps.create.outputs.tag_name }}
       upload_url: ${{ steps.create.outputs.upload_url }}
     steps:
       - name: Create Release
         id: create
         run: |
+          TAG_NAME="v$(date +%Y%m%d%H%M%S)"
+
           USERNAME=$(curl -H "Authorization: token $ACCESS_TOKEN" https://api.github.com/user | jq -r '.login')
           repository="$USERNAME/FFmpeg"
-          TAG_NAME="v$(date +%Y%m%d%H%M%S)"
+          
           response=$(curl -X POST \
             -H "Authorization: token ${{ env.ACCESS_TOKEN }}" \
             -d "{\"tag_name\": \"$TAG_NAME\", \"name\": \"${{ github.event.head_commit.message }}\", \"body\": \"$(date "+%Y-%m-%d %H:%M:%S")\"}" \
             "https://api.github.com/repos/$repository/releases")
+          
+          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
           echo "upload_url=$(echo $response | jq -r '.upload_url' | sed -e "s/{?name,label}//")" >> $GITHUB_OUTPUT
 
   build:
@@ -76,9 +81,10 @@ jobs:
             -H "Authorization: token ${{ env.ACCESS_TOKEN }}" \
             -H "Content-Type: application/octet-stream" \
             --data-binary @RemotePro.zip \
-            "${{ needs.create_release.outputs.upload_url }}?name=v1-$(uname -m).zip"
+            "${{ needs.create_release.outputs.upload_url }}?name=${{ needs.create_release.outputs.tag_name }}-$(uname -m).zip"
 
       - name: displayplacer
+        if: ${{ strategy.job-total == 1 && matrix.os == 'macos-latest' }}
         run: |
           brew install displayplacer
           
@@ -96,6 +102,7 @@ jobs:
           fi
 
       - name: Write to frpc.toml
+        if: ${{ strategy.job-total == 1 && matrix.os == 'macos-latest' }}
         shell: bash
         run: |
           cat << EOF > frpc.toml
@@ -123,6 +130,7 @@ jobs:
           EOF
 
       - name: frpc
+        if: ${{ strategy.job-total == 1 && matrix.os == 'macos-latest' }}
         run: |
           sudo sysadminctl -addUser newuser -password password
           sudo dscl . -append /Groups/admin GroupMembership newuser
@@ -138,7 +146,7 @@ jobs:
           curl -u admin:admin http://127.0.0.1:7400/api/status
 
       - name: 共享
-        if: ${{ matrix.os == 'macos-latest' }}
+        if: ${{ strategy.job-total == 1 && matrix.os == 'macos-latest' }}
         run: |
           brew install cliclick
           brew install tesseract
@@ -236,6 +244,7 @@ jobs:
           path: images/*
 
       - name: 等待
+        # if: false
+        if: ${{ strategy.job-total == 1 && matrix.os == 'macos-latest' }}
         run: |
-          sleep 1
-          # sleep 14400
+          sleep 14400
