@@ -3,7 +3,7 @@
 #include "ToastWidget.h"
 #include "ControlWindow.h"
 #include "DeviceControl.h"
-#include "RemoteFileExplorerWidget.h"
+#include "RemoteFileExplorer.h"
 #include <QMediaPlayer>
 #include <QString>
 #include <QStyle>
@@ -89,7 +89,7 @@ void VideoPlayer::contextMenuEvent(QContextMenuEvent *event)
 
     QAction *fileAction = new QAction("文件传输", this);
     connect(fileAction, &QAction::triggered, [this]() {
-        auto window = new RemoteFileExplorerWidget;
+        auto window = new RemoteFileExplorer(socket);
         window->resize(deviceInfo->screenWidth, deviceInfo->screenHeight);
         window->show();
     });

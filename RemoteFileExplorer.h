@@ -6,23 +6,24 @@
 #include <QTreeView>
 #include <QStandardItemModel>
 #include <QMap>
+#include <QTcpSocket>
 
 class RemoteFileExplorer : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit RemoteFileExplorer(QWidget *parent = nullptr);
+    explicit RemoteFileExplorer(QTcpSocket* socket, QWidget *parent = nullptr);
     ~RemoteFileExplorer() = default;
 
 private:
-    void getDirectoryList(const QString &path);
-    void onReplyFinished(QNetworkReply *reply, const QString &path);
+    void fetchDirectoryContents(const QString &path);
+    void updateDirectoryView(const QString &path, const QJsonArray &list);
     QStandardItem* findItemByPath(const QString &path);
     QStandardItem* findItemByPathRecursive(QStandardItem* parentItem, const QStringList &pathParts);
     void onDirectoryExpanded(const QModelIndex &index);
 
-    QNetworkAccessManager *manager;
+    QTcpSocket* socket;
     QTreeView *treeView;
     QStandardItemModel *model;
 };
