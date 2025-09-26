@@ -17,6 +17,7 @@ add_executable(${PROJECT_NAME}
     ToastWidget.h
     NetworkUtils.h
     ControlWindow.h ControlWindow.cpp
+    RemoteFileExplorerWidget.h RemoteFileExplorerWidget.cpp
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
