@@ -1,11 +1,12 @@
+#ifndef DEVICEINFO_H
+#define DEVICEINFO_H
+
 #include <QJsonObject>
 #include <QString>
+#include <QDebug>
 
 class DeviceInfo {
 public:
-    DeviceInfo()
-        : jbType(0), orientation(0), screenHeight(0), screenWidth(0) {}
-
     DeviceInfo(const QJsonObject &json)
         : deviceId(json["deviceId"].toString()),
           deviceName(json["deviceName"].toString()),
@@ -44,8 +45,22 @@ public:
     const int screenHeight;
     const int screenWidth;
     const QString version;
+
+    friend QDebug operator<<(QDebug dbg, const DeviceInfo &deviceInfo) {
+        dbg.nospace() << "DeviceInfo(deviceId: " << deviceInfo.deviceId
+                      << ", deviceName: " << deviceInfo.deviceName
+                      << ", inuse: " << deviceInfo.inuse
+                      << ", jbType: " << deviceInfo.jbType
+                      << ", localIp: " << deviceInfo.localIp
+                      << ", orientation: " << deviceInfo.orientation
+                      << ", platform: " << deviceInfo.platform
+                      << ", screenHeight: " << deviceInfo.screenHeight
+                      << ", screenWidth: " << deviceInfo.screenWidth
+                      << ", version: " << deviceInfo.version << ")";
+        return dbg;
+    }
 };
 
-QDebug operator<<(QDebug dbg, const DeviceInfo &deviceInfo);
-
 extern DeviceInfo deviceInfo;
+
+#endif // DEVICEINFO_H
