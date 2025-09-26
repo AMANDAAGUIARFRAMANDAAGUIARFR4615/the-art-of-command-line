@@ -12,6 +12,7 @@
 #include <QStyle>
 #include <QApplication>
 #include <QFileIconProvider>
+#include <QKeyEvent>
 
 RemoteFileExplorer::RemoteFileExplorer(QTcpSocket* socket, QWidget *parent) : socket(socket), QWidget(parent)
 {
@@ -130,4 +131,16 @@ void RemoteFileExplorer::onDirectoryExpanded(const QModelIndex &index)
 
     if (!path.isEmpty()) fetchDirectoryContents(path);
     else qDebug() << "路径为空，检查是否正确设置路径。";
+}
+
+void RemoteFileExplorer::keyPressEvent(QKeyEvent *event)
+{
+    if (event->key() == Qt::Key_Escape)
+    {
+        close();
+    }
+    else
+    {
+        QWidget::keyPressEvent(event);
+    }
 }

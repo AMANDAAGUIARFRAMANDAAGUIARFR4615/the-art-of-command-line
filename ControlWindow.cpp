@@ -117,6 +117,12 @@ bool ControlWindow::event(QEvent *event)
 
 void ControlWindow::keyPressEvent(QKeyEvent *event)
 {
+    if (event->key() == Qt::Key_Escape)
+    {
+        close();
+        return;
+    }
+
     qDebugEx() << "Key Pressed:" << event->key();
 
     QJsonObject dataObject;

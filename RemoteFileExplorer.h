@@ -16,12 +16,13 @@ public:
     explicit RemoteFileExplorer(QTcpSocket* socket, QWidget *parent = nullptr);
     ~RemoteFileExplorer() = default;
 
-private:
+protected:
     void fetchDirectoryContents(const QString &path);
     void updateDirectoryView(const QString &path, const QJsonArray &list);
     QStandardItem* findItemByPath(const QString &path);
     QStandardItem* findItemByPathRecursive(QStandardItem* parentItem, const QStringList &pathParts);
     void onDirectoryExpanded(const QModelIndex &index);
+    void keyPressEvent(QKeyEvent *event) override;
 
     QTcpSocket* socket;
     QTreeView *treeView;
