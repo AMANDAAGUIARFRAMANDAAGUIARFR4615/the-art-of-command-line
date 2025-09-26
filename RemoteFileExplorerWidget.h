@@ -19,12 +19,12 @@ private:
     void getDirectoryList(const QString &path);
     void onReplyFinished(QNetworkReply *reply, const QString &path);
     QStandardItem* findItemByPath(const QString &path);
+    QStandardItem* findItemByPathRecursive(QStandardItem* parentItem, const QStringList &pathParts);
     void onDirectoryExpanded(const QModelIndex &index);
 
     QNetworkAccessManager *manager;
     QTreeView *treeView;
     QStandardItemModel *model;
-    QMap<QString, bool> loadedDirectories;
 };
 
 #endif // REMOTEFILEEXPLORERWIDGET_H
