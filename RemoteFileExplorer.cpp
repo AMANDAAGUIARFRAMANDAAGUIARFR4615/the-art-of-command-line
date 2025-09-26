@@ -70,15 +70,26 @@ void RemoteFileExplorer::updateDirectoryView(const QString &path, const QJsonArr
         auto item = new QStandardItem(name);
         item->setData(myPath, Qt::UserRole);
 
-        if (type == "folder") {
+        // NSFileTypeDirectory;
+        // NSFileTypeRegular;
+        // NSFileTypeSymbolicLink;
+        // NSFileTypeSocket;
+        // NSFileTypeCharacterSpecial;
+        // NSFileTypeBlockSpecial;
+        // NSFileTypeUnknown;
+
+        auto isDirectory = type == "NSFileTypeDirectory" || type == "NSFileTypeSymbolicLink";
+
+        if (isDirectory) {
             item->setIcon(iconProvider.icon(QFileIconProvider::Folder));
         } else {
             QFileInfo fileInfo(name);
             item->setIcon(iconProvider.icon(fileInfo));
         }
 
-        item->setEditable(type == "folder");
-        if (type == "folder") item->setChild(0, nullptr);
+        item->setEditable(false);
+        
+        if (isDirectory) item->setChild(0, nullptr);
 
         parentItem->appendRow(item);
     }
