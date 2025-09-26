@@ -57,7 +57,7 @@ void RemoteFileExplorer::updateDirectoryView(const QString &path, const QJsonArr
         return;
     }
 
-    qDebugEx() << "onReplyFinished" << list.count();
+    qDebugEx() << "updateDirectoryView" << path << list.count();
 
     QFileIconProvider iconProvider;
 
