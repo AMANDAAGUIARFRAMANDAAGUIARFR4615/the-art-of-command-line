@@ -22,13 +22,13 @@ RemoteDevice::RemoteDevice(QTcpSocket* socket, const DeviceInfo* deviceInfo, QWi
     auto *videoWidget = new QVideoWidget;
     auto *layout = new QVBoxLayout;
 
-    QString deviceInfoText = QString("%1 - %2  |  %3 x %4")
+    auto deviceInfoText = QString("%1 - %2  |  %3 x %4")
         .arg(deviceInfo->deviceName)
         .arg(deviceInfo->platform)
         .arg(deviceInfo->screenWidth)
         .arg(deviceInfo->screenHeight);
 
-    QLabel *deviceInfoLabel = new QLabel(deviceInfoText, this);
+    auto deviceInfoLabel = new QLabel(deviceInfoText, this);
     deviceInfoLabel->setAlignment(Qt::AlignCenter);
     deviceInfoLabel->setStyleSheet(
         "font-size: 12px; "
@@ -40,7 +40,7 @@ RemoteDevice::RemoteDevice(QTcpSocket* socket, const DeviceInfo* deviceInfo, QWi
     
     deviceInfoLabel->setFixedHeight(24);
     
-    layout->addWidget(deviceNameLabel);
+    layout->addWidget(deviceInfoLabel);
     layout->addWidget(videoWidget);
     setLayout(layout);
 
