@@ -1,6 +1,7 @@
 #include "MainWindow.h"
 #include "Logger.h"
 #include "CenteredItemDelegate.h"
+#include "RemoteFileExplorerWidget.h"
 
 #include <QTabWidget>
 #include <QWidget>
@@ -76,7 +77,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     auto tab2 = new QWidget();
     auto tab3 = new QWidget();
     tab1->setLayout(new QVBoxLayout());
-    tab1->layout()->addWidget(new QLabel("这是标签页 1 的内容"));
+    auto window = new RemoteFileExplorerWidget;
+    tab1->layout()->addWidget(window);
     tab2->setLayout(new QVBoxLayout());
     tab2->layout()->addWidget(new QLabel("这是标签页 2 的内容"));
     tab3->setLayout(new QVBoxLayout());

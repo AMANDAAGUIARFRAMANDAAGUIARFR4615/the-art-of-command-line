@@ -13,6 +13,8 @@ public:
     {
         logWindow = this;
 
+        setVisible(false);
+
         qInstallMessageHandler([](QtMsgType type, const QMessageLogContext &context, const QString &message) {
             QMetaObject::invokeMethod(logWindow, [type, message]() {
                 if (type == QtCriticalMsg || type == QtFatalMsg || type == QtWarningMsg) {
