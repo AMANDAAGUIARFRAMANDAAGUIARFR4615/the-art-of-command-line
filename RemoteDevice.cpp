@@ -12,13 +12,35 @@
 #include <QVBoxLayout>
 #include <QMouseEvent>
 #include <QMenu>
+#include <QLabel>
 
-RemoteDevice::RemoteDevice(QTcpSocket* socket, const DeviceInfo* deviceInfo, QWidget *parent) : socket(socket), deviceInfo(deviceInfo), QWidget(parent)
+RemoteDevice::RemoteDevice(QTcpSocket* socket, const DeviceInfo* deviceInfo, QWidget *parent) 
+    : socket(socket), deviceInfo(deviceInfo), QWidget(parent)
 {
     m_mediaPlayer = new QMediaPlayer(this);
 
     auto *videoWidget = new QVideoWidget;
     auto *layout = new QVBoxLayout;
+
+    QString deviceInfoText = QString("%1 - %2  |  %3 x %4")
+        .arg(deviceInfo->deviceName)
+        .arg(deviceInfo->platform)
+        .arg(deviceInfo->screenWidth)
+        .arg(deviceInfo->screenHeight);
+
+    QLabel *deviceInfoLabel = new QLabel(deviceInfoText, this);
+    deviceInfoLabel->setAlignment(Qt::AlignCenter);
+    deviceInfoLabel->setStyleSheet(
+        "font-size: 12px; "
+        "font-weight: bold; "
+        "padding: 5px; "
+        "background-color: rgba(0, 0, 0, 50%); "
+        "color: white; "
+        "border-radius: 5px;");
+    
+    deviceInfoLabel->setFixedHeight(24);
+    
+    layout->addWidget(deviceNameLabel);
     layout->addWidget(videoWidget);
     setLayout(layout);
 
