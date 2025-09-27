@@ -6,6 +6,7 @@
 #include "RemoteFileExplorer.h"
 #include "TcpServer.h"
 #include "FileTransfer.h"
+#include "EventHub.h"
 #include <QMediaPlayer>
 #include <QString>
 #include <QStyle>
@@ -90,6 +91,10 @@ RemoteDevice::RemoteDevice(QTcpSocket* socket, const DeviceInfo* deviceInfo, QWi
             m_mediaPlayer->play();
         }
     });
+
+    // EventHub::StartListening("lockedStatus", [this](const QJsonObject &jsonObject, QTcpSocket* socket) {
+    //     qDebugEx() << "锁屏状态" << jsonObject;
+    // });
 }
 
 RemoteDevice::~RemoteDevice() {}
@@ -178,7 +183,7 @@ void RemoteDevice::dropEvent(QDropEvent *event)
         dataObject["id"] = id;
         dataObject["type"] = type;
         dataObject["port"] = transfer->serverPort();
-        dataObject["path"] = QString("/usr/") + id;
+        dataObject["path"] = QString("/tmp/") + id;
         dataObject["size"] = size;
 
         QJsonObject jsonObject;
