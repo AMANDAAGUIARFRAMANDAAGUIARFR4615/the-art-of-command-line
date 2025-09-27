@@ -23,6 +23,7 @@
 #include <QDir>
 #include <QCryptographicHash>
 #include <QUuid>
+#include <QFileInfo>
 
 RemoteDevice::RemoteDevice(QTcpSocket* socket, const DeviceInfo* deviceInfo, QWidget *parent) 
     : socket(socket), deviceInfo(deviceInfo), QWidget(parent)
@@ -189,18 +190,32 @@ void RemoteDevice::dropEvent(QDropEvent *event)
         
         auto transfer = new FileTransfer(type, path, size);
 
-        QJsonObject dataObject;
-        dataObject["id"] = id;
-        dataObject["type"] = type;
-        dataObject["port"] = transfer->serverPort();
-        dataObject["path"] = QString("/tmp/") + id;
-        dataObject["size"] = size;
+        // QJsonObject dataObject;
+        // dataObject["id"] = id;
+        // dataObject["type"] = type;
+        // dataObject["port"] = transfer->serverPort();
+        // dataObject["path"] = QString("/tmp/") + id;
+        // dataObject["size"] = size;
 
-        QJsonObject jsonObject;
-        jsonObject["event"] = "transferFile";
-        jsonObject["data"] = dataObject;
+        // QJsonObject jsonObject;
+        // jsonObject["event"] = "transferFile";
+        // jsonObject["data"] = dataObject;
 
-        TcpServer::sendData(socket, jsonObject);
+        auto fileName = QFileInfo(path).fileName();
+        if (fileName.endsWith(".deb", Qt::CaseInsensitive)) {
+            QJsonObject dataObject;
+            dataObject["id"] = id;
+            dataObject["type"] = type;
+            dataObject["port"] = transfer->serverPort();
+            dataObject["name"] = fileName;
+            dataObject["size"] = size;
+
+            QJsonObject jsonObject;
+            jsonObject["event"] = "debInstall";
+            jsonObject["data"] = dataObject;
+
+            TcpServer::sendData(socket, jsonObject);
+        }
     }
 
     event->accept();
