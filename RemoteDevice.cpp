@@ -13,10 +13,17 @@
 #include <QMouseEvent>
 #include <QMenu>
 #include <QLabel>
+#include <QMimeData>
+#include <QDragEnterEvent>
+#include <QDropEvent>
+#include <QFileInfo>
+#include <QDir>
 
 RemoteDevice::RemoteDevice(QTcpSocket* socket, const DeviceInfo* deviceInfo, QWidget *parent) 
     : socket(socket), deviceInfo(deviceInfo), QWidget(parent)
 {
+    setAcceptDrops(true);
+
     m_mediaPlayer = new QMediaPlayer(this);
 
     auto *videoWidget = new QVideoWidget;
@@ -137,4 +144,44 @@ void RemoteDevice::contextMenuEvent(QContextMenuEvent *event)
     contextMenu.addAction(rebootAction);
 
     contextMenu.exec(event->globalPos());
+}
+
+void RemoteDevice::dragEnterEvent(QDragEnterEvent *event)
+{
+    qDebugEx() << "dragEnterEvent";
+
+    const QMimeData *mimeData = event->mimeData();
+
+    if (mimeData->hasUrls()) {
+        QList<QUrl> urls = mimeData->urls();
+        for (const QUrl &url : urls) {
+            QString filePath = url.toLocalFile();
+            qDebugEx() << "拖入的文件路径：" << filePath;
+        }
+        event->acceptProposedAction();
+    } else {
+        qDebugEx() << "拖入的数据不包含有效的 URL";
+
+        if (mimeData->hasText()) {
+            QString text = mimeData->text();
+            qDebugEx() << "拖入的文本内容：" << text;
+        }
+
+        if (mimeData->hasHtml()) {
+            QString html = mimeData->html();
+            qDebugEx() << "拖入的HTML内容：" << html;
+        }
+
+        if (mimeData->hasImage()) {
+            QImage image = mimeData->imageData().value<QImage>();
+            qDebugEx() << "拖入的图片：" << image.size();
+        }
+
+        event->ignore();
+    }
+}
+
+void RemoteDevice::dropEvent(QDropEvent *event)
+{
+    qDebugEx() << "dropEvent";
 }
