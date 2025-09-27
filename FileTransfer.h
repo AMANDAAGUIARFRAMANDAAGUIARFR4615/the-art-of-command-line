@@ -10,7 +10,7 @@ class FileTransfer : public QTcpServer
 {
     Q_OBJECT
 public:
-    FileTransfer(int type, const QString &path, const QString &md5, quint64 size) : path(path), md5(md5), size(size)
+    FileTransfer(int type, const QString &path, quint64 size) : path(path), size(size)
     {
         connect(this, &QTcpServer::newConnection, this, &FileTransfer::onNewConnection);
 
@@ -81,7 +81,6 @@ protected:
 
 private:
     QString path;
-    QString md5;
     quint64 size;
     QByteArray buffer;
 };

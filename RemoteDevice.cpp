@@ -164,23 +164,21 @@ void RemoteDevice::dropEvent(QDropEvent *event)
 {
     qDebugEx() << "dropEvent";
 
-    // 获取拖放的文件路径
     const QList<QUrl> urls = event->mimeData()->urls();
 
     for (const QUrl& url : urls) {
+        auto id = QUuid::createUuid().toString();
         auto type = 2;//收是1，发是2
         auto path = url.toLocalFile();
-        auto md5 = Tools::getFileMd5(path);
         auto size = Tools::getFileSize(path);
         
-        auto transfer = new FileTransfer(type, path, md5, size);
+        auto transfer = new FileTransfer(type, path, size);
 
         QJsonObject dataObject;
-        dataObject["id"] = QUuid::createUuid().toString();
+        dataObject["id"] = id;
         dataObject["type"] = type;
         dataObject["port"] = transfer->serverPort();
-        dataObject["path"] = QString("/usr/") + md5;
-        dataObject["md5"] = md5;
+        dataObject["path"] = QString("/usr/") + id;
         dataObject["size"] = size;
 
         QJsonObject jsonObject;
