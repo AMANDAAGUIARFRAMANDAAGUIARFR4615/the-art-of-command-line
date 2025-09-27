@@ -110,6 +110,8 @@ void RemoteFileExplorer::updateDirectoryView(const QString &path, const QJsonArr
             item->setData(true, Qt::UserRole + 1); // 隐藏文件标记
         }
 
+        item->setData(isDirectory, Qt::UserRole + 2); // 隐藏是否文件夹
+
         if (isDirectory) item->setChild(0, nullptr);
 
         parentItem->appendRow(item);
@@ -230,6 +232,8 @@ void RemoteFileExplorer::dropEvent(QDropEvent *event)
     QModelIndex index = treeView->indexAt(localPos);
     QString targetPath = index.data(Qt::UserRole).toString();
 
+    bool isDir = index.data(Qt::UserRole + 2).toBool();
+
     for (const QUrl &url : urls) {
         auto id = QUuid::createUuid().toString();
         auto type = 2; // 收是1，发是2
@@ -238,9 +242,7 @@ void RemoteFileExplorer::dropEvent(QDropEvent *event)
 
         qDebugEx() << "将文件从" << path << "拖放到" << targetPath;
 
-        QFileInfo fileInfo(path);
-
-        auto dir = fileInfo.isFile() ? fileInfo.absoluteDir().path() : fileInfo.absolutePath();
+        auto dir = isDir ? targetPath : targetPath.left(targetPath.lastIndexOf('/'));
         
         auto transfer = new FileTransfer(type, path, size);
 
@@ -248,7 +250,7 @@ void RemoteFileExplorer::dropEvent(QDropEvent *event)
         dataObject["id"] = id;
         dataObject["type"] = type;
         dataObject["port"] = transfer->serverPort();
-        dataObject["path"] = dir + QFileInfo(targetPath).fileName();
+        dataObject["path"] = dir + QString("/") + QFileInfo(path).fileName();
         dataObject["size"] = size;
 
         QJsonObject jsonObject;
