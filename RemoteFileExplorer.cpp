@@ -2,6 +2,8 @@
 #include "Logger.h"
 #include "EventHub.h"
 #include "TcpServer.h"
+#include "Tools.h"
+#include "FileTransfer.h"
 #include <QVBoxLayout>
 #include <QNetworkReply>
 #include <QJsonDocument>
