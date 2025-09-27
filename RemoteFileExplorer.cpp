@@ -23,6 +23,8 @@
 
 RemoteFileExplorer::RemoteFileExplorer(QTcpSocket* socket, QWidget *parent) : socket(socket), QWidget(parent)
 {
+    setAcceptDrops(true);
+
     treeView = new QTreeView(this);
     auto layout = new QVBoxLayout(this);
     layout->addWidget(treeView);
@@ -32,11 +34,6 @@ RemoteFileExplorer::RemoteFileExplorer(QTcpSocket* socket, QWidget *parent) : so
     model = new QStandardItemModel();
     // model->setHorizontalHeaderLabels({"文件夹名称"});
     treeView->setModel(model);
-
-    // 启用拖放功能
-    treeView->setAcceptDrops(true);
-    treeView->setDragEnabled(true);
-    treeView->setDropIndicatorShown(true);
 
     // 设置自定义代理来处理绘制
     treeView->setItemDelegate(new VirtualItemDelegate(treeView));
@@ -215,75 +212,47 @@ void RemoteFileExplorer::dragEnterEvent(QDragEnterEvent *event)
 {
     qDebugEx() << "dragEnterEvent";
 
-    const QMimeData *mimeData = event->mimeData();
-
-    // 检查拖入的数据是否包含 URL（通常是文件路径）
-    if (mimeData->hasUrls()) {
-        // 遍历所有拖入的 URLs，并打印它们的本地路径
-        QList<QUrl> urls = mimeData->urls();
-        for (const QUrl &url : urls) {
-            QString filePath = url.toLocalFile();  // 获取本地文件路径
-            qDebugEx() << "拖入的文件路径：" << filePath;  // 打印路径
-        }
-        event->acceptProposedAction();  // 允许拖放
-    } else {
-        // 打印没有 URL 的情况，并检查其他数据类型
-        qDebugEx() << "拖入的数据不包含有效的 URL";
-
-        // 检查是否包含文本
-        if (mimeData->hasText()) {
-            QString text = mimeData->text();
-            qDebugEx() << "拖入的文本内容：" << text;
-        }
-
-        // 检查是否包含HTML
-        if (mimeData->hasHtml()) {
-            QString html = mimeData->html();
-            qDebugEx() << "拖入的HTML内容：" << html;
-        }
-
-        // 检查是否包含图片
-        if (mimeData->hasImage()) {
-            QImage image = mimeData->imageData().value<QImage>();
-            qDebugEx() << "拖入的图片：" << image.size();
-        }
-
-        // 检查是否包含其他数据（比如自定义数据）
-        if (mimeData->hasFormat("application/x-my-custom-format")) {
-            QByteArray customData = mimeData->data("application/x-my-custom-format");
-            qDebugEx() << "拖入的自定义数据：" << customData;
-        }
-
-        event->ignore();  // 忽略不包含 URL 的拖拽
-    }
+    if (event->mimeData()->hasUrls()) 
+        event->accept();
+    else
+        event->ignore();
 }
 
 void RemoteFileExplorer::dropEvent(QDropEvent *event)
 {
-    const QMimeData *mimeData = event->mimeData();
-    if (mimeData->hasUrls()) {
-        QList<QUrl> urls = mimeData->urls();
-        if (!urls.isEmpty()) {
-            // 获取目标目录路径
-            QModelIndex index = treeView->indexAt(event->pos());
-            QString targetPath = index.data(Qt::UserRole).toString();
+    auto urls = event->mimeData()->urls();
 
-            for (const QUrl &url : urls) {
-                QString filePath = url.toLocalFile();
-                if (!filePath.isEmpty()) {
-                    // 处理文件拷贝或移动
-                    qDebugEx() << "将文件从" << filePath << "拖放到" << targetPath;
-                    QFileInfo fileInfo(filePath);
-                    QString targetFilePath = targetPath + "/" + fileInfo.fileName();
+    QPoint globalPos = mapToGlobal(event->pos());
+    QPoint localPos = treeView->viewport()->mapFromGlobal(globalPos);
+    
+    QModelIndex index = treeView->indexAt(localPos);
+    QString targetPath = index.data(Qt::UserRole).toString();
 
-                    if (QFile::exists(targetFilePath)) {
-                        QMessageBox::warning(this, "文件已存在", "目标文件已存在，请选择不同的文件名。");
-                    } else {
-                        QFile::copy(filePath, targetFilePath); // 复制文件到目标路径
-                        fetchDirectoryContents(targetPath); // 更新目标路径下的文件列表
-                    }
-                }
-            }
-        }
+    for (const QUrl &url : urls) {
+        auto id = QUuid::createUuid().toString();
+        auto type = 2; // 收是1，发是2
+        auto path = url.toLocalFile();
+        auto size = Tools::getFileSize(path);
+
+        qDebugEx() << "将文件从" << path << "拖放到" << targetPath;
+
+        QFileInfo fileInfo(path);
+
+        auto dir = fileInfo.isFile() ? fileInfo.absoluteDir().path() : fileInfo.absolutePath();
+        
+        auto transfer = new FileTransfer(type, path, size);
+
+        QJsonObject dataObject;
+        dataObject["id"] = id;
+        dataObject["type"] = type;
+        dataObject["port"] = transfer->serverPort();
+        dataObject["path"] = dir + QFileInfo(targetPath).fileName();
+        dataObject["size"] = size;
+
+        QJsonObject jsonObject;
+        jsonObject["event"] = "transferFile";
+        jsonObject["data"] = dataObject;
     }
+
+    event->accept();
 }

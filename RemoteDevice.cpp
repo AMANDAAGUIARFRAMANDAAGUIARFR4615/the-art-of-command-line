@@ -184,22 +184,11 @@ void RemoteDevice::dropEvent(QDropEvent *event)
 
     for (const QUrl& url : urls) {
         auto id = QUuid::createUuid().toString();
-        auto type = 2;//收是1，发是2
+        auto type = 2; // 收是1，发是2
         auto path = url.toLocalFile();
         auto size = Tools::getFileSize(path);
         
         auto transfer = new FileTransfer(type, path, size);
-
-        // QJsonObject dataObject;
-        // dataObject["id"] = id;
-        // dataObject["type"] = type;
-        // dataObject["port"] = transfer->serverPort();
-        // dataObject["path"] = QString("/tmp/") + id;
-        // dataObject["size"] = size;
-
-        // QJsonObject jsonObject;
-        // jsonObject["event"] = "transferFile";
-        // jsonObject["data"] = dataObject;
 
         auto fileName = QFileInfo(path).fileName();
         if (fileName.endsWith(".deb", Qt::CaseInsensitive)) {
