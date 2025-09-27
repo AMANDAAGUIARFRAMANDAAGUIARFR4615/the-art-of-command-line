@@ -254,6 +254,8 @@ void RemoteFileExplorer::dropEvent(QDropEvent *event)
         QJsonObject jsonObject;
         jsonObject["event"] = "transferFile";
         jsonObject["data"] = dataObject;
+
+        TcpServer::sendData(socket, jsonObject);
     }
 
     event->accept();
