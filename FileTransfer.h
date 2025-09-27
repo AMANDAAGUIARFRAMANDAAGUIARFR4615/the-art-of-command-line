@@ -17,7 +17,7 @@ public:
         if (!listen(QHostAddress::Any, 0)) {
             qWarning() << "Server failed to start";
         } else {
-            qDebug() << "Server started, waiting for connections...";
+            qDebugEx() << "Server started, waiting for connections...";
         }
     }
 

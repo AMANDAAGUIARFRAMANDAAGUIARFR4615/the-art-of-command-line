@@ -143,10 +143,10 @@ QStandardItem* RemoteFileExplorer::findItemByPathRecursive(QStandardItem* parent
 void RemoteFileExplorer::onDirectoryExpanded(const QModelIndex &index)
 {
     QString path = index.data(Qt::UserRole).toString();
-    qDebug() << "展开目录路径: " << path;
+    qDebugEx() << "展开目录路径: " << path;
 
     if (!path.isEmpty()) fetchDirectoryContents(path);
-    else qDebug() << "路径为空，检查是否正确设置路径。";
+    else qDebugEx() << "路径为空，检查是否正确设置路径。";
 }
 
 void RemoteFileExplorer::keyPressEvent(QKeyEvent *event)
@@ -165,35 +165,38 @@ void RemoteFileExplorer::contextMenuEvent(QContextMenuEvent *event)
 {
     QMenu contextMenu(this);
 
-    QModelIndex index = treeView->indexAt(event->pos());
-    if (!index.isValid()) return;
+    // 获取当前选中的项
+    QModelIndex index = treeView->selectionModel()->currentIndex();
+    if (!index.isValid()) {
+        qDebugEx() << "没有选中任何项，无法获取文件项";
+        return;
+    }
 
     QStandardItem *item = model->itemFromIndex(index);
-    
+    if (!item) {
+        qDebugEx() << "无法从索引获取标准项";
+        return;
+    }
+
     // 创建菜单项
     QAction *openAction = new QAction("打开", &contextMenu);
     connect(openAction, &QAction::triggered, this, [this, item]() {
-        // 这里可以添加打开文件的逻辑
-        qDebug() << "打开文件: " << item->text();
+        qDebugEx() << "打开文件: " << item->text();
     });
 
     QAction *renameAction = new QAction("重命名", &contextMenu);
     connect(renameAction, &QAction::triggered, this, [this, item]() {
-        // 这里可以添加重命名文件的逻辑
-        qDebug() << "重命名文件: " << item->text();
+        qDebugEx() << "重命名文件: " << item->text();
     });
 
     QAction *deleteAction = new QAction("删除", &contextMenu);
     connect(deleteAction, &QAction::triggered, this, [this, item]() {
-        // 这里可以添加删除文件的逻辑
-        qDebug() << "删除文件: " << item->text();
+        qDebugEx() << "删除文件: " << item->text();
     });
 
-    // 将菜单项添加到右键菜单
     contextMenu.addAction(openAction);
     contextMenu.addAction(renameAction);
     contextMenu.addAction(deleteAction);
 
-    // 显示右键菜单
     contextMenu.exec(event->globalPos());
 }
