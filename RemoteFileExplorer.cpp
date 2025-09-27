@@ -13,6 +13,8 @@
 #include <QApplication>
 #include <QFileIconProvider>
 #include <QKeyEvent>
+#include <QMenu>
+#include <QAction>
 
 RemoteFileExplorer::RemoteFileExplorer(QTcpSocket* socket, QWidget *parent) : socket(socket), QWidget(parent)
 {
@@ -101,7 +103,6 @@ void RemoteFileExplorer::updateDirectoryView(const QString &path, const QJsonArr
 
         // 检查是否为隐藏文件或文件夹
         if (name.startsWith('.')) {
-            // 设置隐藏文件的透明化效果标记
             item->setData(true, Qt::UserRole + 1); // 设置标记，表示该项是隐藏文件
         }
 
@@ -136,7 +137,7 @@ QStandardItem* RemoteFileExplorer::findItemByPathRecursive(QStandardItem* parent
             return findItemByPathRecursive(item, pathParts.mid(1));
     }
 
-    return nullptr;  // 如果没有找到对应项
+    return nullptr;
 }
 
 void RemoteFileExplorer::onDirectoryExpanded(const QModelIndex &index)
@@ -158,4 +159,41 @@ void RemoteFileExplorer::keyPressEvent(QKeyEvent *event)
     {
         QWidget::keyPressEvent(event);
     }
+}
+
+void RemoteFileExplorer::contextMenuEvent(QContextMenuEvent *event)
+{
+    QMenu contextMenu(this);
+
+    QModelIndex index = treeView->indexAt(event->pos());
+    if (!index.isValid()) return;
+
+    QStandardItem *item = model->itemFromIndex(index);
+    
+    // 创建菜单项
+    QAction *openAction = new QAction("打开", &contextMenu);
+    connect(openAction, &QAction::triggered, this, [this, item]() {
+        // 这里可以添加打开文件的逻辑
+        qDebug() << "打开文件: " << item->text();
+    });
+
+    QAction *renameAction = new QAction("重命名", &contextMenu);
+    connect(renameAction, &QAction::triggered, this, [this, item]() {
+        // 这里可以添加重命名文件的逻辑
+        qDebug() << "重命名文件: " << item->text();
+    });
+
+    QAction *deleteAction = new QAction("删除", &contextMenu);
+    connect(deleteAction, &QAction::triggered, this, [this, item]() {
+        // 这里可以添加删除文件的逻辑
+        qDebug() << "删除文件: " << item->text();
+    });
+
+    // 将菜单项添加到右键菜单
+    contextMenu.addAction(openAction);
+    contextMenu.addAction(renameAction);
+    contextMenu.addAction(deleteAction);
+
+    // 显示右键菜单
+    contextMenu.exec(event->globalPos());
 }

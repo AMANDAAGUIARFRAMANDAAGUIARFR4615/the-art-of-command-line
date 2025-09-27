@@ -21,7 +21,7 @@ add_executable(${PROJECT_NAME}
     ToastWidget.h
     NetworkUtils.h
     ControlWindow.h ControlWindow.cpp
-    RemoteFileExplorer.h RemoteFileExplorer.cpp
+    RemoteFileExplorer.h RemoteFileExplorer.cpp FileTransfer.h
     ${RESOURCE_SOURCES}
 )
 

@@ -27,8 +27,8 @@ protected:
         connect(socket, &QTcpSocket::readyRead, this, &FileTransfer::onReadyRead);
         connect(socket, &QTcpSocket::disconnected, socket, &QTcpSocket::deleteLater);
 
-        QFile file;
-        file.setFileName(filePath);
+        QFile file(path);
+        
         if (!file.open(QIODevice::ReadOnly)) {
             qCriticalEx() << "Failed to open file for sending.";
             return;
