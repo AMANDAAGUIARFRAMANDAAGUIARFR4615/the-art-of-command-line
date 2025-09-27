@@ -77,7 +77,7 @@ RemoteDevice::RemoteDevice(QTcpSocket* socket, const DeviceInfo* deviceInfo, QWi
 
     auto isMediaLoaded = new bool(false);
 
-    connect(m_mediaPlayer, &QMediaPlayer::mediaStatusChanged, [isMediaLoaded, timer, this](QMediaPlayer::MediaStatus status) {
+    connect(m_mediaPlayer, &QMediaPlayer::mediaStatusChanged, [isMediaLoaded, timer, this, deviceInfo](QMediaPlayer::MediaStatus status) {
         if (*isMediaLoaded)
             return;
 
@@ -88,13 +88,23 @@ RemoteDevice::RemoteDevice(QTcpSocket* socket, const DeviceInfo* deviceInfo, QWi
             *isMediaLoaded = true;
             qDebugEx() << "媒体加载完成，可以播放";
             m_mediaPlayer->stop();
-            m_mediaPlayer->play();
+            
+            if (!deviceInfo->lockedStatus)
+                m_mediaPlayer->play();
         }
     });
 
-    // EventHub::StartListening("lockedStatus", [this](const QJsonObject &jsonObject, QTcpSocket* socket) {
-    //     qDebugEx() << "锁屏状态" << jsonObject;
-    // });
+    EventHub::StartListening("lockedStatus", [this, deviceInfo](const QJsonValue &data, QTcpSocket* socket) {
+        auto locked = data.toBool();
+
+        if (locked)
+        {
+            m_mediaPlayer->stop();
+            // m_mediaPlayer->setSource("");
+        }
+        else
+            m_mediaPlayer->play();
+    });
 }
 
 RemoteDevice::~RemoteDevice() {}

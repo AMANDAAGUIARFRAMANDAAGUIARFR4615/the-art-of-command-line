@@ -112,8 +112,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     QSize screenSize = QGuiApplication::primaryScreen()->size();
     resize(screenSize.width() * 0.8, screenSize.height() * 0.8);
 
-    EventHub::StartListening("deviceInfo", [this](const QJsonObject &jsonObject, QTcpSocket* socket) {
-        auto deviceInfo = new DeviceInfo(jsonObject);
+    EventHub::StartListening("deviceInfo", [this](const QJsonValue &data, QTcpSocket* socket) {
+        auto deviceInfo = new DeviceInfo(data.toObject());
 
         // 1  Portrait 
         // 2  PortraitUpsideDown

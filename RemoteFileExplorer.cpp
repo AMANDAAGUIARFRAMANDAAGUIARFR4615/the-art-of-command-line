@@ -44,7 +44,7 @@ RemoteFileExplorer::RemoteFileExplorer(QTcpSocket* socket, QWidget *parent) : so
     connect(treeView, &QTreeView::expanded, this, &RemoteFileExplorer::onDirectoryExpanded);
     fetchDirectoryContents("/");
 
-    EventHub::StartListening("fileList", [this, socket](QJsonObject data, QTcpSocket* s) {
+    EventHub::StartListening("fileList", [this, socket](QJsonValue data, QTcpSocket* s) {
         if (s != socket)
             return;
 
@@ -187,6 +187,16 @@ void RemoteFileExplorer::contextMenuEvent(QContextMenuEvent *event)
         qDebugEx() << "重命名文件: " << item->text();
     });
 
+    QAction *newFileAction = new QAction("新建文件", &contextMenu);
+    connect(newFileAction, &QAction::triggered, this, [this, item]() {
+        qDebugEx() << "文件文件: " << item->text();
+    });
+
+    QAction *newFolderAction = new QAction("新建文件夹", &contextMenu);
+    connect(newFolderAction, &QAction::triggered, this, [this, item]() {
+        qDebugEx() << "新建文件夹: " << item->text();
+    });
+
     QAction *deleteAction = new QAction("删除", &contextMenu);
     connect(deleteAction, &QAction::triggered, this, [this, item]() {
         qDebugEx() << "删除文件: " << item->text();
@@ -194,6 +204,8 @@ void RemoteFileExplorer::contextMenuEvent(QContextMenuEvent *event)
 
     contextMenu.addAction(openAction);
     contextMenu.addAction(renameAction);
+    contextMenu.addAction(newFileAction);
+    contextMenu.addAction(newFolderAction);
     contextMenu.addAction(deleteAction);
 
     contextMenu.exec(event->globalPos());

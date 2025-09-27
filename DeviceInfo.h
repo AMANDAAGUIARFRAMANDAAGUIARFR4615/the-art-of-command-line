@@ -18,6 +18,7 @@ public:
           platform(json["platform"].toString()),
           screenHeight(json["screenHeight"].toInt()),
           screenWidth(json["screenWidth"].toInt()),
+          lockedStatus(json["lockedStatus"].toBool()),
           version(json["version"].toString()) {
 
         auto screenSize = QGuiApplication::primaryScreen()->size();
@@ -55,7 +56,9 @@ public:
     const QString platform;
     const int screenHeight;
     const int screenWidth;
+    const bool lockedStatus;
     const QString version;
+
     float scaleFactor = 1;
 
     friend QDebug operator<<(QDebug dbg, const DeviceInfo &deviceInfo) {
