@@ -50,12 +50,15 @@ protected:
         }
 
         file.close();
+        socket->close();
+        close();
         qInfoEx() << "文件发送成功";
     }
 
     void onReadyRead() {
         QTcpSocket *socket = qobject_cast<QTcpSocket *>(sender());
-        
+        auto data = socket->readAll();
+        qDebugEx() << "onReadyRead" << data.length();
     }
 
 private:
