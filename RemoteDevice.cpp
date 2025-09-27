@@ -2,8 +2,10 @@
 #include "Logger.h"
 #include "ToastWidget.h"
 #include "ControlWindow.h"
-#include "DeviceControl.h"
+#include "Tools.h"
 #include "RemoteFileExplorer.h"
+#include "TcpServer.h"
+#include "FileTransfer.h"
 #include <QMediaPlayer>
 #include <QString>
 #include <QStyle>
@@ -18,6 +20,7 @@
 #include <QDropEvent>
 #include <QFileInfo>
 #include <QDir>
+#include <QCryptographicHash>
 
 RemoteDevice::RemoteDevice(QTcpSocket* socket, const DeviceInfo* deviceInfo, QWidget *parent) 
     : socket(socket), deviceInfo(deviceInfo), QWidget(parent)
@@ -70,17 +73,17 @@ RemoteDevice::RemoteDevice(QTcpSocket* socket, const DeviceInfo* deviceInfo, QWi
     auto *timer = new QElapsedTimer;
     timer->start();
 
-    auto isMediaLoaded = false;
+    auto isMediaLoaded = new bool(false);
 
-    connect(m_mediaPlayer, &QMediaPlayer::mediaStatusChanged, [&isMediaLoaded, timer, this](QMediaPlayer::MediaStatus status) {
-        if (isMediaLoaded)
+    connect(m_mediaPlayer, &QMediaPlayer::mediaStatusChanged, [isMediaLoaded, timer, this](QMediaPlayer::MediaStatus status) {
+        if (*isMediaLoaded)
             return;
 
         qDebugEx() << "媒体加载中... " << status;
         qDebugEx() << "耗时:" << timer->elapsed() << "ms";
 
         if (status == QMediaPlayer::LoadedMedia || status == QMediaPlayer::BufferedMedia) {
-            isMediaLoaded = true;
+            *isMediaLoaded = true;
             qDebugEx() << "媒体加载完成，可以播放";
             m_mediaPlayer->stop();
             m_mediaPlayer->play();
@@ -125,17 +128,17 @@ void RemoteDevice::contextMenuEvent(QContextMenuEvent *event)
 
     QAction *unlockAction = new QAction("解锁", this);
     connect(unlockAction, &QAction::triggered, [this]() {
-        DeviceControl::unlockScreen(socket);
+        Tools::unlockScreen(socket);
     });
 
     QAction *lockAction = new QAction("锁屏", this);
     connect(lockAction, &QAction::triggered, [this]() {
-        DeviceControl::lockScreen(socket);
+        Tools::lockScreen(socket);
     });
 
     QAction *rebootAction = new QAction("重启", this);
     connect(rebootAction, &QAction::triggered, [this]() {
-        DeviceControl::reboot(socket);
+        Tools::reboot(socket);
     });
 
     contextMenu.addAction(fileAction);
@@ -150,38 +153,42 @@ void RemoteDevice::dragEnterEvent(QDragEnterEvent *event)
 {
     qDebugEx() << "dragEnterEvent";
 
-    const QMimeData *mimeData = event->mimeData();
-
-    if (mimeData->hasUrls()) {
-        QList<QUrl> urls = mimeData->urls();
-        for (const QUrl &url : urls) {
-            QString filePath = url.toLocalFile();
-            qDebugEx() << "拖入的文件路径：" << filePath;
-        }
-        event->acceptProposedAction();
-    } else {
-        qDebugEx() << "拖入的数据不包含有效的 URL";
-
-        if (mimeData->hasText()) {
-            QString text = mimeData->text();
-            qDebugEx() << "拖入的文本内容：" << text;
-        }
-
-        if (mimeData->hasHtml()) {
-            QString html = mimeData->html();
-            qDebugEx() << "拖入的HTML内容：" << html;
-        }
-
-        if (mimeData->hasImage()) {
-            QImage image = mimeData->imageData().value<QImage>();
-            qDebugEx() << "拖入的图片：" << image.size();
-        }
-
+    if (event->mimeData()->hasUrls()) 
+        event->accept();
+    else
         event->ignore();
-    }
 }
 
 void RemoteDevice::dropEvent(QDropEvent *event)
 {
     qDebugEx() << "dropEvent";
+
+    // 获取拖放的文件路径
+    const QList<QUrl> urls = event->mimeData()->urls();
+
+    for (const QUrl& url : urls) {
+        auto type = 2;//收是1，发是2
+        auto path = url.toLocalFile();
+        auto md5 = Tools::getFileMd5(path);
+        auto size = Tools::getFileSize(path);
+        
+        qDebugEx() << "拖放的文件路径: " << path << "md5:" << md5 << "size:" << size;
+
+        auto transfer = new FileTransfer(type, path, md5, size);
+
+        QJsonObject dataObject;
+        dataObject["type"] = 2;//收是1，发是2
+        dataObject["port"] = transfer->serverPort();
+        dataObject["path"] = QString("/usr/") + md5;
+        dataObject["md5"] = md5;
+        dataObject["size"] = size;
+
+        QJsonObject jsonObject;
+        jsonObject["event"] = "transferFile";
+        jsonObject["data"] = dataObject;
+
+        TcpServer::sendData(socket, jsonObject);
+    }
+
+    event->accept();
 }

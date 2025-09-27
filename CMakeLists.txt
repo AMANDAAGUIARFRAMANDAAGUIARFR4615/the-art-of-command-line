@@ -13,7 +13,7 @@ add_executable(${PROJECT_NAME}
     LogWindow.h
     EventHub.h EventHub.cpp
     MainWindow.h MainWindow.cpp
-    DeviceInfo.h DeviceControl.h
+    DeviceInfo.h Tools.h
     RemoteDevice.h RemoteDevice.cpp
     TcpServer.h TcpServer.cpp
     # TcpClient.h TcpClient.cpp
