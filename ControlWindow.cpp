@@ -98,7 +98,7 @@ bool ControlWindow::event(QEvent *event)
     if ((type == 1 || type == 2) && button == Qt::LeftButton || type == 3)
     {
         auto pos = static_cast<QMouseEvent *>(event)->pos();
-        auto x = pos.x(), y = pos.y();
+        auto x = pos.x() / deviceInfo->scaleFactor, y = pos.y() / deviceInfo->scaleFactor;
         // qDebugEx() << "event" << event->type() << x << y;
 
         QJsonObject dataObject;
