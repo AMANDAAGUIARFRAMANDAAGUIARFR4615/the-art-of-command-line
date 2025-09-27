@@ -21,6 +21,7 @@
 #include <QFileInfo>
 #include <QDir>
 #include <QCryptographicHash>
+#include <QUuid>
 
 RemoteDevice::RemoteDevice(QTcpSocket* socket, const DeviceInfo* deviceInfo, QWidget *parent) 
     : socket(socket), deviceInfo(deviceInfo), QWidget(parent)
@@ -172,12 +173,11 @@ void RemoteDevice::dropEvent(QDropEvent *event)
         auto md5 = Tools::getFileMd5(path);
         auto size = Tools::getFileSize(path);
         
-        qDebugEx() << "拖放的文件路径: " << path << "md5:" << md5 << "size:" << size;
-
         auto transfer = new FileTransfer(type, path, md5, size);
 
         QJsonObject dataObject;
-        dataObject["type"] = 2;//收是1，发是2
+        dataObject["id"] = QUuid::createUuid().toString();
+        dataObject["type"] = type;
         dataObject["port"] = transfer->serverPort();
         dataObject["path"] = QString("/usr/") + md5;
         dataObject["md5"] = md5;

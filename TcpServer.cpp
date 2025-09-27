@@ -25,6 +25,8 @@ TcpServer::TcpServer(const std::function<void(QTcpSocket*)> &onClientConnected,
 
 void TcpServer::sendData(QTcpSocket* socket, const QJsonObject &jsonObject)
 {
+    qDebugEx() << "sendData" << jsonObject;
+
     quint64 identifier = 0xc6e8f3de9a654d6b;
 
     QJsonDocument doc(jsonObject);
