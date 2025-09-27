@@ -7,6 +7,32 @@
 #include <QStandardItemModel>
 #include <QMap>
 #include <QTcpSocket>
+#include <QStyledItemDelegate>
+#include <QPainter>
+
+class VirtualItemDelegate : public QStyledItemDelegate {
+    Q_OBJECT
+public:
+    VirtualItemDelegate(QObject *parent = nullptr) : QStyledItemDelegate(parent) {}
+
+    void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override {
+        painter->save();
+
+        QStyleOptionViewItem modifiedOption = option;
+
+        // 获取自定义数据标记，判断是否为隐藏文件
+        bool isHidden = index.data(Qt::UserRole + 1).toBool();
+
+        if (isHidden) {
+            modifiedOption.palette.setColor(QPalette::Text, QColor(150, 150, 150));
+            painter->setOpacity(0.5);
+        }
+
+        QStyledItemDelegate::paint(painter, modifiedOption, index);
+
+        painter->restore();
+    }
+};
 
 class RemoteFileExplorer : public QWidget
 {

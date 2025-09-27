@@ -27,6 +27,9 @@ RemoteFileExplorer::RemoteFileExplorer(QTcpSocket* socket, QWidget *parent) : so
     model->setHorizontalHeaderLabels({"文件夹名称"});
     treeView->setModel(model);
 
+    // 设置自定义代理来处理绘制
+    treeView->setItemDelegate(new VirtualItemDelegate(treeView));
+
     connect(treeView, &QTreeView::expanded, this, &RemoteFileExplorer::onDirectoryExpanded);
     fetchDirectoryContents("/");
 
@@ -89,7 +92,13 @@ void RemoteFileExplorer::updateDirectoryView(const QString &path, const QJsonArr
         }
 
         item->setEditable(false);
-        
+
+        // 检查是否为隐藏文件或文件夹
+        if (name.startsWith('.')) {
+            // 设置隐藏文件的透明化效果标记
+            item->setData(true, Qt::UserRole + 1); // 设置标记，表示该项是隐藏文件
+        }
+
         if (isDirectory) item->setChild(0, nullptr);
 
         parentItem->appendRow(item);
