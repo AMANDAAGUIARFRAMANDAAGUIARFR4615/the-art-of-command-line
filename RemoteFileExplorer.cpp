@@ -69,6 +69,7 @@ void RemoteFileExplorer::updateDirectoryView(const QString &path, const QJsonArr
         auto obj = value.toObject();
         auto name = obj["name"].toString();
         auto type = obj["type"].toString();
+        auto symbolicLink = obj["symbolicLink"].toString();
         auto myPath = path == '/' ? '/' + name : path + '/' + name;
 
         auto item = new QStandardItem(name);
@@ -85,10 +86,15 @@ void RemoteFileExplorer::updateDirectoryView(const QString &path, const QJsonArr
         auto isDirectory = type == "NSFileTypeDirectory" || type == "NSFileTypeSymbolicLink";
 
         if (isDirectory) {
-            item->setIcon(iconProvider.icon(QFileIconProvider::Folder));
+            item->setIcon(symbolicLink.isEmpty() ? QIcon(":/icons/folder.png") : QIcon(":/icons/folder_link.png"));
         } else {
-            QFileInfo fileInfo(name);
-            item->setIcon(iconProvider.icon(fileInfo));
+            QString suffix = name.section('.', -1).toLower();
+
+            QString iconPath = ":/icons/" + suffix + ".png";
+            
+            QIcon fileIcon = QFile::exists(iconPath) ? QIcon(iconPath) : (symbolicLink.isEmpty() ? QIcon(":/icons/file.png") : QIcon(":/icons/file_link.png"));
+
+            item->setIcon(fileIcon);
         }
 
         item->setEditable(false);

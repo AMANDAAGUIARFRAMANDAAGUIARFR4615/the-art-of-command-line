@@ -5,6 +5,8 @@ find_package(Qt6 REQUIRED COMPONENTS Widgets Network Multimedia MultimediaWidget
 
 qt_standard_project_setup()
 
+qt_add_resources(RESOURCE_SOURCES icons.qrc)
+
 add_executable(${PROJECT_NAME}
     main.cpp
     Logger.h
@@ -20,6 +22,7 @@ add_executable(${PROJECT_NAME}
     NetworkUtils.h
     ControlWindow.h ControlWindow.cpp
     RemoteFileExplorer.h RemoteFileExplorer.cpp
+    ${RESOURCE_SOURCES}
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
