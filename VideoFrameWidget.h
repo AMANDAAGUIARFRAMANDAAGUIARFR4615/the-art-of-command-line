@@ -13,18 +13,18 @@
 #include <QDropEvent>
 #include <QCryptographicHash>
 
-class VideoFrameCapture : public QWidget
+class VideoFrameWidget : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit VideoFrameCapture(QMediaPlayer *player, QWidget *parent = nullptr) 
+    explicit VideoFrameWidget(QMediaPlayer *player, QWidget *parent = nullptr) 
         : QWidget(parent), m_player(player)
     {
         m_videoSink = new QVideoSink(this);
         m_player->setVideoSink(m_videoSink);
 
-        connect(m_videoSink, &QVideoSink::videoFrameChanged, this, &VideoFrameCapture::onVideoFrameChanged);
+        connect(m_videoSink, &QVideoSink::videoFrameChanged, this, &VideoFrameWidget::onVideoFrameChanged);
 
         m_player->setAudioOutput(nullptr);
 
