@@ -95,7 +95,7 @@ protected:
         
         if (!canUpdateFrame(nonConstFrame))
         {
-            qDebugEx() << "画面无变化";
+            // qDebugEx() << "画面无变化";
             return;
         }
                 

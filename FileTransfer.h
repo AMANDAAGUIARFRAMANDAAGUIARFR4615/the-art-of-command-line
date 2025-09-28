@@ -5,6 +5,7 @@
 #include <QTcpServer>
 #include <QFile>
 #include <QDataStream>
+#include <QtConcurrent>
 
 class FileTransfer : public QTcpServer
 {
@@ -30,34 +31,28 @@ protected:
         auto socket = nextPendingConnection();
         connect(socket, &QTcpSocket::readyRead, this, &FileTransfer::onReadyRead);
         connect(socket, &QTcpSocket::disconnected, socket, &QTcpSocket::deleteLater);
+        connect(socket, &QTcpSocket::bytesWritten, this, &FileTransfer::onBytesWritten);  // 连接bytesWritten信号
 
-        QFile file(path);
+        QtConcurrent::run([this, socket]() {
+            QFile file(path);
 
-        if (!file.open(QIODevice::ReadOnly))
-        {
-            qCriticalEx() << "Failed to open file for sending.";
-            return;
-        }
-
-        quint64 bytesSent = 0;
-        while (!file.atEnd())
-        {
-            auto buffer = file.read(4096);
-            qint64 written = socket->write(buffer);
-            if (written == -1)
+            if (!file.open(QIODevice::ReadOnly))
             {
-                qCriticalEx() << "文件发送失败";
-                break;
+                qCriticalEx() << "Failed to open file for sending.";
+                return;
             }
 
-            bytesSent += written;
-            socket->waitForBytesWritten(3000);
-            if (bytesSent >= file.size())
-                break;
-        }
+            while (!file.atEnd())
+            {
+                auto buffer = file.read(4096);
+                QMetaObject::invokeMethod(this, [socket, buffer]() {
+                    socket->write(buffer);
+                });
+            }
 
-        file.close();
-        qInfoEx() << "文件发送成功";
+            file.close();
+            qInfoEx() << "文件关闭";
+        });
     }
 
     void onReadyRead()
@@ -76,6 +71,15 @@ protected:
                 close();
                 qDebugEx() << "发送完成断开连接";
             }
+        }
+    }
+
+    void onBytesWritten(qint64 bytes)
+    {
+        QTcpSocket *socket = qobject_cast<QTcpSocket *>(sender());
+        if (bytes == socket->bytesToWrite())  // 数据完全写入
+        {
+            qDebugEx() << "文件已发送完成：" << bytes;
         }
     }
 
