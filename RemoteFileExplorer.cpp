@@ -29,6 +29,12 @@ RemoteFileExplorer::RemoteFileExplorer(QTcpSocket* socket, QWidget *parent) : so
     setAcceptDrops(true);
 
     treeView = new QTreeView(this);
+    QFont font = treeView->font();
+    font.setPointSize(12);
+    treeView->setFont(font);
+
+    treeView->setIconSize(QSize(24, 24)); 
+    
     auto layout = new QVBoxLayout(this);
     layout->addWidget(treeView);
     setLayout(layout);
