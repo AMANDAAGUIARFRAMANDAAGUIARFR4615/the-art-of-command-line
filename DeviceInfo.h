@@ -56,9 +56,9 @@ public:
     const QString platform;
     const int screenHeight;
     const int screenWidth;
-    const bool lockedStatus;
     const QString version;
 
+    bool lockedStatus;
     float scaleFactor = 1;
 
     friend QDebug operator<<(QDebug dbg, const DeviceInfo &deviceInfo) {

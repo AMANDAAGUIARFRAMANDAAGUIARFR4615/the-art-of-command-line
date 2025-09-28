@@ -24,7 +24,7 @@
 #include <QUuid>
 #include <QFileInfo>
 
-RemoteDevice::RemoteDevice(QTcpSocket* socket, const DeviceInfo* deviceInfo, QWidget *parent) 
+RemoteDevice::RemoteDevice(QTcpSocket* socket, DeviceInfo* deviceInfo, QWidget *parent)
     : socket(socket), deviceInfo(deviceInfo), QWidget(parent)
 {
     setAcceptDrops(true);
@@ -74,11 +74,6 @@ RemoteDevice::~RemoteDevice() {}
 void RemoteDevice::setSource(const QUrl &source)
 {
     m_mediaPlayer->setSource(source);
-}
-
-void RemoteDevice::play()
-{
-    m_mediaPlayer->play();
 }
 
 void RemoteDevice::mouseDoubleClickEvent(QMouseEvent *event)

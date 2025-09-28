@@ -15,7 +15,7 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-    void addItem(QTcpSocket* socket = nullptr, const DeviceInfo* deviceInfo = nullptr);
+    void addItem(QTcpSocket* socket = nullptr, DeviceInfo* deviceInfo = nullptr);
 
 protected:
     void keyPressEvent(QKeyEvent *event) override;

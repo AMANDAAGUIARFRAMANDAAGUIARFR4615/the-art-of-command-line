@@ -159,7 +159,7 @@ void MainWindow::onTabClicked(int index)
     }
 }
 
-void MainWindow::addItem(QTcpSocket* socket, const DeviceInfo* deviceInfo)
+void MainWindow::addItem(QTcpSocket* socket, DeviceInfo* deviceInfo)
 {
     auto url = deviceInfo ? "tcp://" + deviceInfo->localIp + ":23145" : nullptr;
 

@@ -11,11 +11,10 @@ class RemoteDevice : public QWidget
 {
     Q_OBJECT
 public:
-    explicit RemoteDevice(QTcpSocket* socket, const DeviceInfo* deviceInfo, QWidget *parent = nullptr);
+    explicit RemoteDevice(QTcpSocket* socket, DeviceInfo* deviceInfo, QWidget *parent = nullptr);
     ~RemoteDevice();
 
     void setSource(const QUrl &source);
-    void play();
 
 protected:
     void mouseDoubleClickEvent(QMouseEvent *event) override;
@@ -24,6 +23,6 @@ protected:
     void dropEvent(QDropEvent *event) override;
 
     QTcpSocket* socket;
-    const DeviceInfo* deviceInfo;
+    DeviceInfo* deviceInfo;
     QMediaPlayer *m_mediaPlayer;
 };

@@ -18,12 +18,12 @@ ControlWindow::~ControlWindow() {}
 
 void ControlWindow::setSource(const QUrl &source)
 {
-    m_player->setSource(source);
+    m_mediaPlayer->setSource(source);
 }
 
 void ControlWindow::play()
 {
-    m_player->play();
+    m_mediaPlayer->play();
 }
 
 void ControlWindow::mouseDoubleClickEvent(QMouseEvent *event)
