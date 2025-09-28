@@ -3,25 +3,28 @@
 #include <QMediaPlayer>
 #include <QVideoSink>
 #include <QVideoFrame>
-#include <QImage>
-#include <QBuffer>
-#include <QAbstractVideoBuffer>
-#include <QPainter>
-#include <QDebug>
+#include <QOpenGLTexture>
+#include <QOpenGLFunctions>
+#include <QOpenGLShaderProgram>
+#include <QOpenGLBuffer>
 #include <QApplication>
-#include <QWidget>
+#include <QOpenGLWidget>
 #include <QTimer>
 #include <QDragEnterEvent>
 #include <QDropEvent>
 #include <QCryptographicHash>
+#include <QPainter>
+#include <QWidget>
 
-class VideoFrameCapture : public QWidget
+class VideoFrameCapture : public QOpenGLWidget, protected QOpenGLFunctions
 {
     Q_OBJECT
 
 public:
-    explicit VideoFrameCapture(QMediaPlayer *player, QWidget *parent = nullptr) : QWidget(parent), m_player(player)
+    explicit VideoFrameCapture(QMediaPlayer *player, QWidget *parent = nullptr)
+        : QOpenGLWidget(parent), m_player(player), m_texture(nullptr), m_program(nullptr)
     {
+        qDebug() << "VideoFrameCapture constructor";
         m_videoSink = new QVideoSink(this);
         m_player->setVideoSink(m_videoSink);
 
@@ -38,96 +41,172 @@ public:
                 }
             }
         });
+
+        // 延迟 OpenGL 初始化
+        m_initialized = false;
+    }
+
+    ~VideoFrameCapture()
+    {
+        qDebug() << "Destroying VideoFrameCapture";
+        if (m_texture) {
+            delete m_texture;
+        }
+        delete m_program;
     }
 
 protected:
+    void initializeGL() override
+    {
+        qDebug() << "Initializing OpenGL";
+
+        // Initialize OpenGL functions
+        initializeOpenGLFunctions();
+
+        // 延迟资源创建，避免初始化时出现问题
+        if (!m_initialized) {
+            m_program = new QOpenGLShaderProgram(this);
+            if (!m_program->addShaderFromSourceCode(QOpenGLShader::Vertex,
+                "attribute vec4 vertex;\n"
+                "attribute vec2 texCoord;\n"
+                "varying vec2 fragTexCoord;\n"
+                "uniform mat4 matrix;\n"
+                "void main() {\n"
+                "    gl_Position = matrix * vertex;\n"
+                "    fragTexCoord = texCoord;\n"
+                "}"))
+            {
+                qDebug() << "Failed to compile vertex shader: " << m_program->log();
+                return;
+            }
+
+            if (!m_program->addShaderFromSourceCode(QOpenGLShader::Fragment,
+                "uniform sampler2D texture;\n"
+                "varying vec2 fragTexCoord;\n"
+                "void main() {\n"
+                "    gl_FragColor = texture2D(texture, fragTexCoord);\n"
+                "}"))
+            {
+                qDebug() << "Failed to compile fragment shader: " << m_program->log();
+                return;
+            }
+
+            if (!m_program->link()) {
+                qDebug() << "Failed to link shader program: " << m_program->log();
+                return;
+            }
+
+            m_program->bind();
+
+            m_vertices << QVector2D(-1.0f, -1.0f) << QVector2D(1.0f, -1.0f) << QVector2D(1.0f, 1.0f) << QVector2D(-1.0f, 1.0f);
+            m_texCoords << QVector2D(0.0f, 0.0f) << QVector2D(1.0f, 0.0f) << QVector2D(1.0f, 1.0f) << QVector2D(0.0f, 1.0f);
+
+            m_vertexBuffer.create();
+            m_vertexBuffer.bind();
+            m_vertexBuffer.allocate(m_vertices.constData(), m_vertices.count() * sizeof(QVector2D));
+
+            m_texCoordBuffer.create();
+            m_texCoordBuffer.bind();
+            m_texCoordBuffer.allocate(m_texCoords.constData(), m_texCoords.count() * sizeof(QVector2D));
+
+            qDebug() << "OpenGL Initialized";
+            m_initialized = true;
+        }
+    }
+
     void paintEvent(QPaintEvent *event) override
     {
         QWidget::paintEvent(event);
 
-        if (!m_currentImage.isNull())
+        if (!m_texture)
         {
-            QSize widgetSize = size();
-            QSize imageSize = m_currentImage.size();
-
-            QPainter painter(this);
-            painter.setRenderHint(QPainter::Antialiasing, true);
-
-            int offsetX = (widgetSize.width() - imageSize.width()) / 2;
-            int offsetY = (widgetSize.height() - imageSize.height()) / 2;
-
-            painter.drawImage(offsetX, offsetY, m_currentImage);
+            qDebug() << "Texture not initialized yet!";
+            return;
         }
+
+        QPainter painter(this);
+        painter.setRenderHint(QPainter::Antialiasing, true);
+
+        QSize widgetSize = size();
+        int offsetX = (widgetSize.width() - m_texture->width()) / 2;
+        int offsetY = (widgetSize.height() - m_texture->height()) / 2;
+
+        // 使用 OpenGL 渲染纹理
+        painter.beginNativePainting();
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        // 设置投影矩阵
+        QMatrix4x4 matrix;
+        matrix.ortho(-1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f);
+        matrix.translate(0.0f, 0.0f, -1.0f);
+
+        // 绑定着色器程序
+        m_program->bind();
+        m_program->setUniformValue("matrix", matrix);
+        m_program->setUniformValue("texture", 0);
+
+        // 绑定纹理
+        m_texture->bind();
+
+        m_vertexBuffer.bind();
+        m_program->enableAttributeArray(0);
+        m_program->setAttributeBuffer(0, GL_FLOAT, 0, 2, 0);
+
+        m_texCoordBuffer.bind();
+        m_program->enableAttributeArray(1);
+        m_program->setAttributeBuffer(1, GL_FLOAT, 0, 2, 0);
+
+        glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+        painter.endNativePainting();
     }
 
     void onVideoFrameChanged(const QVideoFrame &frame)
     {
-        if (!frame.isValid())
-        {
-            qDebug() << "无效帧";
+        qDebug() << "onVideoFrameChanged called";
+
+        if (!frame.isValid()) {
+            qDebug() << "Invalid frame";
             return;
         }
 
         QVideoFrame &nonConstFrame = const_cast<QVideoFrame &>(frame);
 
         nonConstFrame.map(QVideoFrame::ReadOnly);
-        
-        if (!canUpdateFrame(nonConstFrame))
-        {
-            qDebug() << "画面无变化";
+
+        if (!canUpdateFrame(nonConstFrame)) {
+            qDebug() << "Frame hasn't changed";
+            nonConstFrame.unmap();
             return;
         }
-                
+
         const uchar *yPlane = nonConstFrame.bits(0);
         const uchar *uPlane = nonConstFrame.bits(1);
         const uchar *vPlane = nonConstFrame.bits(2);
 
         int width = frame.width();
         int height = frame.height();
-        int yStride = nonConstFrame.bytesPerLine(0);
-        int uvStride = nonConstFrame.bytesPerLine(1);
 
-        QImage img(width, height, QImage::Format_RGB888);
-
-        for (int y = 0; y < height; ++y)
-        {
-            uchar *line = img.scanLine(y);
-
-            for (int x = 0; x < width; ++x)
-            {
-                int yValue = yPlane[y * yStride + x];
-                int uIndex = (y / 2) * uvStride + (x / 2);
-                int uValue = uPlane[uIndex];
-                int vIndex = (y / 2) * uvStride + (x / 2);
-                int vValue = vPlane[vIndex];
-
-                int c = yValue - 16;
-                int d = uValue - 128;
-                int e = vValue - 128;
-                int r = qBound(0, (298 * c + 409 * e + 128) >> 8, 255);
-                int g = qBound(0, (298 * c - 100 * d - 208 * e + 128) >> 8, 255);
-                int b = qBound(0, (298 * c + 516 * d + 128) >> 8, 255);
-
-                line[3 * x]     = r;
-                line[3 * x + 1] = g;
-                line[3 * x + 2] = b;
-            }
+        // 释放旧纹理，避免内存泄漏
+        if (m_texture) {
+            delete m_texture;
         }
 
-        m_currentImage = img;
+        // 创建纹理并上传数据
+        m_texture = new QOpenGLTexture(QOpenGLTexture::Target2D);
+        m_texture->setSize(width, height);
+        m_texture->setFormat(QOpenGLTexture::R8_UNorm);
+        m_texture->setData(QOpenGLTexture::Red, QOpenGLTexture::UInt8, yPlane);
+
+        nonConstFrame.unmap(); // 解锁帧
 
         update();
-
-        nonConstFrame.unmap();
     }
 
     bool canUpdateFrame(const QVideoFrame &frame)
     {
-        // 使用哈希值判断帧是否发生变化
         QByteArray currentFrameHash = generateFrameHash(frame);
-        if (currentFrameHash == m_lastFrameHash)
-        {
-            return false; 
+        if (currentFrameHash == m_lastFrameHash) {
+            return false;
         }
 
         m_lastFrameHash = currentFrameHash;
@@ -136,19 +215,15 @@ protected:
 
     QByteArray generateFrameHash(const QVideoFrame &frame)
     {
-        // 通过获取 Y、U、V 平面和它们的字节数生成哈希
         QCryptographicHash hash(QCryptographicHash::Sha256);
 
-        // 获取 Y、U、V 平面的数据
         const uchar *yPlane = frame.bits(0);
         const uchar *uPlane = frame.bits(1);
         const uchar *vPlane = frame.bits(2);
 
-        // 计算每个平面的字节数
         int yBytes = frame.bytesPerLine(0) * frame.height();
-        int uvBytes = frame.bytesPerLine(1) * (frame.height() / 2); // UV平面高度为原高度的一半
+        int uvBytes = frame.bytesPerLine(1) * (frame.height() / 2);
 
-        // 将 Y、U、V 平面的数据加入哈希计算
         hash.addData(reinterpret_cast<const char*>(yPlane), yBytes);
         hash.addData(reinterpret_cast<const char*>(uPlane), uvBytes);
         hash.addData(reinterpret_cast<const char*>(vPlane), uvBytes);
@@ -156,8 +231,16 @@ protected:
         return hash.result();
     }
 
+private:
     QMediaPlayer *m_player;
     QVideoSink *m_videoSink;
-    QImage m_currentImage;
+    QOpenGLTexture *m_texture;  // Texture for video
     QByteArray m_lastFrameHash;
+
+    QOpenGLShaderProgram *m_program;
+    QOpenGLBuffer m_vertexBuffer;
+    QOpenGLBuffer m_texCoordBuffer;
+    QVector<QVector2D> m_vertices;
+    QVector<QVector2D> m_texCoords;
+    bool m_initialized;
 };
