@@ -4,8 +4,6 @@
 #include <QVideoSink>
 #include <QVideoFrame>
 #include <QImage>
-#include <QBuffer>
-#include <QAbstractVideoBuffer>
 #include <QPainter>
 #include <QDebug>
 #include <QApplication>
@@ -20,7 +18,8 @@ class VideoFrameCapture : public QWidget
     Q_OBJECT
 
 public:
-    explicit VideoFrameCapture(QMediaPlayer *player, QWidget *parent = nullptr) : QWidget(parent), m_player(player)
+    explicit VideoFrameCapture(QMediaPlayer *player, QWidget *parent = nullptr) 
+        : QWidget(parent), m_player(player)
     {
         m_videoSink = new QVideoSink(this);
         m_player->setVideoSink(m_videoSink);
@@ -53,10 +52,27 @@ protected:
             QPainter painter(this);
             painter.setRenderHint(QPainter::Antialiasing, true);
 
-            int offsetX = (widgetSize.width() - imageSize.width()) / 2;
-            int offsetY = (widgetSize.height() - imageSize.height()) / 2;
+            // 保持视频同比例缩放
+            float widgetAspectRatio = static_cast<float>(widgetSize.width()) / widgetSize.height();
+            float imageAspectRatio = static_cast<float>(imageSize.width()) / imageSize.height();
 
-            painter.drawImage(offsetX, offsetY, m_currentImage);
+            int newWidth = widgetSize.width();
+            int newHeight = widgetSize.height();
+
+            // 根据长宽比例调整大小，保持同比例缩放
+            if (widgetAspectRatio > imageAspectRatio) {
+                newWidth = static_cast<int>(imageSize.width() * (widgetSize.height() / static_cast<float>(imageSize.height())));
+            } else {
+                newHeight = static_cast<int>(imageSize.height() * (widgetSize.width() / static_cast<float>(imageSize.width())));
+            }
+
+            QSize scaledSize(newWidth, newHeight);
+
+            // 居中显示图像
+            int offsetX = (widgetSize.width() - scaledSize.width()) / 2;
+            int offsetY = (widgetSize.height() - scaledSize.height()) / 2;
+
+            painter.drawImage(offsetX, offsetY, m_currentImage.scaled(scaledSize));
         }
     }
 
