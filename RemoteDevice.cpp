@@ -170,10 +170,20 @@ void RemoteDevice::dragEnterEvent(QDragEnterEvent *event)
 {
     qDebugEx() << "dragEnterEvent";
 
-    if (event->mimeData()->hasUrls()) 
-        event->accept();
-    else
-        event->ignore();
+    const QList<QUrl> urls = event->mimeData()->urls();
+
+    for (const QUrl &url : urls)
+    {
+        auto path = url.toLocalFile();
+        auto fileName = QFileInfo(path).fileName();
+        if (!fileName.endsWith(".deb", Qt::CaseInsensitive) && !fileName.endsWith(".ipa", Qt::CaseInsensitive))
+        {
+            event->ignore();
+            return;
+        }
+    }
+
+    event->accept();
 }
 
 void RemoteDevice::dropEvent(QDropEvent *event)
