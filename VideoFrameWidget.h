@@ -30,7 +30,7 @@ public:
         m_player->setAudioOutput(nullptr);
 
         connect(m_player, &QMediaPlayer::mediaStatusChanged, this, [this](QMediaPlayer::MediaStatus status) {
-            qDebug() << "Media Status Changed: " << status;
+            qDebugEx() << "Media Status Changed: " << status;
             if (status == QMediaPlayer::LoadedMedia) {
                 if (!m_player->isPlaying()) {
                     m_player->stop();
@@ -85,7 +85,7 @@ protected:
     {
         if (!frame.isValid())
         {
-            qDebug() << "无效帧";
+            qDebugEx() << "无效帧";
             return;
         }
 
@@ -95,7 +95,7 @@ protected:
         
         if (!canUpdateFrame(nonConstFrame))
         {
-            qDebug() << "画面无变化";
+            qDebugEx() << "画面无变化";
             return;
         }
                 
