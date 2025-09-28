@@ -20,27 +20,27 @@ class VideoFrameWidget : public QWidget
 
 public:
     explicit VideoFrameWidget(QMediaPlayer *player, QWidget *parent = nullptr) 
-        : QWidget(parent), m_player(player)
+        : QWidget(parent), m_mediaPlayer(player)
     {
         m_videoSink = new QVideoSink(this);
-        m_player->setVideoSink(m_videoSink);
+        m_mediaPlayer->setVideoSink(m_videoSink);
 
         connect(m_videoSink, &QVideoSink::videoFrameChanged, this, &VideoFrameWidget::onVideoFrameChanged);
 
-        m_player->setAudioOutput(nullptr);
+        m_mediaPlayer->setAudioOutput(nullptr);
 
-        connect(m_player, &QMediaPlayer::mediaStatusChanged, this, [this](QMediaPlayer::MediaStatus status) {
+        connect(m_mediaPlayer, &QMediaPlayer::mediaStatusChanged, this, [this](QMediaPlayer::MediaStatus status) {
             qDebugEx() << "Media Status Changed: " << status;
             if (status == QMediaPlayer::LoadedMedia) {
-                if (!m_player->isPlaying()) {
-                    m_player->stop();
-                    m_player->play();
+                if (!m_mediaPlayer->isPlaying()) {
+                    m_mediaPlayer->stop();
+                    m_mediaPlayer->play();
                 }
             }
         });
 
-        connect(m_player, &QMediaPlayer::errorChanged, [this]() {
-            qCriticalEx() << "errorChanged" << m_player->errorString();
+        connect(m_mediaPlayer, &QMediaPlayer::errorChanged, [this]() {
+            qCriticalEx() << "errorChanged" << m_mediaPlayer->errorString();
         });
     }
 
@@ -177,7 +177,7 @@ protected:
         return hash.result();
     }
 
-    QMediaPlayer *m_player;
+    QMediaPlayer *m_mediaPlayer;
     QVideoSink *m_videoSink;
     QImage m_currentImage;
     QByteArray m_lastFrameHash;
