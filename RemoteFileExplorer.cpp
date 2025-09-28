@@ -22,6 +22,7 @@
 #include <QDropEvent>
 #include <QFileInfo>
 #include <QDir>
+#include <QInputDialog>
 
 RemoteFileExplorer::RemoteFileExplorer(QTcpSocket* socket, QWidget *parent) : socket(socket), QWidget(parent)
 {
@@ -185,28 +186,65 @@ void RemoteFileExplorer::contextMenuEvent(QContextMenuEvent *event)
 
     QAction *renameAction = new QAction("重命名", &contextMenu);
     connect(renameAction, &QAction::triggered, this, [this, item]() {
-        qDebugEx() << "重命名文件: " << item->text();
+        auto targetPath = item->data(Qt::UserRole).toString();
+        qDebugEx() << "重命名文件: " << targetPath;
+
+        bool ok;
+        auto name = QInputDialog::getText(this, "重命名文件", "请输入名称:", QLineEdit::Normal, "", &ok);
+        
+        if (ok && !name.isEmpty()) {
+            QJsonObject dataObject;
+            dataObject["atPath"] = targetPath;
+            dataObject["toPath"] = name;
+
+            QJsonObject jsonObject;
+            jsonObject["event"] = "renameItem";
+            jsonObject["data"] = dataObject;
+
+            TcpServer::sendData(socket, jsonObject);
+            // fetchDirectoryContents(targetPath);
+        }
     });
 
-    QAction *newFileAction = new QAction("新建文件", &contextMenu);
-    connect(newFileAction, &QAction::triggered, this, [this, item]() {
-        qDebugEx() << "文件文件: " << item->text();
-    });
+    QAction *createAction = new QAction("新建文件夹", &contextMenu);
+    connect(createAction, &QAction::triggered, this, [this, item]() {
+        auto targetPath = item->data(Qt::UserRole).toString();
+        qDebugEx() << "新建文件夹: " << targetPath;
 
-    QAction *newFolderAction = new QAction("新建文件夹", &contextMenu);
-    connect(newFolderAction, &QAction::triggered, this, [this, item]() {
-        qDebugEx() << "新建文件夹: " << item->text();
+        bool ok;
+        auto name = QInputDialog::getText(this, "新建文件夹", "请输入名称:", QLineEdit::Normal, "", &ok);
+        
+        if (ok && !name.isEmpty()) {
+            QJsonObject jsonObject;
+            jsonObject["event"] = "createDirectory";
+            jsonObject["data"] = targetPath + "/" + name;
+
+            TcpServer::sendData(socket, jsonObject);
+            // fetchDirectoryContents(targetPath);
+        }
     });
 
     QAction *deleteAction = new QAction("删除", &contextMenu);
     connect(deleteAction, &QAction::triggered, this, [this, item]() {
-        qDebugEx() << "删除文件: " << item->text();
+        auto targetPath = item->data(Qt::UserRole).toString();
+        qDebugEx() << "删除文件: " << targetPath;
+
+        auto reply = QMessageBox::question(this, "确认删除", "你确定要删除【" + QFileInfo(targetPath).fileName() + "】吗？", 
+        QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+
+        if (reply != QMessageBox::Yes)
+            return;
+        
+        QJsonObject jsonObject;
+        jsonObject["event"] = "removeItem";
+        jsonObject["data"] = targetPath;
+
+        TcpServer::sendData(socket, jsonObject);
     });
 
     contextMenu.addAction(openAction);
     contextMenu.addAction(renameAction);
-    contextMenu.addAction(newFileAction);
-    contextMenu.addAction(newFolderAction);
+    contextMenu.addAction(createAction);
     contextMenu.addAction(deleteAction);
 
     contextMenu.exec(event->globalPos());
@@ -216,10 +254,19 @@ void RemoteFileExplorer::dragEnterEvent(QDragEnterEvent *event)
 {
     qDebugEx() << "dragEnterEvent";
 
-    if (event->mimeData()->hasUrls()) 
-        event->accept();
-    else
+    if (!event->mimeData()->hasUrls()) 
         event->ignore();
+
+    auto urls = event->mimeData()->urls();
+
+    for (const QUrl &url : urls) {
+        if (QFileInfo(url.toLocalFile()).isDir()) {
+            event->ignore();
+            return;
+        }
+    }
+    
+    event->accept();
 }
 
 void RemoteFileExplorer::dropEvent(QDropEvent *event)
