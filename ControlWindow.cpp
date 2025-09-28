@@ -1,68 +1,29 @@
 #include "RemoteDevice.h"
 #include "Logger.h"
-#include "ToastWidget.h"
 #include "ControlWindow.h"
 #include "TcpServer.h"
-
 #include <QMediaPlayer>
 #include <QString>
 #include <QStyle>
-#include <QVideoWidget>
 #include <QElapsedTimer>
 #include <QVBoxLayout>
 #include <QMouseEvent>
 
-ControlWindow::ControlWindow(QTcpSocket* socket, const DeviceInfo* deviceInfo, QWidget *parent) : socket(socket), deviceInfo(deviceInfo), QVideoWidget(parent)
+ControlWindow::ControlWindow(QTcpSocket* socket, const DeviceInfo* deviceInfo, QWidget *parent) : socket(socket), deviceInfo(deviceInfo), VideoFrameWidget(new QMediaPlayer(parent), parent)
 {
-    m_mediaPlayer = new QMediaPlayer(this);
-
-    m_mediaPlayer->setVideoOutput(this);
-
-    connect(m_mediaPlayer, &QMediaPlayer::errorChanged, [this]()
-            {
-        if (m_mediaPlayer->error() == QMediaPlayer::NoError)
-            return;
-
-        const auto errorString = m_mediaPlayer->errorString();
-        QString message = "Error: ";
-        if (errorString.isEmpty())
-            message += " #" + QString::number(int(m_mediaPlayer->error()));
-        else
-            message += errorString;
-
-        new ToastWidget(message); });
-
-    auto *timer = new QElapsedTimer;
-    timer->start();
-
-    auto isMediaLoaded = false;
-
-    connect(m_mediaPlayer, &QMediaPlayer::mediaStatusChanged, [&isMediaLoaded, timer, this](QMediaPlayer::MediaStatus status)
-            {
-        if (isMediaLoaded)
-            return;
-
-        qDebugEx() << "媒体加载中... " << status;
-        qDebugEx() << "耗时:" << timer->elapsed() << "ms";
-
-        if (status == QMediaPlayer::LoadedMedia || status == QMediaPlayer::BufferedMedia) {
-            isMediaLoaded = true;
-            qDebugEx() << "媒体加载完成，可以播放";
-            m_mediaPlayer->stop();
-            m_mediaPlayer->play();
-        } });
+        
 }
 
 ControlWindow::~ControlWindow() {}
 
 void ControlWindow::setSource(const QUrl &source)
 {
-    m_mediaPlayer->setSource(source);
+    m_player->setSource(source);
 }
 
 void ControlWindow::play()
 {
-    m_mediaPlayer->play();
+    m_player->play();
 }
 
 void ControlWindow::mouseDoubleClickEvent(QMouseEvent *event)

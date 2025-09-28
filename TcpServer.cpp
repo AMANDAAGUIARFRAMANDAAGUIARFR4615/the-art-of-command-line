@@ -44,7 +44,7 @@ void TcpServer::sendData(QTcpSocket* socket, const QJsonObject &jsonObject)
 }
 
 void TcpServer::onNewConnection() {
-    auto *socket = this->nextPendingConnection();
+    auto socket = this->nextPendingConnection();
 
     auto ip = socket->peerAddress().toString();
     auto port = socket->peerPort();
@@ -63,7 +63,7 @@ void TcpServer::onNewConnection() {
 
 void TcpServer::onReadyRead()
 {
-    auto *socket = qobject_cast<QTcpSocket*>(sender());
+    auto socket = qobject_cast<QTcpSocket*>(sender());
     auto data = socket->readAll();
     clientBuffers[socket].append(data);
     processBufferedData(socket);
@@ -71,7 +71,7 @@ void TcpServer::onReadyRead()
 
 void TcpServer::onDisconnected()
 {
-    auto *socket = qobject_cast<QTcpSocket*>(sender());
+    auto socket = qobject_cast<QTcpSocket*>(sender());
     
     auto ip = socket->peerAddress().toString();
     auto port = socket->peerPort();
@@ -87,7 +87,7 @@ void TcpServer::onDisconnected()
 
 void TcpServer::onErrorOccurred(QAbstractSocket::SocketError socketError)
 {
-    auto *socket = qobject_cast<QTcpSocket*>(sender());
+    auto socket = qobject_cast<QTcpSocket*>(sender());
     qCriticalEx() << "Socket error:" << socketError;
     if (onErrorCallback && socket) {
         onErrorCallback(socket, socketError);

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Logger.h"
 #include <QMediaPlayer>
 #include <QVideoSink>
 #include <QVideoFrame>
@@ -36,6 +37,10 @@ public:
                     m_player->play();
                 }
             }
+        });
+
+        connect(m_player, &QMediaPlayer::errorChanged, [this]() {
+            qCriticalEx() << "errorChanged" << m_player->errorString();
         });
     }
 

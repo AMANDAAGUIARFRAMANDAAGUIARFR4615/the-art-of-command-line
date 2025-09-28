@@ -1,7 +1,7 @@
 #pragma once
 
 #include "DeviceInfo.h"
-#include <QVideoWidget>
+#include "VideoFrameWidget.h"
 #include <QWidget>
 #include <QUrl>
 #include <QEvent>
@@ -10,7 +10,7 @@
 
 class QMediaPlayer;
 
-class ControlWindow : public QVideoWidget
+class ControlWindow : public VideoFrameWidget
 {
     Q_OBJECT
 public:

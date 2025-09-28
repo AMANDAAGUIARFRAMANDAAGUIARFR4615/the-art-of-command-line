@@ -1,16 +1,15 @@
 #include "RemoteDevice.h"
 #include "Logger.h"
-#include "ToastWidget.h"
 #include "ControlWindow.h"
 #include "Tools.h"
 #include "RemoteFileExplorer.h"
 #include "TcpServer.h"
 #include "FileTransfer.h"
 #include "EventHub.h"
+#include "VideoFrameWidget.h"
 #include <QMediaPlayer>
 #include <QString>
 #include <QStyle>
-#include <QVideoWidget>
 #include <QElapsedTimer>
 #include <QVBoxLayout>
 #include <QMouseEvent>
@@ -32,8 +31,8 @@ RemoteDevice::RemoteDevice(QTcpSocket* socket, const DeviceInfo* deviceInfo, QWi
 
     m_mediaPlayer = new QMediaPlayer(this);
 
-    auto *videoWidget = new QVideoWidget;
-    auto *layout = new QVBoxLayout;
+    auto videoWidget = new VideoFrameWidget(m_mediaPlayer);
+    auto layout = new QVBoxLayout;
 
     auto deviceInfoText = QString("%1 - %2  |  %3 x %4")
         .arg(deviceInfo->deviceName)
@@ -56,44 +55,6 @@ RemoteDevice::RemoteDevice(QTcpSocket* socket, const DeviceInfo* deviceInfo, QWi
     layout->addWidget(deviceInfoLabel);
     layout->addWidget(videoWidget);
     setLayout(layout);
-
-    m_mediaPlayer->setVideoOutput(videoWidget);
-
-    connect(m_mediaPlayer, &QMediaPlayer::errorChanged, [this]() {
-        if (m_mediaPlayer->error() == QMediaPlayer::NoError)
-            return;
-
-        const auto errorString = m_mediaPlayer->errorString();
-        QString message = "Error: ";
-        if (errorString.isEmpty())
-            message += " #" + QString::number(int(m_mediaPlayer->error()));
-        else
-            message += errorString;
-
-        new ToastWidget(message);
-    });
-
-    auto *timer = new QElapsedTimer;
-    timer->start();
-
-    auto isMediaLoaded = new bool(false);
-
-    connect(m_mediaPlayer, &QMediaPlayer::mediaStatusChanged, [isMediaLoaded, timer, this, deviceInfo](QMediaPlayer::MediaStatus status) {
-        if (*isMediaLoaded)
-            return;
-
-        qDebugEx() << "媒体加载中... " << status;
-        qDebugEx() << "耗时:" << timer->elapsed() << "ms";
-
-        if (status == QMediaPlayer::LoadedMedia || status == QMediaPlayer::BufferedMedia) {
-            *isMediaLoaded = true;
-            qDebugEx() << "媒体加载完成，可以播放";
-            m_mediaPlayer->stop();
-            
-            if (!deviceInfo->lockedStatus)
-                m_mediaPlayer->play();
-        }
-    });
 
     EventHub::StartListening("lockedStatus", [this, deviceInfo](const QJsonValue &data, QTcpSocket* socket) {
         auto locked = data.toBool();
@@ -124,7 +85,7 @@ void RemoteDevice::mouseDoubleClickEvent(QMouseEvent *event)
 {
     QWidget::mouseDoubleClickEvent(event);
 
-    auto *window = new ControlWindow(socket, deviceInfo);
+    auto window = new ControlWindow(socket, deviceInfo);
     window->resize(deviceInfo->screenWidth * deviceInfo->scaleFactor, deviceInfo->screenHeight * deviceInfo->scaleFactor);
     window->setAttribute(Qt::WA_DeleteOnClose);
     window->setSource(m_mediaPlayer->source());
