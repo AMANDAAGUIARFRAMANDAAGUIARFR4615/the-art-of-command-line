@@ -187,10 +187,10 @@ void RemoteFileExplorer::contextMenuEvent(QContextMenuEvent *event)
     QAction *renameAction = new QAction("重命名", &contextMenu);
     connect(renameAction, &QAction::triggered, this, [this, item]() {
         auto targetPath = item->data(Qt::UserRole).toString();
-        qDebugEx() << "重命名文件: " << targetPath;
+        qDebugEx() << "重命名: " << targetPath;
 
         bool ok;
-        auto name = QInputDialog::getText(this, "重命名文件", "请输入名称:", QLineEdit::Normal, "", &ok);
+        auto name = QInputDialog::getText(this, "重命名", "请输入名称:", QLineEdit::Normal, "", &ok);
         
         if (ok && !name.isEmpty()) {
             QJsonObject dataObject;
