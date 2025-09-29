@@ -66,9 +66,7 @@ RemoteFileExplorer::RemoteFileExplorer(QTcpSocket* socket, QWidget *parent) : so
 
 void RemoteFileExplorer::setStatusMessage(const QString &message)
 {
-    if (statusBar) {
-        statusBar->showMessage(message, 5000); // 默认显示5秒
-    }
+    statusBar->showMessage(message);
 }
 
 void RemoteFileExplorer::fetchDirectoryContents(const QString &path)
