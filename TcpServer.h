@@ -1,5 +1,4 @@
-#ifndef TCPSERVER_H
-#define TCPSERVER_H
+#pragma once
 
 #include <QObject>
 #include <QTcpServer>
@@ -37,5 +36,3 @@ private:
 
     void processBufferedData(QTcpSocket* socket);
 };
-
-#endif // TCPSERVER_H

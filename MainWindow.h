@@ -1,5 +1,4 @@
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#pragma once
 
 #include "DeviceInfo.h"
 #include <QMainWindow>
@@ -24,5 +23,3 @@ protected:
     QWidget* bottomWidget;
     QGridLayout* gridLayout;
 };
-
-#endif // MAINWINDOW_H

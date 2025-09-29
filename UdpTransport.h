@@ -1,5 +1,4 @@
-#ifndef UDPCLIENT_H
-#define UDPCLIENT_H
+#pragma once
 
 #include <QObject>
 #include <QUdpSocket>
@@ -28,5 +27,3 @@ private:
     QByteArray buffer;
     void processBufferedData();
 };
-
-#endif // UDPCLIENT_H

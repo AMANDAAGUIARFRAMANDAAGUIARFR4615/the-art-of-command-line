@@ -1,5 +1,4 @@
-#ifndef WEBSOCKETCLIENT_H
-#define WEBSOCKETCLIENT_H
+#pragma once
 
 #include <QWebSocket>
 #include <QObject>
@@ -20,5 +19,3 @@ private slots:
 private:
     QWebSocket m_webSocket;
 };
-
-#endif // WEBSOCKETCLIENT_H

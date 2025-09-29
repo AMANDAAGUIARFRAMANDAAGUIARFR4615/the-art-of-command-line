@@ -1,5 +1,4 @@
-#ifndef TOASTWIDGET_H
-#define TOASTWIDGET_H
+#pragma once
 
 #include <QWidget>
 #include <QLabel>
@@ -19,5 +18,3 @@ public:
         QTimer::singleShot(2000, this, &ToastWidget::deleteLater);
     }
 };
-
-#endif // TOASTWIDGET_H

@@ -1,5 +1,4 @@
-#ifndef EVENTHUB_H
-#define EVENTHUB_H
+#pragma once
 
 #include <QCoreApplication>
 #include <QJsonDocument>
@@ -22,5 +21,3 @@ public:
 private:
     static QMap<QString, QList<std::pair<std::function<void(QJsonValue, QTcpSocket*)>, int>>> listeners;
 };
-
-#endif // EVENTHUB_H

@@ -1,5 +1,4 @@
-#ifndef REMOTEFILEEXPLORER_H
-#define REMOTEFILEEXPLORER_H
+#pragma once
 
 #include <QWidget>
 #include <QNetworkAccessManager>
@@ -61,5 +60,3 @@ protected:
     QStandardItemModel *model;
     QStatusBar *statusBar;
 };
-
-#endif // REMOTEFILEEXPLORER_H

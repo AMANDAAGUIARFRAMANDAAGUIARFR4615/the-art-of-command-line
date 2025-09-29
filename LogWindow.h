@@ -1,5 +1,4 @@
-#ifndef LOGWINDOW_H
-#define LOGWINDOW_H
+#pragma once
 
 #include <QTextBrowser>
 #include <QMetaObject>
@@ -36,5 +35,3 @@ public:
 private:
     inline static LogWindow* logWindow;
 };
-
-#endif // LOGWINDOW_H

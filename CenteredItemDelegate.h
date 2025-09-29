@@ -1,5 +1,4 @@
-#ifndef CENTEREDITEMDELEGATE_H
-#define CENTEREDITEMDELEGATE_H
+#pragma once
 
 #include <QStyledItemDelegate>
 #include <QPainter>
@@ -17,5 +16,3 @@ public:
         }
     }
 };
-
-#endif // CENTEREDITEMDELEGATE_H

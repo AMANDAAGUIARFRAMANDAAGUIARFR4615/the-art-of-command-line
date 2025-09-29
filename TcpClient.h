@@ -1,5 +1,4 @@
-#ifndef TCPCLIENT_H
-#define TCPCLIENT_H
+#pragma once
 
 #include <QObject>
 #include <QTcpSocket>
@@ -31,5 +30,3 @@ private:
     QByteArray buffer;
     void processBufferedData();
 };
-
-#endif // TCPCLIENT_H

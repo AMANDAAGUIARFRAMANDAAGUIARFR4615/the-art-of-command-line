@@ -1,5 +1,4 @@
-#ifndef NETWORKUTILS_H
-#define NETWORKUTILS_H
+#pragma once
 
 #include <QOperatingSystemVersion>
 #include <QProcess>
@@ -79,5 +78,3 @@ public:
         return ipList;
     }
 };
-
-#endif // NETWORKUTILS_H
