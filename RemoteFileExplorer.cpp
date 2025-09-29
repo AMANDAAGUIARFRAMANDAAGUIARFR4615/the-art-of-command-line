@@ -52,8 +52,8 @@ RemoteFileExplorer::RemoteFileExplorer(QTcpSocket* socket, QWidget *parent) : so
     connect(treeView, &QTreeView::expanded, this, &RemoteFileExplorer::onDirectoryExpanded);
     fetchDirectoryContents("/");
 
-    EventHub::StartListening("fileList", [this, socket](QJsonValue data, QTcpSocket* s) {
-        if (s != socket)
+    EventHub::StartListening("fileList", [this](QJsonValue data, QTcpSocket* socket) {
+        if (this->socket != socket)
             return;
 
         auto path = data["path"].toString();

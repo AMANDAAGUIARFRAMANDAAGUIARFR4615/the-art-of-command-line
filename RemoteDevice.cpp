@@ -57,6 +57,9 @@ RemoteDevice::RemoteDevice(QTcpSocket* socket, DeviceInfo* deviceInfo, QWidget *
     setLayout(layout);
 
     EventHub::StartListening("lockedStatus", [this, deviceInfo](const QJsonValue &data, QTcpSocket* socket) {
+        if (this->socket != socket)
+            return;
+
         auto locked = data.toBool();
 
         if (locked)
