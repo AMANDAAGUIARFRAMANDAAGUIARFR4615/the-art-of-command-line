@@ -41,7 +41,6 @@ RemoteFileExplorer::RemoteFileExplorer(QTcpSocket* socket, QWidget *parent) : so
     layout->addWidget(statusBar);
 
     setLayout(layout);
-    resize(800, 600);
 
     model = new QStandardItemModel();
     // model->setHorizontalHeaderLabels({"文件夹名称"});
