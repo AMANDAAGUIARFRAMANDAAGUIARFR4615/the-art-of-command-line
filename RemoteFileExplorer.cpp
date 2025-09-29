@@ -62,23 +62,36 @@ RemoteFileExplorer::RemoteFileExplorer(QTcpSocket* socket, QWidget *parent) : so
 
 void RemoteFileExplorer::fetchDirectoryContents(const QString &path)
 {
+    qDebugEx() << "fetchDirectoryContents" << path;
+    
     QJsonObject jsonObject;
     jsonObject["event"] = "fileList";
     jsonObject["data"] = path;
     TcpServer::sendData(socket, jsonObject);
 }
 
+void RemoteFileExplorer::fetchDirectoryContents(const QModelIndex &index)
+{
+    bool isDir = index.data(Qt::UserRole + 2).toBool();
+    QString targetPath = (isDir ? index : index.parent()).data(Qt::UserRole).toString();
+    fetchDirectoryContents(targetPath);
+}
+
 void RemoteFileExplorer::updateDirectoryView(const QString &path, const QJsonArray &list)
 {
+    qDebugEx() << "updateDirectoryView" << path << list.count();
     auto parentItem = findItemByPath(path);
+    if (!parentItem) {
+        qCriticalEx() << "findItemByPath" << path;
+        return;
+    }
+
     parentItem->removeRows(0, parentItem->rowCount());
 
     if (list.count() == 0) {
         qDebugEx() << path << "没有数据";
         return;
     }
-
-    qDebugEx() << "updateDirectoryView" << path << list.count();
 
     QFileIconProvider iconProvider;
 
@@ -156,8 +169,7 @@ void RemoteFileExplorer::onDirectoryExpanded(const QModelIndex &index)
     QString path = index.data(Qt::UserRole).toString();
     qDebugEx() << "展开目录路径: " << path;
 
-    if (!path.isEmpty()) fetchDirectoryContents(path);
-    else qDebugEx() << "路径为空，检查是否正确设置路径。";
+    fetchDirectoryContents(path);
 }
 
 void RemoteFileExplorer::keyPressEvent(QKeyEvent *event)
@@ -179,20 +191,14 @@ void RemoteFileExplorer::contextMenuEvent(QContextMenuEvent *event)
         return;
     }
 
-    QStandardItem *item = model->itemFromIndex(index);
-    if (!item) {
-        qDebugEx() << "无法从索引获取标准项";
-        return;
-    }
-
     QAction *openAction = new QAction("打开", &contextMenu);
-    connect(openAction, &QAction::triggered, this, [this, item]() {
-        qDebugEx() << "打开文件: " << item->text();
+    connect(openAction, &QAction::triggered, this, [this, &index]() {
+        // qDebugEx() << "打开文件: " << item->text();
     });
 
     QAction *renameAction = new QAction("重命名", &contextMenu);
-    connect(renameAction, &QAction::triggered, this, [this, item]() {
-        auto targetPath = item->data(Qt::UserRole).toString();
+    connect(renameAction, &QAction::triggered, this, [this, &index]() {
+        auto targetPath = index.data(Qt::UserRole).toString();
         qDebugEx() << "重命名: " << targetPath;
 
         bool ok;
@@ -208,13 +214,13 @@ void RemoteFileExplorer::contextMenuEvent(QContextMenuEvent *event)
             jsonObject["data"] = dataObject;
 
             TcpServer::sendData(socket, jsonObject);
-            // fetchDirectoryContents(targetPath);
+            fetchDirectoryContents(index);
         }
     });
 
     QAction *createAction = new QAction("新建文件夹", &contextMenu);
-    connect(createAction, &QAction::triggered, this, [this, item]() {
-        auto targetPath = item->data(Qt::UserRole).toString();
+    connect(createAction, &QAction::triggered, this, [this, &index]() {
+        auto targetPath = index.data(Qt::UserRole).toString();
         qDebugEx() << "新建文件夹: " << targetPath;
 
         bool ok;
@@ -226,13 +232,13 @@ void RemoteFileExplorer::contextMenuEvent(QContextMenuEvent *event)
             jsonObject["data"] = targetPath + "/" + name;
 
             TcpServer::sendData(socket, jsonObject);
-            // fetchDirectoryContents(targetPath);
+            fetchDirectoryContents(index);
         }
     });
 
     QAction *deleteAction = new QAction("删除", &contextMenu);
-    connect(deleteAction, &QAction::triggered, this, [this, item]() {
-        auto targetPath = item->data(Qt::UserRole).toString();
+    connect(deleteAction, &QAction::triggered, this, [this, &index]() {
+        auto targetPath = index.data(Qt::UserRole).toString();
         qDebugEx() << "删除文件: " << targetPath;
 
         auto reply = QMessageBox::question(this, "确认删除", "你确定要删除【" + QFileInfo(targetPath).fileName() + "】吗？", 
@@ -246,6 +252,7 @@ void RemoteFileExplorer::contextMenuEvent(QContextMenuEvent *event)
         jsonObject["data"] = targetPath;
 
         TcpServer::sendData(socket, jsonObject);
+        fetchDirectoryContents(index);
     });
 
     contextMenu.addAction(openAction);
@@ -312,6 +319,8 @@ void RemoteFileExplorer::dropEvent(QDropEvent *event)
 
         TcpServer::sendData(socket, jsonObject);
     }
+
+    fetchDirectoryContents(index);
 
     event->accept();
 }

@@ -44,6 +44,7 @@ public:
 
 protected:
     void fetchDirectoryContents(const QString &path);
+    void fetchDirectoryContents(const QModelIndex &index);
     void updateDirectoryView(const QString &path, const QJsonArray &list);
     QStandardItem* findItemByPath(const QString &path);
     QStandardItem* findItemByPathRecursive(QStandardItem* parentItem, const QStringList &pathParts);
