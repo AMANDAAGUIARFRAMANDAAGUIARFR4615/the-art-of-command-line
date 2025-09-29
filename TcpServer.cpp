@@ -27,6 +27,11 @@ void TcpServer::sendData(QTcpSocket* socket, const QJsonObject &jsonObject)
 {
     qDebugEx() << "sendData" << jsonObject;
 
+    if (socket->state() != QAbstractSocket::ConnectedState) {
+        qDebugEx() << "不是连接状态，无法发送数据";
+        return;
+    }
+
     quint64 identifier = 0xc6e8f3de9a654d6b;
 
     QJsonDocument doc(jsonObject);
