@@ -61,18 +61,18 @@ RemoteFileExplorer::RemoteFileExplorer(QTcpSocket* socket, QWidget *parent) : so
         updateDirectoryView(path, list);
     });
 
-    setStatusMessage("就绪"); // ⭐ 初始状态
+    setStatusMessage("就绪");
 }
 
 void RemoteFileExplorer::setStatusMessage(const QString &message)
 {
-    statusBar->showMessage(message);
+    auto timestamp = QTime::currentTime().toString("HH:mm:ss");
+    statusBar->showMessage("[" + timestamp + "] " + message);
 }
 
 void RemoteFileExplorer::fetchDirectoryContents(const QString &path)
 {
     qDebugEx() << "fetchDirectoryContents" << path;
-    setStatusMessage("正在加载目录: " + path);
 
     QJsonObject jsonObject;
     jsonObject["event"] = "fileList";
@@ -89,10 +89,8 @@ void RemoteFileExplorer::fetchDirectoryContents(const QModelIndex &index)
 
 void RemoteFileExplorer::updateDirectoryView(const QString &path, const QJsonArray &list)
 {
-    qDebugEx() << "updateDirectoryView" << path << list.count();
     auto parentItem = findItemByPath(path);
     if (!parentItem) {
-        qCriticalEx() << "findItemByPath" << path;
         setStatusMessage("目录加载失败: " + path);
         return;
     }
@@ -100,7 +98,6 @@ void RemoteFileExplorer::updateDirectoryView(const QString &path, const QJsonArr
     parentItem->removeRows(0, parentItem->rowCount());
 
     if (list.count() == 0) {
-        qDebugEx() << path << "没有数据";
         setStatusMessage("目录为空: " + path);
         return;
     }
@@ -148,8 +145,6 @@ void RemoteFileExplorer::updateDirectoryView(const QString &path, const QJsonArr
 
         parentItem->appendRow(item);
     }
-
-    setStatusMessage("目录加载完成: " + path);
 }
 
 QStandardItem* RemoteFileExplorer::findItemByPath(const QString &path)
@@ -181,20 +176,16 @@ QStandardItem* RemoteFileExplorer::findItemByPathRecursive(QStandardItem* parent
 void RemoteFileExplorer::onDirectoryExpanded(const QModelIndex &index)
 {
     QString path = index.data(Qt::UserRole).toString();
-    qDebugEx() << "展开目录路径: " << path;
-
     setStatusMessage("展开目录: " + path);
     fetchDirectoryContents(path);
 }
 
 void RemoteFileExplorer::keyPressEvent(QKeyEvent *event)
 {
-    if (event->key() == Qt::Key_Escape) {
-        setStatusMessage("已关闭窗口");
+    if (event->key() == Qt::Key_Escape)
         close();
-    } else {
+    else
         QWidget::keyPressEvent(event);
-    }
 }
 
 void RemoteFileExplorer::contextMenuEvent(QContextMenuEvent *event)
@@ -218,14 +209,13 @@ void RemoteFileExplorer::contextMenuEvent(QContextMenuEvent *event)
     QAction *renameAction = new QAction("重命名", &contextMenu);
     contextMenu.addAction(renameAction);
     connect(renameAction, &QAction::triggered, this, [this, &targetPath, &index]() {
-        qDebugEx() << "重命名: " << targetPath;
-        setStatusMessage("正在重命名: " + targetPath);
-
         bool ok;
         auto name = QInputDialog::getText(this, "重命名", "请输入名称:", QLineEdit::Normal, "", &ok);
         
         if (!ok || name.isEmpty())
             return;
+
+        setStatusMessage("重命名: " + name);
 
         QJsonObject dataObject;
         dataObject["atPath"] = targetPath;
@@ -237,20 +227,18 @@ void RemoteFileExplorer::contextMenuEvent(QContextMenuEvent *event)
 
         TcpServer::sendData(socket, jsonObject);
         fetchDirectoryContents(index.parent());
-        setStatusMessage("重命名完成: " + targetPath);
     });
 
     QAction *createAction = new QAction("新建文件夹", &contextMenu);
     contextMenu.addAction(createAction);
     connect(createAction, &QAction::triggered, this, [this, &targetPath, &index]() {
-        qDebugEx() << "新建文件夹: " << targetPath;
-        setStatusMessage("正在新建文件夹到: " + targetPath);
-
         bool ok;
         auto name = QInputDialog::getText(this, "新建文件夹", "请输入名称:", QLineEdit::Normal, "", &ok);
         
         if (!ok || name.isEmpty())
             return;
+
+        setStatusMessage("新建文件夹: " + name);
             
         QJsonObject jsonObject;
         jsonObject["event"] = "createDirectory";
@@ -258,19 +246,18 @@ void RemoteFileExplorer::contextMenuEvent(QContextMenuEvent *event)
 
         TcpServer::sendData(socket, jsonObject);
         fetchDirectoryContents(index);
-        setStatusMessage("新建文件夹完成: " + name);
     });
 
     QAction *deleteAction = new QAction("删除", &contextMenu);
     contextMenu.addAction(deleteAction);
     connect(deleteAction, &QAction::triggered, this, [this, &targetPath, &index]() {
-        qDebugEx() << "删除: " << targetPath;
-
         auto reply = QMessageBox::question(this, "确认删除", "你确定要删除【" + QFileInfo(targetPath).fileName() + "】吗？", 
         QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
 
         if (reply != QMessageBox::Yes)
             return;
+
+        setStatusMessage("删除: " + targetPath);
         
         QJsonObject jsonObject;
         jsonObject["event"] = "removeItem";
@@ -278,15 +265,13 @@ void RemoteFileExplorer::contextMenuEvent(QContextMenuEvent *event)
 
         TcpServer::sendData(socket, jsonObject);
         fetchDirectoryContents(index.parent());
-        setStatusMessage("删除完成: " + targetPath);
     });
 
     if (targetPath.endsWith(".zip") || targetPath.endsWith(".rar")) {
         QAction *extractAction = new QAction("解压", &contextMenu);
         contextMenu.addAction(extractAction);
         connect(extractAction, &QAction::triggered, this, [this, &targetPath, &index]() {
-            qDebugEx() << "解压: " << targetPath;
-            setStatusMessage("正在解压: " + targetPath);
+            setStatusMessage("解压: " + targetPath);
 
             QJsonObject jsonObject;
             jsonObject["event"] = "extractArchive";
@@ -294,7 +279,6 @@ void RemoteFileExplorer::contextMenuEvent(QContextMenuEvent *event)
 
             TcpServer::sendData(socket, jsonObject);
             fetchDirectoryContents(index.parent());
-            setStatusMessage("解压完成: " + targetPath);
         });
     }
 
@@ -338,7 +322,6 @@ void RemoteFileExplorer::dropEvent(QDropEvent *event)
         auto size = Tools::getFileSize(path);
 
         qDebugEx() << "将文件从" << path << "拖放到" << targetPath;
-        setStatusMessage("上传文件: " + QFileInfo(path).fileName());
 
         auto dir = isDir ? targetPath : targetPath.left(targetPath.lastIndexOf('/'));
         auto transfer = new FileTransfer(type, path, size);
@@ -359,5 +342,4 @@ void RemoteFileExplorer::dropEvent(QDropEvent *event)
 
     fetchDirectoryContents(index);
     event->accept();
-    setStatusMessage("文件上传完成");
 }
