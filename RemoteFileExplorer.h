@@ -9,6 +9,7 @@
 #include <QTcpSocket>
 #include <QStyledItemDelegate>
 #include <QPainter>
+#include <QStatusBar>
 
 class VirtualItemDelegate : public QStyledItemDelegate {
     Q_OBJECT
@@ -43,6 +44,7 @@ public:
     ~RemoteFileExplorer() = default;
 
 protected:
+    void setStatusMessage(const QString &message);
     void fetchDirectoryContents(const QString &path);
     void fetchDirectoryContents(const QModelIndex &index);
     void updateDirectoryView(const QString &path, const QJsonArray &list);
@@ -57,6 +59,7 @@ protected:
     QTcpSocket* socket;
     QTreeView *treeView;
     QStandardItemModel *model;
+    QStatusBar *statusBar;
 };
 
 #endif // REMOTEFILEEXPLORER_H

@@ -32,11 +32,14 @@ RemoteFileExplorer::RemoteFileExplorer(QTcpSocket* socket, QWidget *parent) : so
     QFont font = treeView->font();
     font.setPointSize(12);
     treeView->setFont(font);
-
     treeView->setIconSize(QSize(24, 24)); 
     
     auto layout = new QVBoxLayout(this);
     layout->addWidget(treeView);
+
+    statusBar = new QStatusBar(this);
+    layout->addWidget(statusBar);
+
     setLayout(layout);
     resize(800, 600);
 
@@ -44,7 +47,6 @@ RemoteFileExplorer::RemoteFileExplorer(QTcpSocket* socket, QWidget *parent) : so
     // model->setHorizontalHeaderLabels({"文件夹名称"});
     treeView->setModel(model);
 
-    // 设置自定义代理来处理绘制
     treeView->setItemDelegate(new VirtualItemDelegate(treeView));
 
     connect(treeView, &QTreeView::expanded, this, &RemoteFileExplorer::onDirectoryExpanded);
@@ -58,11 +60,21 @@ RemoteFileExplorer::RemoteFileExplorer(QTcpSocket* socket, QWidget *parent) : so
         auto list = data["list"].toArray();
         updateDirectoryView(path, list);
     });
+
+    setStatusMessage("就绪"); // ⭐ 初始状态
+}
+
+void RemoteFileExplorer::setStatusMessage(const QString &message)
+{
+    if (statusBar) {
+        statusBar->showMessage(message, 5000); // 默认显示5秒
+    }
 }
 
 void RemoteFileExplorer::fetchDirectoryContents(const QString &path)
 {
     qDebugEx() << "fetchDirectoryContents" << path;
+    setStatusMessage("正在加载目录: " + path);
 
     QJsonObject jsonObject;
     jsonObject["event"] = "fileList";
@@ -83,6 +95,7 @@ void RemoteFileExplorer::updateDirectoryView(const QString &path, const QJsonArr
     auto parentItem = findItemByPath(path);
     if (!parentItem) {
         qCriticalEx() << "findItemByPath" << path;
+        setStatusMessage("目录加载失败: " + path);
         return;
     }
 
@@ -90,6 +103,7 @@ void RemoteFileExplorer::updateDirectoryView(const QString &path, const QJsonArr
 
     if (list.count() == 0) {
         qDebugEx() << path << "没有数据";
+        setStatusMessage("目录为空: " + path);
         return;
     }
 
@@ -136,6 +150,8 @@ void RemoteFileExplorer::updateDirectoryView(const QString &path, const QJsonArr
 
         parentItem->appendRow(item);
     }
+
+    setStatusMessage("目录加载完成: " + path);
 }
 
 QStandardItem* RemoteFileExplorer::findItemByPath(const QString &path)
@@ -169,12 +185,14 @@ void RemoteFileExplorer::onDirectoryExpanded(const QModelIndex &index)
     QString path = index.data(Qt::UserRole).toString();
     qDebugEx() << "展开目录路径: " << path;
 
+    setStatusMessage("展开目录: " + path);
     fetchDirectoryContents(path);
 }
 
 void RemoteFileExplorer::keyPressEvent(QKeyEvent *event)
 {
     if (event->key() == Qt::Key_Escape) {
+        setStatusMessage("已关闭窗口");
         close();
     } else {
         QWidget::keyPressEvent(event);
@@ -203,6 +221,7 @@ void RemoteFileExplorer::contextMenuEvent(QContextMenuEvent *event)
     contextMenu.addAction(renameAction);
     connect(renameAction, &QAction::triggered, this, [this, &targetPath, &index]() {
         qDebugEx() << "重命名: " << targetPath;
+        setStatusMessage("正在重命名: " + targetPath);
 
         bool ok;
         auto name = QInputDialog::getText(this, "重命名", "请输入名称:", QLineEdit::Normal, "", &ok);
@@ -220,12 +239,14 @@ void RemoteFileExplorer::contextMenuEvent(QContextMenuEvent *event)
 
         TcpServer::sendData(socket, jsonObject);
         fetchDirectoryContents(index.parent());
+        setStatusMessage("重命名完成: " + targetPath);
     });
 
     QAction *createAction = new QAction("新建文件夹", &contextMenu);
     contextMenu.addAction(createAction);
     connect(createAction, &QAction::triggered, this, [this, &targetPath, &index]() {
         qDebugEx() << "新建文件夹: " << targetPath;
+        setStatusMessage("正在新建文件夹到: " + targetPath);
 
         bool ok;
         auto name = QInputDialog::getText(this, "新建文件夹", "请输入名称:", QLineEdit::Normal, "", &ok);
@@ -239,6 +260,7 @@ void RemoteFileExplorer::contextMenuEvent(QContextMenuEvent *event)
 
         TcpServer::sendData(socket, jsonObject);
         fetchDirectoryContents(index);
+        setStatusMessage("新建文件夹完成: " + name);
     });
 
     QAction *deleteAction = new QAction("删除", &contextMenu);
@@ -258,6 +280,7 @@ void RemoteFileExplorer::contextMenuEvent(QContextMenuEvent *event)
 
         TcpServer::sendData(socket, jsonObject);
         fetchDirectoryContents(index.parent());
+        setStatusMessage("删除完成: " + targetPath);
     });
 
     if (targetPath.endsWith(".zip") || targetPath.endsWith(".rar")) {
@@ -265,13 +288,15 @@ void RemoteFileExplorer::contextMenuEvent(QContextMenuEvent *event)
         contextMenu.addAction(extractAction);
         connect(extractAction, &QAction::triggered, this, [this, &targetPath, &index]() {
             qDebugEx() << "解压: " << targetPath;
-            
+            setStatusMessage("正在解压: " + targetPath);
+
             QJsonObject jsonObject;
             jsonObject["event"] = "extractArchive";
             jsonObject["data"] = targetPath;
 
             TcpServer::sendData(socket, jsonObject);
             fetchDirectoryContents(index.parent());
+            setStatusMessage("解压完成: " + targetPath);
         });
     }
 
@@ -306,7 +331,6 @@ void RemoteFileExplorer::dropEvent(QDropEvent *event)
     
     QModelIndex index = treeView->indexAt(localPos);
     QString targetPath = index.data(Qt::UserRole).toString();
-
     bool isDir = index.data(Qt::UserRole + 2).toBool();
 
     for (const QUrl &url : urls) {
@@ -316,9 +340,9 @@ void RemoteFileExplorer::dropEvent(QDropEvent *event)
         auto size = Tools::getFileSize(path);
 
         qDebugEx() << "将文件从" << path << "拖放到" << targetPath;
+        setStatusMessage("上传文件: " + QFileInfo(path).fileName());
 
         auto dir = isDir ? targetPath : targetPath.left(targetPath.lastIndexOf('/'));
-        
         auto transfer = new FileTransfer(type, path, size);
 
         QJsonObject dataObject;
@@ -336,6 +360,6 @@ void RemoteFileExplorer::dropEvent(QDropEvent *event)
     }
 
     fetchDirectoryContents(index);
-
     event->accept();
+    setStatusMessage("文件上传完成");
 }
