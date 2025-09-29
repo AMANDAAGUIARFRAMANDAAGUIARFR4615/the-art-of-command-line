@@ -63,7 +63,7 @@ RemoteFileExplorer::RemoteFileExplorer(QTcpSocket* socket, QWidget *parent) : so
 void RemoteFileExplorer::fetchDirectoryContents(const QString &path)
 {
     qDebugEx() << "fetchDirectoryContents" << path;
-    
+
     QJsonObject jsonObject;
     jsonObject["event"] = "fileList";
     jsonObject["data"] = path;
@@ -214,7 +214,7 @@ void RemoteFileExplorer::contextMenuEvent(QContextMenuEvent *event)
             jsonObject["data"] = dataObject;
 
             TcpServer::sendData(socket, jsonObject);
-            fetchDirectoryContents(index);
+            fetchDirectoryContents(index.parent());
         }
     });
 
@@ -239,7 +239,7 @@ void RemoteFileExplorer::contextMenuEvent(QContextMenuEvent *event)
     QAction *deleteAction = new QAction("删除", &contextMenu);
     connect(deleteAction, &QAction::triggered, this, [this, &index]() {
         auto targetPath = index.data(Qt::UserRole).toString();
-        qDebugEx() << "删除文件: " << targetPath;
+        qDebugEx() << "删除: " << targetPath;
 
         auto reply = QMessageBox::question(this, "确认删除", "你确定要删除【" + QFileInfo(targetPath).fileName() + "】吗？", 
         QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
@@ -252,7 +252,7 @@ void RemoteFileExplorer::contextMenuEvent(QContextMenuEvent *event)
         jsonObject["data"] = targetPath;
 
         TcpServer::sendData(socket, jsonObject);
-        fetchDirectoryContents(index);
+        fetchDirectoryContents(index.parent());
     });
 
     contextMenu.addAction(openAction);
