@@ -33,7 +33,7 @@ RemoteFileExplorer::RemoteFileExplorer(QTcpSocket* socket, QWidget *parent) : so
     font.setPointSize(12);
     treeView->setFont(font);
     treeView->setIconSize(QSize(24, 24)); 
-    
+
     auto layout = new QVBoxLayout(this);
     layout->addWidget(treeView);
 
@@ -43,7 +43,7 @@ RemoteFileExplorer::RemoteFileExplorer(QTcpSocket* socket, QWidget *parent) : so
     setLayout(layout);
 
     model = new QStandardItemModel();
-    // model->setHorizontalHeaderLabels({"文件夹名称"});
+    model->setHorizontalHeaderLabels({"名称", "修改时间", "大小"});
     treeView->setModel(model);
 
     treeView->setItemDelegate(new VirtualItemDelegate(treeView));
@@ -109,6 +109,8 @@ void RemoteFileExplorer::updateDirectoryView(const QString &path, const QJsonArr
         auto type = obj["type"].toString();
         auto symbolicLink = obj["symbolicLink"].toString();
         auto myPath = path == '/' ? '/' + name : path + '/' + name;
+        auto date = obj["date"].toString();
+        auto size = obj["size"].toInt();
 
         auto item = new QStandardItem(name);
         item->setData(myPath, Qt::UserRole);
@@ -142,7 +144,10 @@ void RemoteFileExplorer::updateDirectoryView(const QString &path, const QJsonArr
 
         if (isDirectory) item->setChild(0, nullptr);
 
-        parentItem->appendRow(item);
+        QStandardItem* dateItem = new QStandardItem(date);
+        QStandardItem* sizeItem = new QStandardItem(Tools::formatByteSize(size));
+
+        parentItem->appendRow({item, dateItem, sizeItem});
     }
 }
 

@@ -59,6 +59,16 @@ public:
         return file.size();
     }
 
+    static QString formatByteSize(quint64 size) {
+        if (size < 1024)
+            return QString::number(size) + " B";
+        if (size < 1024 * 1024)
+            return QString::number(size / 1024.0, 'f', 2) + " KB";
+        if (size < 1024 * 1024 * 1024)
+            return QString::number(size / (1024.0 * 1024), 'f', 2) + " MB";
+        return QString::number(size / (1024.0 * 1024 * 1024), 'f', 2) + " GB";
+    }
+
 private:
     static void sendEvent(QTcpSocket* socket, const QString& event, int data) {
         QJsonObject jsonObject;
