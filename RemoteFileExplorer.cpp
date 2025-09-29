@@ -23,6 +23,7 @@
 #include <QFileInfo>
 #include <QDir>
 #include <QInputDialog>
+#include <QHeaderView>
 
 RemoteFileExplorer::RemoteFileExplorer(QTcpSocket* socket, QWidget *parent) : socket(socket), QWidget(parent)
 {
@@ -61,6 +62,11 @@ RemoteFileExplorer::RemoteFileExplorer(QTcpSocket* socket, QWidget *parent) : so
     });
 
     setStatusMessage("就绪");
+
+    treeView->header()->setSectionResizeMode(0, QHeaderView::Stretch);
+    treeView->header()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+    treeView->header()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
+    treeView->header()->setStretchLastSection(false);
 }
 
 void RemoteFileExplorer::setStatusMessage(const QString &message)
