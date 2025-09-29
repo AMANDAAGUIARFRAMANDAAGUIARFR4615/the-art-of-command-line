@@ -1,5 +1,4 @@
-#ifndef DEVICEINFO_H
-#define DEVICEINFO_H
+#pragma once
 
 #include <QJsonObject>
 #include <QString>
@@ -16,8 +15,8 @@ public:
           localIp(json["localIp"].toString()),
           orientation(json["orientation"].toInt()),
           platform(json["platform"].toString()),
-          screenHeight(json["screenHeight"].toInt()),
           screenWidth(json["screenWidth"].toInt()),
+          screenHeight(json["screenHeight"].toInt()),
           lockedStatus(json["lockedStatus"].toBool()),
           version(json["version"].toString()) {
 
@@ -31,22 +30,6 @@ public:
         }
     }
 
-    QString toString() const {
-        return QString("DeviceInfo(deviceId: %1, deviceName: %2, inuse: %3, jbType: %4, "
-                       "localIp: %5, orientation: %6, platform: %7, screenHeight: %8, "
-                       "screenWidth: %9, version: %10)")
-               .arg(deviceId)
-               .arg(deviceName)
-               .arg(inuse)
-               .arg(jbType)
-               .arg(localIp)
-               .arg(orientation)
-               .arg(platform)
-               .arg(screenHeight)
-               .arg(screenWidth)
-               .arg(version);
-    }
-
     const QString deviceId;
     const QString deviceName;
     const QString inuse;
@@ -54,26 +37,38 @@ public:
     const QString localIp;
     const int orientation;
     const QString platform;
-    const int screenHeight;
     const int screenWidth;
+    const int screenHeight;
     const QString version;
 
     bool lockedStatus;
     float scaleFactor = 1;
 
-    friend QDebug operator<<(QDebug dbg, const DeviceInfo &deviceInfo) {
-        dbg.nospace() << "DeviceInfo(deviceId: " << deviceInfo.deviceId
-                      << ", deviceName: " << deviceInfo.deviceName
-                      << ", inuse: " << deviceInfo.inuse
-                      << ", jbType: " << deviceInfo.jbType
-                      << ", localIp: " << deviceInfo.localIp
-                      << ", orientation: " << deviceInfo.orientation
-                      << ", platform: " << deviceInfo.platform
-                      << ", screenHeight: " << deviceInfo.screenHeight
-                      << ", screenWidth: " << deviceInfo.screenWidth
-                      << ", version: " << deviceInfo.version << ")";
+    QString toString() const {
+        return QString("deviceId: %1, deviceName: %2, inuse: %3, jbType: %4, "
+                       "localIp: %5, orientation: %6, platform: %7, screenWidth: %8, "
+                       "screenHeight: %9, scaleFactor: %10, lockedStatus: %11, version: %12")
+            .arg(deviceId)
+            .arg(deviceName)
+            .arg(inuse)
+            .arg(jbType)
+            .arg(localIp)
+            .arg(orientation)
+            .arg(platform)
+            .arg(screenWidth)
+            .arg(screenHeight)
+            .arg(scaleFactor)
+            .arg(lockedStatus)
+            .arg(version);
+    }
+
+    friend QDebug operator<<(QDebug dbg, const DeviceInfo* deviceInfo)
+    {
+        if (deviceInfo)
+            dbg << QString("DeviceInfo(%1)").arg(deviceInfo->toString());
+        else
+            dbg << "DeviceInfo(nullptr)";
+
         return dbg;
     }
 };
-
-#endif // DEVICEINFO_H
