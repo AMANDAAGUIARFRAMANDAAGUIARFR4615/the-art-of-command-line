@@ -152,6 +152,7 @@ void RemoteFileExplorer::updateDirectoryView(const QString &path, const QJsonArr
 
         QStandardItem* dateItem = new QStandardItem(date);
         QStandardItem* sizeItem = new QStandardItem(Tools::formatByteSize(size));
+        sizeItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
 
         parentItem->appendRow({item, dateItem, sizeItem});
     }
