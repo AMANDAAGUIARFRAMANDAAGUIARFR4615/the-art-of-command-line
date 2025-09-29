@@ -33,6 +33,7 @@ public:
             qDebugEx() << "Media Status Changed: " << status;
             if (status == QMediaPlayer::LoadedMedia) {
                 if (!m_mediaPlayer->isPlaying()) {
+                    qDebugEx() << "播放...";
                     m_mediaPlayer->stop();
                     m_mediaPlayer->play();
                 }
