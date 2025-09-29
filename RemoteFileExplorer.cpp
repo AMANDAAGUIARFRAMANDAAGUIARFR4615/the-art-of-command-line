@@ -191,54 +191,59 @@ void RemoteFileExplorer::contextMenuEvent(QContextMenuEvent *event)
         return;
     }
 
-    QAction *openAction = new QAction("打开", &contextMenu);
-    connect(openAction, &QAction::triggered, this, [this, &index]() {
-        // qDebugEx() << "打开文件: " << item->text();
-    });
+    auto targetPath = index.data(Qt::UserRole).toString();
+
+    // QAction *openAction = new QAction("打开", &contextMenu);
+    // contextMenu.addAction(openAction);
+    // connect(openAction, &QAction::triggered, this, [this, &targetPath, &index]() {
+    //     // qDebugEx() << "打开文件: " << item->text();
+    // });
 
     QAction *renameAction = new QAction("重命名", &contextMenu);
-    connect(renameAction, &QAction::triggered, this, [this, &index]() {
-        auto targetPath = index.data(Qt::UserRole).toString();
+    contextMenu.addAction(renameAction);
+    connect(renameAction, &QAction::triggered, this, [this, &targetPath, &index]() {
         qDebugEx() << "重命名: " << targetPath;
 
         bool ok;
         auto name = QInputDialog::getText(this, "重命名", "请输入名称:", QLineEdit::Normal, "", &ok);
         
-        if (ok && !name.isEmpty()) {
-            QJsonObject dataObject;
-            dataObject["atPath"] = targetPath;
-            dataObject["toPath"] = name;
+        if (!ok || name.isEmpty())
+            return;
 
-            QJsonObject jsonObject;
-            jsonObject["event"] = "renameItem";
-            jsonObject["data"] = dataObject;
+        QJsonObject dataObject;
+        dataObject["atPath"] = targetPath;
+        dataObject["toPath"] = name;
 
-            TcpServer::sendData(socket, jsonObject);
-            fetchDirectoryContents(index.parent());
-        }
+        QJsonObject jsonObject;
+        jsonObject["event"] = "renameItem";
+        jsonObject["data"] = dataObject;
+
+        TcpServer::sendData(socket, jsonObject);
+        fetchDirectoryContents(index.parent());
     });
 
     QAction *createAction = new QAction("新建文件夹", &contextMenu);
-    connect(createAction, &QAction::triggered, this, [this, &index]() {
-        auto targetPath = index.data(Qt::UserRole).toString();
+    contextMenu.addAction(createAction);
+    connect(createAction, &QAction::triggered, this, [this, &targetPath, &index]() {
         qDebugEx() << "新建文件夹: " << targetPath;
 
         bool ok;
         auto name = QInputDialog::getText(this, "新建文件夹", "请输入名称:", QLineEdit::Normal, "", &ok);
         
-        if (ok && !name.isEmpty()) {
-            QJsonObject jsonObject;
-            jsonObject["event"] = "createDirectory";
-            jsonObject["data"] = targetPath + "/" + name;
+        if (!ok || name.isEmpty())
+            return;
+            
+        QJsonObject jsonObject;
+        jsonObject["event"] = "createDirectory";
+        jsonObject["data"] = targetPath + "/" + name;
 
-            TcpServer::sendData(socket, jsonObject);
-            fetchDirectoryContents(index);
-        }
+        TcpServer::sendData(socket, jsonObject);
+        fetchDirectoryContents(index);
     });
 
     QAction *deleteAction = new QAction("删除", &contextMenu);
-    connect(deleteAction, &QAction::triggered, this, [this, &index]() {
-        auto targetPath = index.data(Qt::UserRole).toString();
+    contextMenu.addAction(deleteAction);
+    connect(deleteAction, &QAction::triggered, this, [this, &targetPath, &index]() {
         qDebugEx() << "删除: " << targetPath;
 
         auto reply = QMessageBox::question(this, "确认删除", "你确定要删除【" + QFileInfo(targetPath).fileName() + "】吗？", 
@@ -255,10 +260,20 @@ void RemoteFileExplorer::contextMenuEvent(QContextMenuEvent *event)
         fetchDirectoryContents(index.parent());
     });
 
-    contextMenu.addAction(openAction);
-    contextMenu.addAction(renameAction);
-    contextMenu.addAction(createAction);
-    contextMenu.addAction(deleteAction);
+    if (targetPath.endsWith(".zip") || targetPath.endsWith(".rar")) {
+        QAction *extractAction = new QAction("解压", &contextMenu);
+        contextMenu.addAction(extractAction);
+        connect(extractAction, &QAction::triggered, this, [this, &targetPath, &index]() {
+            qDebugEx() << "解压: " << targetPath;
+            
+            QJsonObject jsonObject;
+            jsonObject["event"] = "extractArchive";
+            jsonObject["data"] = targetPath;
+
+            TcpServer::sendData(socket, jsonObject);
+            fetchDirectoryContents(index.parent());
+        });
+    }
 
     contextMenu.exec(event->globalPos());
 }
