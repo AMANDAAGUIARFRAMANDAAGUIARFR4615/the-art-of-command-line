@@ -72,7 +72,7 @@ jobs:
           cmake --build . --verbose
 
           if [[ "$RUNNER_OS" == 'Windows' ]]; then
-            $QT_ROOT_DIR/bin/windeployqt RemotePro.exe
+            $QT_ROOT_DIR/bin/windeployqt build/Debug/RemotePro.exe
             zip -r RemotePro.zip build
           else
             $QT_ROOT_DIR/bin/macdeployqt RemotePro.app
