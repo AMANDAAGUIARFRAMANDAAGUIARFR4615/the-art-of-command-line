@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(RemotePro LANGUAGES CXX)
 
-find_package(Qt6 REQUIRED COMPONENTS Widgets Network Concurrent OpenGL OpenGLWidgets Multimedia MultimediaWidgets)
+find_package(Qt6 REQUIRED COMPONENTS Widgets Network Concurrent Multimedia)
 
 qt_standard_project_setup()
 
@@ -34,6 +34,6 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER "com.qt6.remotepro"
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Core Qt6::Gui Qt6::Widgets Qt6::Network Qt6::Concurrent Qt6::OpenGL Qt6::OpenGLWidgets Qt::Multimedia Qt::MultimediaWidgets)
+target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Core Qt6::Gui Qt6::Widgets Qt6::Network Qt6::Concurrent Qt::Multimedia)
 
 add_definitions(-DPROJECT_SOURCE_DIR=\"${CMAKE_SOURCE_DIR}\")
