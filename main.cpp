@@ -8,6 +8,7 @@
 #include "DeviceInfo.h"
 #include "EventHub.h"
 #include <QApplication>
+#include <QLoggingCategory>
 #include <QShortcut>
 
 MainWindow* mainWindow;
@@ -39,6 +40,8 @@ void onError(QTcpSocket* socket, QAbstractSocket::SocketError socketError) {
 int main(int argc, char *argv[])
 {
     QApplication application(argc, argv);
+
+    QLoggingCategory::setFilterRules("qt.multimedia.*=true");
 
     mainWindow = new MainWindow;
     auto logWindow = new LogWindow(mainWindow);
