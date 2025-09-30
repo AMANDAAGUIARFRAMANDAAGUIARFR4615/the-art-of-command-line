@@ -73,7 +73,7 @@ jobs:
 
           if [[ "$RUNNER_OS" == 'Windows' ]]; then
             $QT_ROOT_DIR/bin/windeployqt Debug/RemotePro.exe
-            zip -r RemotePro.zip .
+            7z a RemotePro.zip .
           else
             $QT_ROOT_DIR/bin/macdeployqt RemotePro.app
             zip -r RemotePro.zip RemotePro.app
