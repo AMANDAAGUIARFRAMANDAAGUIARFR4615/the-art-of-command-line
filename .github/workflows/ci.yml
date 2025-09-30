@@ -60,6 +60,7 @@ jobs:
           modules: 'qtnetworkauth qtmultimedia'
 
       - name: Build for ${{ matrix.os }}
+        shell: bash
         run: |
           mkdir build
           cd build
