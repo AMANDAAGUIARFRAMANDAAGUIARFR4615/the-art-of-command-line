@@ -75,8 +75,6 @@ jobs:
 
           du -sh RemotePro.zip
 
-          # commit_time=$(date -d "${{ github.event.head_commit.timestamp }}" "+%Y%m%d%H%M%S")
-
           curl -X POST \
             -H "Authorization: token ${{ env.ACCESS_TOKEN }}" \
             -H "Content-Type: application/octet-stream" \
