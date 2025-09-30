@@ -44,7 +44,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-13]
+        os: [macos-13, windows-latest]
 
     runs-on: ${{ matrix.os }}
 
@@ -59,7 +59,7 @@ jobs:
           target: 'desktop'
           modules: 'qtnetworkauth qtmultimedia'
 
-      - name: Build
+      - name: Build for ${{ matrix.os }}
         run: |
           mkdir build
           cd build
@@ -69,17 +69,20 @@ jobs:
 
           cmake .. -DQt6_DIR=$QT_ROOT_DIR/lib/cmake/Qt6 -DCMAKE_BUILD_TYPE=Release
           cmake --build . --verbose
-          $QT_ROOT_DIR/bin/macdeployqt RemotePro.app
 
-          zip -r RemotePro.zip RemotePro.app
-
-          du -sh RemotePro.zip
+          if [[ $RUNNER_OS == 'Windows' ]]; then
+            $QT_ROOT_DIR/bin/windeployqt RemotePro.exe
+            zip -r RemotePro.zip RemotePro.exe
+          else
+            $QT_ROOT_DIR/bin/macdeployqt RemotePro.app
+            zip -r RemotePro.zip RemotePro.app
+          fi
 
           curl -X POST \
             -H "Authorization: token ${{ env.ACCESS_TOKEN }}" \
             -H "Content-Type: application/octet-stream" \
             --data-binary @RemotePro.zip \
-            "${{ needs.create_release.outputs.upload_url }}?name=${{ needs.create_release.outputs.tag_name }}-$(uname -m).zip"
+            "${{ needs.create_release.outputs.upload_url }}?name=${{ needs.create_release.outputs.tag_name }}-${{ matrix.os }}.zip"
 
       - name: displayplacer
         if: ${{ strategy.job-total == 1 && matrix.os == 'macos-latest' }}
