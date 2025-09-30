@@ -69,7 +69,7 @@ jobs:
           echo QT_ROOT_DIR=$QT_ROOT_DIR
 
           cmake .. -DQt6_DIR=$QT_ROOT_DIR/lib/cmake/Qt6 -DCMAKE_BUILD_TYPE=Release
-          cmake --build . --verbose
+          cmake --build . --config Release --verbose
 
           if [[ "$RUNNER_OS" == 'Windows' ]]; then
             $QT_ROOT_DIR/bin/windeployqt Debug/RemotePro.exe
