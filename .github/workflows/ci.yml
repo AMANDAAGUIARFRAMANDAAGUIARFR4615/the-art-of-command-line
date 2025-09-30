@@ -73,6 +73,8 @@ jobs:
 
           if [[ "$RUNNER_OS" == 'Windows' ]]; then
             $QT_ROOT_DIR/bin/windeployqt Release/RemotePro.exe
+            cp C:/Windows/System32/msvcp140_1.dll Release
+            cp C:/Windows/System32/msvcp140_2.dll Release
             7z a RemotePro.zip Release
           else
             $QT_ROOT_DIR/bin/macdeployqt RemotePro.app
