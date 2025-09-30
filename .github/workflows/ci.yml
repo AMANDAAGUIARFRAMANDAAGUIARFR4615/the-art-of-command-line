@@ -57,7 +57,7 @@ jobs:
         with:
           version: '6.9.2'
           target: 'desktop'
-          modules: 'qtnetworkauth qtmultimedia'
+          modules: 'qtmultimedia'
 
       - name: Build for ${{ matrix.os }}
         shell: bash
