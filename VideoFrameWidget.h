@@ -121,7 +121,7 @@ protected:
                 int uIndex = (y / 2) * uvStride + (x / 2);
                 int uValue = uPlane[uIndex];
                 int vIndex = (y / 2) * uvStride + (x / 2);
-                int vValue = vPlane[vIndex];
+                int vValue = vPlane == nullptr ? 0 : vPlane[vIndex];
 
                 int c = yValue - 16;
                 int d = uValue - 128;

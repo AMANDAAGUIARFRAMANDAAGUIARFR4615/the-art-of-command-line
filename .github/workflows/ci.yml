@@ -44,7 +44,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-13, windows-latest]
+        # os: [macos-13, windows-latest]
+        os: [macos-13]
 
     runs-on: ${{ matrix.os }}
 
@@ -52,16 +53,75 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Checkout FFmpeg
+        uses: actions/checkout@v4
+        with:
+          repository: FFmpeg/FFmpeg
+          path: FFmpeg
+
+      - name: Build FFmpeg
+        run: |
+          cd FFmpeg
+
+          brew install nasm
+
+          ./configure \
+            --prefix=/usr/local/ffmpeg \
+            --disable-everything \
+            --enable-static \
+            --disable-doc \
+            --enable-avcodec \
+            --enable-avformat \
+            --enable-avutil \
+            --enable-swscale \
+            --enable-decoder=h264 \
+            --enable-parser=h264 \
+            --enable-demuxer=h264 \
+            --enable-protocol=tcp \
+            --enable-filter=scale \
+            --enable-filter=format
+
+          echo "make -j"
+          make -j
+
+          echo "make install"
+          sudo make install
+
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
           version: '6.9.2'
           target: 'desktop'
-          modules: 'qtmultimedia'
+          modules: 'qtshadertools'
+          # modules: 'qtmultimedia'
+
+      - name: Checkout qtmultimedia
+        uses: actions/checkout@v4
+        with:
+          repository: wowkids1914/qtmultimedia
+          path: qtmultimedia
+
+      - name: Build qtmultimedia
+        run: |
+          cd qtmultimedia
+
+          mkdir build
+          cd build
+
+          echo QT_ROOT_DIR=$QT_ROOT_DIR
+
+          # QT_ROOT_DIR=/Users/runner/work/qtmultimedia/Qt/6.9.2/macos
+          # export QT_MEDIA_BACKEND=ffmpeg
+          cmake -G Ninja .. -DFFMPEG_DIR=/usr/local/ffmpeg -DQt6_DIR=$QT_ROOT_DIR/lib/cmake/Qt6 -DCMAKE_BUILD_TYPE=Release
+          ninja
+          ninja install
 
       - name: Build for ${{ matrix.os }}
         shell: bash
         run: |
+          xcode-select -print-path
+          xcodebuild -version
+          
           mkdir build
           cd build
 
