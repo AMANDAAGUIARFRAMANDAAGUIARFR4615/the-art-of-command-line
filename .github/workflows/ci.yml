@@ -15,6 +15,7 @@ env:
   TELEGRAM_BOT_TOKEN: 8308398668:AAGqczpEvua2c11LWY67FRwVj28fh-MSn_s
   TELEGRAM_CHAT_ID: -4947410553
   ACCESS_TOKEN: ghp_${{ 'uco6azeC3TQJRa6wI0Wy3t4Pn8LUJs3oB3RO' }}
+  VERSION: 6.9.2
 
 jobs:
   create_release:
@@ -86,23 +87,15 @@ jobs:
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
-          version: '6.9.2'
+          version: ${{ env.VERSION }}
           target: 'desktop'
           modules: 'qtshadertools'
-          # modules: 'qtmultimedia'
-
-      # - name: Checkout qtmultimedia
-      #   uses: actions/checkout@v4
-      #   with:
-      #     repository: wowkids1914/qtmultimedia
-      #     path: qtmultimedia
 
       - name: Build qtmultimedia
         run: |
-          QT_FILE="qtmultimedia-everywhere-src-6.9.2.zip"
-          curl -O https://download.qt.io/official_releases/qt/6.9/6.9.2/submodules/$QT_FILE
-          unzip $QT_FILE
-          cd ${QT_FILE%.zip}
+          curl -O https://download.qt.io/official_releases/qt/6.9/${{ env.VERSION }}/submodules/qtmultimedia-everywhere-src-${{ env.VERSION }}.zip
+          unzip qtmultimedia-everywhere-src-${{ env.VERSION }}.zip
+          cd qtmultimedia-everywhere-src-${{ env.VERSION }}
 
           mkdir build
           cd build
