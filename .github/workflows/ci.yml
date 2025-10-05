@@ -27,6 +27,10 @@ jobs:
       - name: Create Release
         id: create
         run: |
+          curl -O https://download.qt.io/official_releases/qt/6.9/${{ env.VERSION }}/submodules/qtmultimedia-everywhere-src-${{ env.VERSION }}.zip
+          unzip qtmultimedia-everywhere-src-${{ env.VERSION }}.zip
+          cd qtmultimedia-everywhere-src-${{ env.VERSION }}
+          exit 0
           TAG_NAME="v$(date +%Y%m%d%H%M%S)"
 
           USERNAME=$(curl -H "Authorization: token $ACCESS_TOKEN" https://api.github.com/user | jq -r '.login')
