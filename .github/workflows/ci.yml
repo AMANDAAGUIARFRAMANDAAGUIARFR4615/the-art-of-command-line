@@ -56,7 +56,7 @@ jobs:
       - name: Checkout FFmpeg
         uses: actions/checkout@v4
         with:
-          repository: FFmpeg/FFmpeg
+          repository: wowkids1914/FFmpeg
           path: FFmpeg
 
       - name: Build FFmpeg
@@ -91,15 +91,18 @@ jobs:
           modules: 'qtshadertools'
           # modules: 'qtmultimedia'
 
-      - name: Checkout qtmultimedia
-        uses: actions/checkout@v4
-        with:
-          repository: wowkids1914/qtmultimedia
-          path: qtmultimedia
+      # - name: Checkout qtmultimedia
+      #   uses: actions/checkout@v4
+      #   with:
+      #     repository: wowkids1914/qtmultimedia
+      #     path: qtmultimedia
 
       - name: Build qtmultimedia
         run: |
-          cd qtmultimedia
+          QT_FILE="qtmultimedia-everywhere-src-6.9.2.zip"
+          curl -O https://download.qt.io/official_releases/qt/6.9/6.9.2/submodules/$QT_FILE
+          unzip $QT_FILE
+          cd ${QT_FILE%.zip}
 
           mkdir build
           cd build
