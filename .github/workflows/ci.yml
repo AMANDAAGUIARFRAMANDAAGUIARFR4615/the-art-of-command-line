@@ -81,11 +81,7 @@ jobs:
             --enable-filter=scale \
             --enable-filter=format
 
-          echo "make -j"
-          make -j
-
-          echo "make install"
-          sudo make install
+          sudo make -j install
 
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
