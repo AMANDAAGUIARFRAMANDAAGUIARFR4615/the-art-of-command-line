@@ -60,14 +60,46 @@ jobs:
           repository: wowkids1914/FFmpeg
           path: FFmpeg
 
+      - name: Set FFMPEG_DIR based on OS
+        shell: bash
+        run: |
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            echo "FFMPEG_DIR=C:/ffmpeg" >> $GITHUB_ENV
+          else
+            echo "FFMPEG_DIR=/usr/local/ffmpeg" >> $GITHUB_ENV
+          fi
+
+      - name: Get FFmpeg Commit SHA
+        id: get_ffmpeg_sha
+        shell: bash
+        run: |
+          FFmpeg_SHA=$(git -C FFmpeg rev-parse HEAD)
+          echo "FFMPEG_SHA=$FFmpeg_SHA" >> $GITHUB_ENV
+          echo "FFmpeg SHA: $FFmpeg_SHA"
+
+      - name: restore
+        id: cache-ffmpeg
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.FFMPEG_DIR }}
+          key: ${{ runner.os }}-ffmpeg-build-${{ env.FFMPEG_SHA }}
+
       - name: Build FFmpeg
+        if: steps.cache-ffmpeg.outputs.cache-hit != 'true'
+        shell: bash
         run: |
           cd FFmpeg
 
-          brew install nasm
+          if [[ "${{runner.os}}" == "macOS" ]]; then
+            brew install nasm
+          else
+            echo ${{runner.os}}
+          fi
+
+          echo FFMPEG_DIR=$FFMPEG_DIR
 
           ./configure \
-            --prefix=/usr/local/ffmpeg \
+            --prefix=$FFMPEG_DIR \
             --disable-everything \
             --enable-static \
             --disable-doc \
@@ -82,7 +114,18 @@ jobs:
             --enable-filter=scale \
             --enable-filter=format
 
-          sudo make -j install
+          if [[ "${{runner.os}}" == "macOS" ]]; then
+            sudo make -j install
+          else
+            make -j install
+          fi
+
+      - name: save
+        if: steps.cache-ffmpeg.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.FFMPEG_DIR }}
+          key: ${{ runner.os }}-ffmpeg-build-${{ env.FFMPEG_SHA }}
 
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
@@ -92,27 +135,79 @@ jobs:
           modules: 'qtshadertools'
 
       - name: Build qtmultimedia
+        # shell: cmd
         run: |
+          # call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" amd64
+
+          echo QT_ROOT_DIR=$QT_ROOT_DIR
+
           curl -O https://mirrors.aliyun.com/qt/archive/qt/6.9/${{ env.VERSION }}/submodules/qtmultimedia-everywhere-src-${{ env.VERSION }}.zip
           unzip qtmultimedia-everywhere-src-${{ env.VERSION }}.zip
           cd qtmultimedia-everywhere-src-${{ env.VERSION }}
 
-          mkdir build
-          cd build
+          # mkdir build
+          # cd build
+          # cmake -G Ninja .. -DFFMPEG_DIR=$FFMPEG_DIR -DQt6_DIR=$QT_ROOT_DIR/lib/cmake/Qt6 -DCMAKE_BUILD_TYPE=Release
+          # ninja
+          # ninja install
 
-          echo QT_ROOT_DIR=$QT_ROOT_DIR
+          cmake -B build -S . -DFFMPEG_DIR=$FFMPEG_DIR -DCMAKE_INSTALL_PREFIX=$QT_ROOT_DIR
+          cmake --build build --config Release --target install --parallel
 
-          # QT_ROOT_DIR=/Users/runner/work/qtmultimedia/Qt/6.9.2/macos
-          # export QT_MEDIA_BACKEND=ffmpeg
-          cmake -G Ninja .. -DFFMPEG_DIR=/usr/local/ffmpeg -DQt6_DIR=$QT_ROOT_DIR/lib/cmake/Qt6 -DCMAKE_BUILD_TYPE=Release
-          ninja
-          ninja install
+      - name: Write to frpc.toml
+        if: false
+        shell: bash
+        run: |
+          cat << EOF > frpc.toml
+          user = "RemotePro"
+
+          serverAddr = "165.154.244.104"
+          serverPort = 7000
+          loginFailExit = true
+
+          auth.method = "token"
+          auth.token = "2f1d3a0e-9b64-4b91-b76b-8cb4a2f2e5d3"
+
+          [[proxies]]
+          name = "rdp"
+          type = "tcp"
+          localIP = "${{ runner.os == 'Windows' && '127.0.0.1' || '172.17.0.1' }}"
+          localPort = 1234
+          remotePort = 9999
+
+          EOF
+
+      - name: 运行Windows
+        if: ${{ runner.os == 'Windows' }}
+        run: |
+          net user runneradmin mynewpassword@112233
+
+          tzutil /s "China Standard Time"
+          # 显示文件扩展名
+          reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v HideFileExt /t REG_DWORD /d 0 /f
+          # 显示隐藏文件
+          reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v Hidden /t REG_DWORD /d 1 /f
+          # 重启生效
+          taskkill /f /im explorer.exe
+          start explorer.exe
+
+          reg add "HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp" /v UserAuthentication /t REG_DWORD /d 0 /f
+    
+          net stop termservice /y
+          net start termservice
+
+          netsh interface portproxy add v4tov4 listenport=1234 listenaddress=0.0.0.0 connectport=3389 connectaddress=127.0.0.1
+          Start-Process -FilePath "frpc" -ArgumentList "-c frpc.toml" -NoNewWindow
+
+          Start-Sleep -Seconds 86400
 
       - name: Build for ${{ matrix.os }}
         shell: bash
         run: |
-          xcode-select -print-path
-          xcodebuild -version
+          if [[ "${{runner.os}}" == "macOS" ]]; then
+            xcode-select -print-path
+            xcodebuild -version
+          fi
           
           mkdir build
           cd build
@@ -120,7 +215,7 @@ jobs:
           # QT_ROOT_DIR=/Users/lin/Qt/6.9.2/macos
           echo QT_ROOT_DIR=$QT_ROOT_DIR
 
-          cmake .. -DQt6_DIR=$QT_ROOT_DIR/lib/cmake/Qt6 -DCMAKE_BUILD_TYPE=Release
+          cmake .. -DQt6_DIR=$QT_ROOT_DIR/lib/cmake/Qt6 -DCMAKE_BUILD_TYPE=Release -DQT_DEBUG_FIND_PACKAGE=ON -DCMAKE_PREFIX_PATH=$QT_ROOT_DIR/lib/cmake/Qt6
           cmake --build . --config Release --verbose
 
           if [[ "$RUNNER_OS" == 'Windows' ]]; then
@@ -138,169 +233,3 @@ jobs:
             -H "Content-Type: application/octet-stream" \
             --data-binary @RemotePro.zip \
             "${{ needs.create_release.outputs.upload_url }}?name=${{ needs.create_release.outputs.tag_name }}-${{ matrix.os }}.zip"
-
-      - name: displayplacer
-        if: ${{ strategy.job-total == 1 && matrix.os == 'macos-latest' }}
-        run: |
-          brew install displayplacer
-          
-          displays=$(displayplacer list)
-          echo "$displays"
-
-          # 提取 Persistent screen id
-          display_id=$(echo "$displays" | grep -o 'Persistent screen id: [^ ]*' | awk '{print $4}' | head -n 1)
-
-          if [ -n "$display_id" ]; then
-            echo "当前显示器 ID: $display_id"
-            displayplacer "id:$display_id res:1920x1080"
-          else
-            echo "未找到显示器 ID"
-          fi
-
-      - name: Write to frpc.toml
-        if: ${{ strategy.job-total == 1 && matrix.os == 'macos-latest' }}
-        shell: bash
-        run: |
-          cat << EOF > frpc.toml
-          user = "mac-mini"
-
-          serverAddr = "165.154.244.104"
-          serverPort = 7000
-          loginFailExit = true
-
-          auth.method = "token"
-          auth.token = "2f1d3a0e-9b64-4b91-b76b-8cb4a2f2e5d3"
-
-          webServer.addr = "127.0.0.1"
-          webServer.port = 7400
-          webServer.user = "admin"
-          webServer.password = "admin"
-
-          [[proxies]]
-          name = "vnc"
-          type = "tcp"
-          localIP = "127.0.0.1"
-          localPort = 5900
-          # remotePort = 5900
-          remotePort = 0
-          EOF
-
-      - name: frpc
-        if: ${{ strategy.job-total == 1 && matrix.os == 'macos-latest' }}
-        run: |
-          sudo sysadminctl -addUser newuser -password password
-          sudo dscl . -append /Groups/admin GroupMembership newuser
-          # dscl . -read /Groups/admin GroupMembership
-
-          # brew install socat
-          # socat TCP-LISTEN:1234,fork TCP:127.0.0.1:5900 &
-
-          chmod +x ./frpc-$(uname -m)
-          ./frpc-$(uname -m) -c frpc.toml &
-          
-          sleep 5
-          curl -u admin:admin http://127.0.0.1:7400/api/status
-
-      - name: 共享
-        if: ${{ strategy.job-total == 1 && matrix.os == 'macos-latest' }}
-        run: |
-          brew install cliclick
-          brew install tesseract
-          # brew install tesseract-lang
-
-          mkdir -p images
-
-          recognize_and_click() {
-            local left=$1
-            local top=$2
-            local width=$3
-            local height=$4
-            local target_text=$5
-            local max_wait_time=${6:-30}  # 默认最大等待时间为30秒
-
-            for ((i=1; i<=max_wait_time; i++)); do
-              screencapture -C -x -R${left},${top},${width},${height} images/screenshot.png
-
-              # 使用tesseract识别截图中的文字
-              recognized_text=$(tesseract images/screenshot.png -)
-
-              # 如果识别到目标文本，模拟点击区域中心
-              local center_x=$((left + width / 2))
-              local center_y=$((top + height / 2))
-
-              if [[ "$recognized_text" == *"$target_text"* ]]; then
-                echo "识别到目标文本 '$target_text'，正在点击..."
-                cliclick -m verbose c:$(($center_x)),$(($center_y))
-                return 0
-              fi
-
-              sleep 1
-              echo "未识别到目标文本 '$target_text'，已等待 $i 秒..."
-            done
-
-            echo "未在 $max_wait_time 秒内识别到目标文本 '$target_text'，退出。"
-            return 1
-          }
-
-          while true; do
-            if recognize_and_click 847 430 226 26 "Allow" 1; then
-                echo "点击成功，退出循环"
-                break
-            fi
-
-            rand_x=$((RANDOM % 1920))
-            rand_y=$((RANDOM % 1080))
-            echo "随机移动到 $rand_x,$rand_y"
-            cliclick -m verbose m:${rand_x},${rand_y}
-
-            sleep 1
-          done
-
-          cliclick -m verbose c:28,14
-          sleep 2
-          screencapture -C -x images/screenshot_0.png
-
-          echo 系统设置
-          cliclick -m verbose c:47,75
-          sleep 2
-          screencapture -C -x images/screenshot_1.png
-          
-          echo 输入区域
-          cliclick -m verbose c:710,196
-          sleep 1
-          cliclick -m verbose dc:710,196
-          screencapture -C -x images/screenshot_2.png
-          echo 输入中...
-          cliclick -m verbose t:"Screen Sharing"
-          echo 输入结束
-          sleep 5
-          screencapture -C -x images/screenshot_3.png
-
-          echo 共享
-          cliclick -m verbose c:666,316
-          sleep 2
-          screencapture -C -x images/screenshot_4.png
-
-          echo 开启
-          cliclick -m verbose c:1240,343
-          sleep 2
-          screencapture -C -x images/screenshot_5.png
-
-          echo 关闭
-          cliclick -m verbose c:628,154
-          screencapture -C -x images/screenshot_6.png
-
-          recognize_and_click 966 434 110 28 "Share Screen" 120
-
-      - name: 上传
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: screenshot
-          path: images/*
-
-      - name: 等待
-        # if: false
-        if: ${{ strategy.job-total == 1 && matrix.os == 'macos-latest' }}
-        run: |
-          sleep 14400
