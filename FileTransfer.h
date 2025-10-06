@@ -29,6 +29,10 @@ protected:
     void onNewConnection()
     {
         auto socket = nextPendingConnection();
+
+        close();
+        qDebugEx() << "已接受第一个连接，服务器停止监听新连接。";
+
         connect(socket, &QTcpSocket::readyRead, this, &FileTransfer::onReadyRead);
         connect(socket, &QTcpSocket::disconnected, socket, &QTcpSocket::deleteLater);
         connect(socket, &QTcpSocket::bytesWritten, this, &FileTransfer::onBytesWritten);  // 连接bytesWritten信号
