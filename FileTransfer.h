@@ -11,7 +11,7 @@ class FileTransfer : public QTcpServer
 {
     Q_OBJECT
 public:
-    FileTransfer(int type, const QString &path, quint64 size) : path(path), size(size)
+    FileTransfer(int type, const QString &path, quint64 size) : type(type), path(path), size(size)
     {
         connect(this, &QTcpServer::newConnection, this, &FileTransfer::onNewConnection);
 
@@ -34,61 +34,80 @@ protected:
         qDebugEx() << "已接受第一个连接，服务器停止监听新连接。";
 
         connect(socket, &QTcpSocket::readyRead, this, &FileTransfer::onReadyRead);
+        // connect(socket, &QTcpSocket::bytesWritten, this, &FileTransfer::onBytesWritten);
         connect(socket, &QTcpSocket::disconnected, socket, &QTcpSocket::deleteLater);
-        connect(socket, &QTcpSocket::bytesWritten, this, &FileTransfer::onBytesWritten);  // 连接bytesWritten信号
+
+        qDebugEx() << path << type;
+
+        if (type == 1)
+        {
+            recvFile.setFileName("~/Desktop/" + QFileInfo(path).fileName());
+
+            if (!recvFile.open(QIODevice::WriteOnly))
+            {
+                qCriticalEx() << "文件保存失败";
+                socket->close();
+            }
+
+            return;
+        }
 
         QtConcurrent::run([this, socket]() {
-            QFile file(path);
+            QFile sendFile(path);
 
-            if (!file.open(QIODevice::ReadOnly))
+            if (!sendFile.open(QIODevice::ReadOnly))
             {
                 qCriticalEx() << "Failed to open file for sending.";
                 return;
             }
 
-            while (!file.atEnd())
+            while (!sendFile.atEnd())
             {
-                auto buffer = file.read(4096);
+                auto buffer = sendFile.read(4096);
                 QMetaObject::invokeMethod(this, [socket, buffer]() {
                     socket->write(buffer);
                 });
             }
 
-            file.close();
+            sendFile.close();
             qInfoEx() << "文件关闭";
         });
     }
 
     void onReadyRead()
     {
-        QTcpSocket *socket = qobject_cast<QTcpSocket *>(sender());
+        auto socket = qobject_cast<QTcpSocket *>(sender());
         auto data = socket->readAll();
         
-        buffer.append(data);
+        if (type == 1) {
+            recvFile.write(data);
 
-        while (buffer.size() >= 8)
-        {
-            auto bytesSent = *reinterpret_cast<quint64 *>(buffer.data());
-            buffer.remove(0, 8);
+            if (recvFile.size() == size) {
+                recvFile.close();
+                socket->close();
+                qDebugEx() << path << "接收完成断开连接";
+            }
+        }
+        else {
+            buffer.append(data);
 
-            if (size == bytesSent) {
-                close();
-                qDebugEx() << "发送完成断开连接";
+            while (buffer.size() >= 8)
+            {
+                auto bytesSent = *reinterpret_cast<quint64 *>(buffer.data());
+                buffer.remove(0, 8);
+
+                if (bytesSent == size) {
+                    socket->close();
+                    qDebugEx() << path << "发送完成断开连接";
+                }
             }
         }
     }
 
-    void onBytesWritten(qint64 bytes)
-    {
-        QTcpSocket *socket = qobject_cast<QTcpSocket *>(sender());
-        if (bytes == socket->bytesToWrite())  // 数据完全写入
-        {
-            qDebugEx() << "文件已发送完成：" << bytes;
-        }
-    }
-
 private:
+    int type;
     QString path;
     quint64 size;
     QByteArray buffer;
+    QFile recvFile;
 };
