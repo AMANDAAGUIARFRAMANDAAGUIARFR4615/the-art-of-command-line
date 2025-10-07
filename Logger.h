@@ -6,7 +6,7 @@
 
 // 日志前缀格式：LEVEL | hh:mm:ss | file:line@function |
 #define __LOG_PREFIX__(level) \
-    level << " | " << QDateTime::currentDateTime().toString("hh:mm:ss") \
+    level << " | " << QDateTime::currentDateTime().toString("hh:mm:ss.zzz") \
           << " | " << QStringLiteral("%1:%2@%3") \
                         .arg(__PROJECT_FILE__) \
                         .arg(__LINE__) \
