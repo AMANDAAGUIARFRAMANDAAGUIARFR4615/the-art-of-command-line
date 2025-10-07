@@ -86,61 +86,19 @@ protected:
     {
         if (!frame.isValid())
         {
-            qDebugEx() << "无效帧";
+            qCriticalEx() << "无效帧";
             return;
         }
 
-        QVideoFrame &nonConstFrame = const_cast<QVideoFrame &>(frame);
-
-        nonConstFrame.map(QVideoFrame::ReadOnly);
-        
-        if (!canUpdateFrame(nonConstFrame))
+        QImage img = frame.toImage();
+        if (img.isNull())
         {
-            // qDebugEx() << "画面无变化";
+            qCriticalEx() << "frame.toImage()";
             return;
-        }
-                
-        const uchar *yPlane = nonConstFrame.bits(0);
-        const uchar *uPlane = nonConstFrame.bits(1);
-        const uchar *vPlane = nonConstFrame.bits(2);
-
-        int width = frame.width();
-        int height = frame.height();
-        int yStride = nonConstFrame.bytesPerLine(0);
-        int uvStride = nonConstFrame.bytesPerLine(1);
-
-        QImage img(width, height, QImage::Format_RGB888);
-
-        for (int y = 0; y < height; ++y)
-        {
-            uchar *line = img.scanLine(y);
-
-            for (int x = 0; x < width; ++x)
-            {
-                int yValue = yPlane[y * yStride + x];
-                int uIndex = (y / 2) * uvStride + (x / 2);
-                int uValue = uPlane[uIndex];
-                int vIndex = (y / 2) * uvStride + (x / 2);
-                int vValue = vPlane == nullptr ? 0 : vPlane[vIndex];
-
-                int c = yValue - 16;
-                int d = uValue - 128;
-                int e = vValue - 128;
-                int r = qBound(0, (298 * c + 409 * e + 128) >> 8, 255);
-                int g = qBound(0, (298 * c - 100 * d - 208 * e + 128) >> 8, 255);
-                int b = qBound(0, (298 * c + 516 * d + 128) >> 8, 255);
-
-                line[3 * x]     = r;
-                line[3 * x + 1] = g;
-                line[3 * x + 2] = b;
-            }
         }
 
         m_currentImage = img;
-
         update();
-
-        nonConstFrame.unmap();
     }
 
     bool canUpdateFrame(const QVideoFrame &frame)
