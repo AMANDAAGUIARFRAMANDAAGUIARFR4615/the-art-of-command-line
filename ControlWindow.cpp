@@ -84,11 +84,16 @@ void ControlWindow::keyPressEvent(QKeyEvent *event)
         return;
     }
 
-    qDebugEx() << "Key Pressed:" << event->key();
+    auto keyText = QKeySequence(event->key()).toString();
+
+    qDebugEx() << "Key Pressed:" << keyText;
+
+    if (event->key() != Qt::Key_Backspace && event->key() != Qt::Key_Delete)
+        return;
 
     QJsonObject dataObject;
     dataObject["type"] = "keyPress";
-    dataObject["key"] = event->key();
+    dataObject["key"] = keyText;
 
     QJsonObject jsonObject;
     jsonObject["event"] = "keyboard";
@@ -101,11 +106,16 @@ void ControlWindow::keyPressEvent(QKeyEvent *event)
 
 void ControlWindow::keyReleaseEvent(QKeyEvent *event)
 {
-    qDebugEx() << "Key Released:" << event->key();
+    auto keyText = QKeySequence(event->key()).toString();
+
+    qDebugEx() << "Key Released:" << keyText;
+
+    if (event->key() != Qt::Key_Backspace && event->key() != Qt::Key_Delete)
+        return;
 
     QJsonObject dataObject;
     dataObject["type"] = "keyRelease";
-    dataObject["key"] = event->key();
+    dataObject["key"] = keyText;
 
     QJsonObject jsonObject;
     jsonObject["event"] = "keyboard";
