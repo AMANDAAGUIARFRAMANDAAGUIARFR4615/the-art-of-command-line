@@ -264,12 +264,39 @@ void RemoteFileExplorer::contextMenuEvent(QContextMenuEvent *event)
     }
 
     auto targetPath = index.data(Qt::UserRole).toString();
+    bool isDir = index.data(Qt::UserRole + 2).toBool();
 
     // QAction *openAction = new QAction("打开", &contextMenu);
     // contextMenu.addAction(openAction);
     // connect(openAction, &QAction::triggered, this, [this, &targetPath, &index]() {
     //     // qDebugEx() << "打开文件: " << item->text();
     // });
+
+    if (!isDir) {
+        QAction *downloadAction = new QAction("下载", &contextMenu);
+        contextMenu.addAction(downloadAction);
+        connect(downloadAction, &QAction::triggered, this, [this, &targetPath, &index]() {
+            auto id = QUuid::createUuid().toString();
+            auto type = 1; // 收是1，发是2
+            auto path = QDir::homePath() + "/Desktop/" + QFileInfo(targetPath).fileName();
+
+            qDebugEx() << path << "<=" << targetPath;
+
+            auto transfer = new FileTransfer(type, path, 0);
+
+            QJsonObject dataObject;
+            dataObject["id"] = id;
+            dataObject["type"] = type;
+            dataObject["port"] = transfer->serverPort();
+            dataObject["path"] = targetPath;
+
+            QJsonObject jsonObject;
+            jsonObject["event"] = "transferFile";
+            jsonObject["data"] = dataObject;
+
+            TcpServer::sendData(socket, jsonObject);
+        });
+    }
 
     QAction *renameAction = new QAction("重命名", &contextMenu);
     contextMenu.addAction(renameAction);
