@@ -28,5 +28,4 @@ protected:
 
     QTcpSocket* socket;
     const DeviceInfo* deviceInfo;
-    QMediaPlayer *m_mediaPlayer;
 };
