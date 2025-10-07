@@ -72,6 +72,11 @@ RemoteFileExplorer::RemoteFileExplorer(QTcpSocket* socket, QWidget *parent) : so
     treeView->header()->setStretchLastSection(false);
 }
 
+RemoteFileExplorer::~RemoteFileExplorer()
+{
+    
+}
+
 bool RemoteFileExplorer::eventFilter(QObject* obj, QEvent* event)
 {
     if (obj == treeView->viewport()) {

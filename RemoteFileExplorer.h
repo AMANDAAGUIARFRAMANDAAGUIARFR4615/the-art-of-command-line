@@ -40,7 +40,7 @@ class RemoteFileExplorer : public QWidget
 
 public:
     explicit RemoteFileExplorer(QTcpSocket* socket, QWidget *parent = nullptr);
-    ~RemoteFileExplorer() = default;
+    ~RemoteFileExplorer();
 
 protected:
     bool eventFilter(QObject* obj, QEvent* event) override;

@@ -114,18 +114,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
     EventHub::StartListening("deviceInfo", [this](const QJsonValue &data, QTcpSocket* socket) {
         auto deviceInfo = new DeviceInfo(data.toObject());
-
-        // 1  Portrait 
-        // 2  PortraitUpsideDown
-        // 3  LandscapeRight
-        // 4  LandscapeLeft
-
         addItem(socket, deviceInfo);
     });
 }
 
 MainWindow::~MainWindow()
 {
+    EventHub::StopListening("deviceInfo");
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event)
