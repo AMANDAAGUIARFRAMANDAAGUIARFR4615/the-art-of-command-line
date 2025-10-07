@@ -4,6 +4,7 @@
 #include <QDebug>
 #include <QHostAddress>
 #include <QJsonDocument>
+#include <QThread>
 
 UdpTransport::UdpTransport(const std::function<void(const QJsonObject &jsonObject)> &onDataReceived,
                      const std::function<void(QAbstractSocket::SocketError)> &onError,
@@ -36,7 +37,7 @@ UdpTransport::UdpTransport(const std::function<void(const QJsonObject &jsonObjec
     });
 
     connect(socket, &QUdpSocket::errorOccurred, this,  [this](QAbstractSocket::SocketError error) {
-        qCriticalEx() << "网络错误发生：" << error << socket->errorString();
+        qCriticalEx() << "errorOccurred" << error << "|" << socket->errorString();
 
         if (onErrorCallback) {
             onErrorCallback(error);
@@ -44,7 +45,7 @@ UdpTransport::UdpTransport(const std::function<void(const QJsonObject &jsonObjec
     });
 }
 
-void UdpTransport::sendData(const QJsonObject &jsonObject, const QHostAddress &host, quint16 port)
+void UdpTransport::sendData(const QJsonObject &jsonObject, const QHostAddress &host, quint16 port, quint16 retryCount)
 {
     if (socket->state() != QAbstractSocket::BoundState) {
         qCriticalEx() << "UDP 套接字未绑定，无法发送数据！";
@@ -63,8 +64,15 @@ void UdpTransport::sendData(const QJsonObject &jsonObject, const QHostAddress &h
     dataToSend.append(reinterpret_cast<const char*>(&jsonDataLength), sizeof(jsonDataLength));
     dataToSend.append(jsonData);
 
-    socket->writeDatagram(dataToSend, host, port);
-    socket->flush();
+    while (retryCount-- > 0) {
+        if (socket->writeDatagram(dataToSend, host, port) == dataToSend.size())
+            return;
+
+        qWarningEx() << "发送失败，剩余重试次数:" << retryCount;
+        QThread::msleep(50);
+    }
+
+    qCriticalEx() << "发送失败，已达到最大重试次数！";
 }
 
 void UdpTransport::processBufferedData()
