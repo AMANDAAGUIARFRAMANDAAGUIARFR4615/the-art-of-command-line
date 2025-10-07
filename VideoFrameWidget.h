@@ -50,36 +50,21 @@ protected:
     {
         QWidget::paintEvent(event);
 
-        if (!m_currentImage.isNull())
-        {
-            QSize widgetSize = size();
-            QSize imageSize = m_currentImage.size();
+        if (m_currentImage.isNull())
+            return;
 
-            QPainter painter(this);
-            painter.setRenderHint(QPainter::Antialiasing, true);
+        QPainter painter(this);
+        painter.setRenderHint(QPainter::Antialiasing, true);
+        painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
 
-            // 保持视频同比例缩放
-            float widgetAspectRatio = static_cast<float>(widgetSize.width()) / widgetSize.height();
-            float imageAspectRatio = static_cast<float>(imageSize.width()) / imageSize.height();
+        // 保持比例缩放并平滑绘制
+        auto scaled = m_currentImage.scaled(size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
-            int newWidth = widgetSize.width();
-            int newHeight = widgetSize.height();
+        // 计算居中位置
+        QRect targetRect(QPoint(0, 0), scaled.size());
+        targetRect.moveCenter(rect().center());
 
-            // 根据长宽比例调整大小，保持同比例缩放
-            if (widgetAspectRatio > imageAspectRatio) {
-                newWidth = static_cast<int>(imageSize.width() * (widgetSize.height() / static_cast<float>(imageSize.height())));
-            } else {
-                newHeight = static_cast<int>(imageSize.height() * (widgetSize.width() / static_cast<float>(imageSize.width())));
-            }
-
-            QSize scaledSize(newWidth, newHeight);
-
-            // 居中显示图像
-            int offsetX = (widgetSize.width() - scaledSize.width()) / 2;
-            int offsetY = (widgetSize.height() - scaledSize.height()) / 2;
-
-            painter.drawImage(offsetX, offsetY, m_currentImage.scaled(scaledSize));
-        }
+        painter.drawImage(targetRect.topLeft(), scaled);
     }
 
     void onVideoFrameChanged(const QVideoFrame &frame)
