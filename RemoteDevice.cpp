@@ -72,7 +72,10 @@ RemoteDevice::RemoteDevice(QTcpSocket* socket, DeviceInfo* deviceInfo, QWidget *
     });
 }
 
-RemoteDevice::~RemoteDevice() {}
+RemoteDevice::~RemoteDevice()
+{
+
+}
 
 void RemoteDevice::setSource(const QUrl &source)
 {
@@ -117,10 +120,30 @@ void RemoteDevice::contextMenuEvent(QContextMenuEvent *event)
         Tools::reboot(socket);
     });
 
+    QAction *volumeUpAction = new QAction("音量+", this);
+    connect(volumeUpAction, &QAction::triggered, [this]() {
+        QJsonObject jsonObject;
+        jsonObject["event"] = "volumeControl";
+        jsonObject["data"] = "+";
+
+        TcpServer::sendData(socket, jsonObject);
+    });
+
+    QAction *volumeDownAction = new QAction("音量-", this);
+    connect(volumeDownAction, &QAction::triggered, [this]() {
+        QJsonObject jsonObject;
+        jsonObject["event"] = "volumeControl";
+        jsonObject["data"] = "-";
+
+        TcpServer::sendData(socket, jsonObject);
+    });
+
     contextMenu.addAction(fileAction);
     contextMenu.addAction(unlockAction);
     contextMenu.addAction(lockAction);
     contextMenu.addAction(rebootAction);
+    contextMenu.addAction(volumeUpAction);
+    contextMenu.addAction(volumeDownAction);
 
     contextMenu.exec(event->globalPos());
 }
