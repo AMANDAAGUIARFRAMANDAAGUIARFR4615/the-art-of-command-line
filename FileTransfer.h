@@ -78,9 +78,22 @@ protected:
     {
         auto socket = qobject_cast<QTcpSocket *>(sender());
         auto data = socket->readAll();
+        buffer.append(data);
         
         if (type == 1) {
-            recvFile.write(data);
+            if (size == 0) {
+                if (buffer.size() < 8)
+                    return;
+
+                size = *reinterpret_cast<quint64 *>(buffer.data());
+                buffer.remove(0, 8);
+                qDebugEx() << "文件大小" << size;
+
+                if (buffer.size() == 0)
+                    return;
+            }
+
+            recvFile.write(buffer);
 
             if (recvFile.size() == size) {
                 recvFile.close();
@@ -89,8 +102,6 @@ protected:
             }
         }
         else {
-            buffer.append(data);
-
             while (buffer.size() >= 8)
             {
                 auto bytesSent = *reinterpret_cast<quint64 *>(buffer.data());
