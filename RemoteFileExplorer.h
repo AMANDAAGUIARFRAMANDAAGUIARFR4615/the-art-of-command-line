@@ -43,6 +43,7 @@ public:
     ~RemoteFileExplorer() = default;
 
 protected:
+    bool eventFilter(QObject* obj, QEvent* event) override;
     void setStatusMessage(const QString &message);
     void fetchDirectoryContents(const QString &path);
     void fetchDirectoryContents(const QModelIndex &index);
@@ -59,4 +60,5 @@ protected:
     QTreeView *treeView;
     QStandardItemModel *model;
     QStatusBar *statusBar;
+    QPoint m_dragStartPos;
 };

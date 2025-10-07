@@ -24,6 +24,7 @@
 #include <QDir>
 #include <QInputDialog>
 #include <QHeaderView>
+#include <QDrag>
 
 RemoteFileExplorer::RemoteFileExplorer(QTcpSocket* socket, QWidget *parent) : socket(socket), QWidget(parent)
 {
@@ -33,7 +34,9 @@ RemoteFileExplorer::RemoteFileExplorer(QTcpSocket* socket, QWidget *parent) : so
     QFont font = treeView->font();
     font.setPointSize(12);
     treeView->setFont(font);
-    treeView->setIconSize(QSize(24, 24)); 
+    treeView->setIconSize(QSize(24, 24));
+
+    treeView->viewport()->installEventFilter(this);
 
     auto layout = new QVBoxLayout(this);
     layout->addWidget(treeView);
@@ -67,6 +70,57 @@ RemoteFileExplorer::RemoteFileExplorer(QTcpSocket* socket, QWidget *parent) : so
     treeView->header()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
     treeView->header()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
     treeView->header()->setStretchLastSection(false);
+}
+
+bool RemoteFileExplorer::eventFilter(QObject* obj, QEvent* event)
+{
+    if (obj == treeView->viewport()) {
+        if (event->type() == QEvent::MouseButtonPress) {
+            auto me = static_cast<QMouseEvent*>(event);
+            if (me->button() == Qt::LeftButton)
+                m_dragStartPos = me->pos();
+        }
+        else if (event->type() == QEvent::MouseMove) {
+            auto me = static_cast<QMouseEvent*>(event);
+            if (!(me->buttons() & Qt::LeftButton)) return false;
+            if ((me->pos() - m_dragStartPos).manhattanLength() < QApplication::startDragDistance()) return false;
+
+            QModelIndex index = treeView->indexAt(m_dragStartPos);
+            if (!index.isValid()) return false;
+
+            QString path = index.data(Qt::UserRole).toString();
+            if (path.isEmpty()) return false;
+
+            auto drag = new QDrag(treeView);
+            auto mime = new QMimeData();
+      
+            QString tempPath = QDir::temp().filePath(QFileInfo(path).fileName());
+
+            QFile tempFile(tempPath);
+            if (!tempFile.exists()) {
+                if (tempFile.open(QIODevice::WriteOnly)) {
+                    tempFile.write("");  // 创建一个空文件占位
+                    tempFile.close();
+                } else {
+                    qWarning() << "无法创建临时文件：" << tempPath;
+                    return false;
+                }
+            }
+
+            mime->setUrls({ QUrl::fromLocalFile(tempPath) });
+
+            drag->setMimeData(mime);
+            auto result = drag->exec(Qt::CopyAction);
+
+            if (result == Qt::IgnoreAction) {
+                qDebug() << "拖拽取消，删除占位文件";
+                // tempFile.remove();
+            } else if (result == Qt::CopyAction) {
+                qDebug() << "拖拽完成，开始下载远程文件";
+            }
+        }
+    }
+    return QObject::eventFilter(obj, event);
 }
 
 void RemoteFileExplorer::setStatusMessage(const QString &message)
@@ -331,8 +385,12 @@ void RemoteFileExplorer::dropEvent(QDropEvent *event)
         auto type = 2; // 收是1，发是2
         auto path = url.toLocalFile();
         auto size = Tools::getFileSize(path);
+        if (size == -1) {
+            qCriticalEx() << path << "=>" << targetPath;
+            continue;
+        }
 
-        qDebugEx() << "将文件从" << path << "拖放到" << targetPath;
+        qDebugEx() << path << "=>" << targetPath;
 
         auto dir = isDir ? targetPath : targetPath.left(targetPath.lastIndexOf('/'));
         auto transfer = new FileTransfer(type, path, size);
