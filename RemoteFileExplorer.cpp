@@ -272,7 +272,20 @@ void RemoteFileExplorer::contextMenuEvent(QContextMenuEvent *event)
     //     // qDebugEx() << "打开文件: " << item->text();
     // });
 
-    if (!isDir) {
+    if (isDir)
+    {
+        QAction *compressAction = new QAction("压缩", &contextMenu);
+        contextMenu.addAction(compressAction);
+        connect(compressAction, &QAction::triggered, this, [this, &targetPath, &index]() {
+            QJsonObject jsonObject;
+            jsonObject["event"] = "compressArchive";
+            jsonObject["data"] = targetPath;
+
+            TcpServer::sendData(socket, jsonObject);
+        });
+    }
+    else
+    {
         QAction *downloadAction = new QAction("下载", &contextMenu);
         contextMenu.addAction(downloadAction);
         connect(downloadAction, &QAction::triggered, this, [this, &targetPath, &index]() {
