@@ -41,11 +41,11 @@ protected:
 
         if (type == 1)
         {
-            recvFile.setFileName("~/Desktop/" + QFileInfo(path).fileName());
+            recvFile.setFileName(path);
 
             if (!recvFile.open(QIODevice::WriteOnly))
             {
-                qCriticalEx() << "文件保存失败";
+                qCritical() << "文件保存失败:" << recvFile.errorString();
                 socket->close();
             }
 
