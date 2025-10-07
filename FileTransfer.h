@@ -94,6 +94,7 @@ protected:
             }
 
             recvFile.write(buffer);
+            buffer.clear();
 
             if (recvFile.size() == size) {
                 recvFile.close();
