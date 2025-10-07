@@ -11,7 +11,7 @@
 
 ControlWindow::ControlWindow(QTcpSocket* socket, const DeviceInfo* deviceInfo, QWidget *parent) : socket(socket), deviceInfo(deviceInfo), VideoFrameWidget(new QMediaPlayer(parent), parent)
 {
-        
+    setAttribute(Qt::WA_InputMethodEnabled, true);
 }
 
 ControlWindow::~ControlWindow() {}
@@ -88,18 +88,18 @@ void ControlWindow::keyPressEvent(QKeyEvent *event)
 
     qDebugEx() << "Key Pressed:" << keyText;
 
-    if (event->key() != Qt::Key_Backspace && event->key() != Qt::Key_Delete)
-        return;
+    if (event->key() == Qt::Key_Backspace || event->key() == Qt::Key_Delete)
+    {
+        QJsonObject dataObject;
+        dataObject["type"] = "keyPress";
+        dataObject["key"] = keyText;
 
-    QJsonObject dataObject;
-    dataObject["type"] = "keyPress";
-    dataObject["key"] = keyText;
+        QJsonObject jsonObject;
+        jsonObject["event"] = "keyboard";
+        jsonObject["data"] = dataObject;
 
-    QJsonObject jsonObject;
-    jsonObject["event"] = "keyboard";
-    jsonObject["data"] = dataObject;
-
-    TcpServer::sendData(socket, jsonObject);
+        TcpServer::sendData(socket, jsonObject);
+    }
 
     QWidget::keyPressEvent(event);
 }
@@ -110,18 +110,35 @@ void ControlWindow::keyReleaseEvent(QKeyEvent *event)
 
     qDebugEx() << "Key Released:" << keyText;
 
-    if (event->key() != Qt::Key_Backspace && event->key() != Qt::Key_Delete)
-        return;
+    if (event->key() == Qt::Key_Backspace || event->key() == Qt::Key_Delete)
+    {
+        QJsonObject dataObject;
+        dataObject["type"] = "keyRelease";
+        dataObject["key"] = keyText;
 
-    QJsonObject dataObject;
-    dataObject["type"] = "keyRelease";
-    dataObject["key"] = keyText;
+        QJsonObject jsonObject;
+        jsonObject["event"] = "keyboard";
+        jsonObject["data"] = dataObject;
 
-    QJsonObject jsonObject;
-    jsonObject["event"] = "keyboard";
-    jsonObject["data"] = dataObject;
-
-    TcpServer::sendData(socket, jsonObject);
+        TcpServer::sendData(socket, jsonObject);
+    }
 
     QWidget::keyReleaseEvent(event);
+}
+
+void ControlWindow::inputMethodEvent(QInputMethodEvent *event)
+{
+    QString commitText = event->commitString();
+    if (!commitText.isEmpty())
+    {
+        qDebugEx() << "输入内容:" << commitText;
+
+        QJsonObject jsonObject;
+        jsonObject["event"] = "inputText";
+        jsonObject["data"] = commitText;
+
+        TcpServer::sendData(socket, jsonObject);
+    }
+
+    QWidget::inputMethodEvent(event);
 }
