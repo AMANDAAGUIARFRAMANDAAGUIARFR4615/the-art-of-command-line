@@ -68,11 +68,11 @@ void UdpTransport::sendData(const QJsonObject &jsonObject, const QHostAddress &h
         if (socket->writeDatagram(dataToSend, host, port) == dataToSend.size())
             return;
 
-        qWarningEx() << "发送失败，剩余重试次数:" << retryCount;
+        qWarningEx() << host.toString() + ":" + QString::number(port) << "发送失败，剩余重试次数:" << retryCount;
         QThread::msleep(50);
     }
 
-    qCriticalEx() << "发送失败，已达到最大重试次数！";
+    qCriticalEx() << host.toString() + ":" + QString::number(port) << "发送失败，已达到最大重试次数！";
 }
 
 void UdpTransport::processBufferedData()
