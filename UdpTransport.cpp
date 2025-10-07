@@ -19,6 +19,8 @@ UdpTransport::UdpTransport(const std::function<void(const QJsonObject &jsonObjec
         return;
     }
 
+    qDebugEx() << "udp绑定端口：" << socket->localPort();
+
     connect(socket, &QUdpSocket::readyRead, this,  [this]() {
         QByteArray receivedData;
         while (socket->hasPendingDatagrams()) {
