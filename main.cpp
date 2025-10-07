@@ -2,7 +2,6 @@
 #include "MainWindow.h"
 #include "TcpServer.h"
 #include "UdpTransport.h"
-#include "UdpTransport.h"
 #include "NetworkUtils.h"
 #include "LogWindow.h"
 #include "DeviceInfo.h"
@@ -57,9 +56,6 @@ int main(int argc, char *argv[])
     UdpTransport udpTransport(
         [](const QJsonObject &jsonObject) {
             qDebugEx() << "Received Data:" << jsonObject;
-        },
-        [](QAbstractSocket::SocketError error) {
-            qCriticalEx() << "Error:" << error;
         }
     );
 

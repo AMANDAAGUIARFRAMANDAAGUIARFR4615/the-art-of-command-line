@@ -36,6 +36,8 @@ UdpTransport::UdpTransport(const std::function<void(const QJsonObject &jsonObjec
     });
 
     connect(socket, &QUdpSocket::errorOccurred, this,  [this](QAbstractSocket::SocketError error) {
+        qCriticalEx() << "网络错误发生：" << error << socket->errorString();
+
         if (onErrorCallback) {
             onErrorCallback(error);
         }
