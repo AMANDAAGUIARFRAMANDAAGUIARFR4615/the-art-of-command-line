@@ -37,11 +37,43 @@ void ControlWindow::play()
     m_mediaPlayer->play();
 }
 
+QPointF ControlWindow::getTransformedPosition(QMouseEvent *event) {
+    auto x = event->pos().x() / deviceInfo->scaleFactor;
+    auto y = event->pos().y() / deviceInfo->scaleFactor;
+    auto width = this->width() / deviceInfo->scaleFactor;
+    auto height = this->height() / deviceInfo->scaleFactor;
+
+    switch (deviceInfo->orientation) {
+        case 1: // Portrait
+            return QPointF(x, y);
+        case 2: // PortraitUpsideDown
+            return QPointF(width - x, height - y);
+        case 3: // LandscapeRight
+            return QPointF(height - y, x);
+        case 4: // LandscapeLeft
+            return QPointF(y, width - x);
+        default:
+            return QPointF(x, y);
+    }
+}
+
 void ControlWindow::mouseDoubleClickEvent(QMouseEvent *event)
 {
     QWidget::mouseDoubleClickEvent(event);
 
-    qDebugEx() << "双击";
+    qDebugEx() << "双击" << event->button();
+
+    if (event->button() == Qt::LeftButton) {
+        QMouseEvent *pressEvent = new QMouseEvent(QEvent::MouseButtonPress, event->pos(), event->button(), event->button(), event->modifiers());
+
+        QMouseEvent *releaseEvent = new QMouseEvent(QEvent::MouseButtonRelease, event->pos(), event->button(), event->button(), event->modifiers());
+
+        QApplication::postEvent(this, pressEvent);
+
+        QTimer::singleShot(100, [this, releaseEvent]() {
+            QApplication::postEvent(this, releaseEvent);
+        });
+    }
 }
 
 bool ControlWindow::event(QEvent *event)
@@ -62,33 +94,16 @@ bool ControlWindow::event(QEvent *event)
     case QEvent::MouseMove:
         type = 3;
         break;
-
-    default:
-        break;
     }
 
     if ((type == 1 || type == 2) && button == Qt::LeftButton || type == 3)
     {
-        auto pos = static_cast<QMouseEvent *>(event)->pos();
-        auto x = pos.x() / deviceInfo->scaleFactor, y = pos.y() / deviceInfo->scaleFactor;
-        auto width = this->width() / deviceInfo->scaleFactor, height = this->height() / deviceInfo->scaleFactor;
+        auto pos = this->getTransformedPosition(static_cast<QMouseEvent *>(event));
 
         QJsonObject dataObject;
         dataObject["type"] = type;
-
-        if (deviceInfo->orientation == 1) { // Portrait
-            dataObject["x"] = x;
-            dataObject["y"] = y;
-        } else if (deviceInfo->orientation == 2) { // PortraitUpsideDown
-            dataObject["x"] = width - x;
-            dataObject["y"] = height - y;
-        } else if (deviceInfo->orientation == 3) { // LandscapeRight
-            dataObject["x"] = height - y;
-            dataObject["y"] = x;
-        } else if (deviceInfo->orientation == 4) { // LandscapeLeft
-            dataObject["x"] = y;
-            dataObject["y"] = width - x;
-        }
+        dataObject["x"] = pos.x();
+        dataObject["y"] = pos.y();
 
         QJsonObject jsonObject;
         jsonObject["event"] = "mouse";

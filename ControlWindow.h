@@ -21,6 +21,7 @@ public:
     void play();
 
 protected:
+    QPointF getTransformedPosition(QMouseEvent *event);
     void mouseDoubleClickEvent(QMouseEvent *event) override;
     bool event(QEvent *event) override;
     void keyPressEvent(QKeyEvent *event) override;
