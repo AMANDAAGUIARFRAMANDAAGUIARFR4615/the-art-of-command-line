@@ -19,9 +19,17 @@ public:
         sendEvent(socket, "changeScreenLockedStatus", 1);
     }
 
+    static void homeScreen(QTcpSocket* socket) {
+        sendEvent(socket, "homeScreen");
+    }
+
+    static void killAllApp(QTcpSocket* socket) {
+        sendEvent(socket, "killAllApp");
+    }
+
     // 重启
     static void reboot(QTcpSocket* socket) {
-        sendEvent(socket, "reboot", 1);
+        sendEvent(socket, "reboot");
     }
 
     // 计算文件的 MD5 值
@@ -70,10 +78,13 @@ public:
     }
 
 private:
-    static void sendEvent(QTcpSocket* socket, const QString& event, int data) {
+    static void sendEvent(QTcpSocket* socket, const QString& event, int data = -1) {
         QJsonObject jsonObject;
         jsonObject["event"] = event;
-        jsonObject["data"] = data;
+        
+        if (data != -1)
+            jsonObject["data"] = data;
+        
         TcpServer::sendData(socket, jsonObject);
     }
 };
