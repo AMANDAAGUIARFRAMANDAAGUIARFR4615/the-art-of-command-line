@@ -37,6 +37,7 @@ RemoteFileExplorer::RemoteFileExplorer(QTcpSocket* socket, QWidget *parent) : so
     treeView->setIconSize(QSize(24, 24));
 
     treeView->viewport()->installEventFilter(this);
+    treeView->setSelectionMode(QAbstractItemView::ExtendedSelection);
 
     auto layout = new QVBoxLayout(this);
     layout->addWidget(treeView);
@@ -262,20 +263,30 @@ void RemoteFileExplorer::contextMenuEvent(QContextMenuEvent *event)
 {
     QMenu contextMenu(this);
 
-    QModelIndex index = treeView->selectionModel()->currentIndex();
-    if (!index.isValid()) {
-        qDebugEx() << "没有选中任何项，无法获取文件项";
+    QModelIndexList selectedIndexes = treeView->selectionModel()->selectedIndexes();
+    if (selectedIndexes.isEmpty()) {
+        qDebugEx() << "没有选中任何项";
         return;
     }
 
+    QStringList paths;
+
+    for (const QModelIndex &index : selectedIndexes) {
+        if (index.column() == 0)
+        {
+            QString targetPath = index.data(Qt::UserRole).toString();
+            paths.append(targetPath);
+        }
+    }
+
+    qDebugEx() << paths;
+
+    int selectedCount = paths.count();
+
+    QModelIndex index = treeView->selectionModel()->currentIndex();
+
     auto targetPath = index.data(Qt::UserRole).toString();
     bool isDir = index.data(Qt::UserRole + 2).toBool();
-
-    // QAction *openAction = new QAction("打开", &contextMenu);
-    // contextMenu.addAction(openAction);
-    // connect(openAction, &QAction::triggered, this, [this, &targetPath, &index]() {
-    //     // qDebugEx() << "打开文件: " << item->text();
-    // });
 
     if (isDir)
     {
@@ -288,9 +299,18 @@ void RemoteFileExplorer::contextMenuEvent(QContextMenuEvent *event)
 
             TcpServer::sendData(socket, jsonObject);
         });
+
+        compressAction->setEnabled(selectedCount == 1);
     }
     else
     {
+        QAction *viewAction = new QAction("查看", &contextMenu);
+        contextMenu.addAction(viewAction);
+        connect(viewAction, &QAction::triggered, this, [this, &targetPath, &index]() {
+            qDebugEx() << "暂不支持";
+        });
+        viewAction->setEnabled(selectedCount == 1);
+
         QAction *downloadAction = new QAction("下载", &contextMenu);
         contextMenu.addAction(downloadAction);
         connect(downloadAction, &QAction::triggered, this, [this, &targetPath, &index]() {
@@ -338,6 +358,7 @@ void RemoteFileExplorer::contextMenuEvent(QContextMenuEvent *event)
         TcpServer::sendData(socket, jsonObject);
         fetchDirectoryContents(index.parent());
     });
+    renameAction->setEnabled(selectedCount == 1);
 
     QAction *createAction = new QAction("新建文件夹", &contextMenu);
     contextMenu.addAction(createAction);
@@ -357,24 +378,28 @@ void RemoteFileExplorer::contextMenuEvent(QContextMenuEvent *event)
         TcpServer::sendData(socket, jsonObject);
         fetchDirectoryContents(index);
     });
+    createAction->setEnabled(selectedCount == 1);
 
     QAction *deleteAction = new QAction("删除", &contextMenu);
     contextMenu.addAction(deleteAction);
-    connect(deleteAction, &QAction::triggered, this, [this, &targetPath, &index]() {
-        auto reply = QMessageBox::question(this, "确认删除", "你确定要删除【" + QFileInfo(targetPath).fileName() + "】吗？", 
-        QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+    connect(deleteAction, &QAction::triggered, this, [this, &targetPath, &index, &paths]() {
+        auto description = paths.count() > 1 ? QString("%1项").arg(paths.count()) : QFileInfo(targetPath).fileName();
+        auto reply = QMessageBox::question(this, "确认删除", "你确定要删除【" + description + "】吗？", QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
 
         if (reply != QMessageBox::Yes)
             return;
 
-        setStatusMessage("删除: " + targetPath);
+        setStatusMessage("删除: " + paths.join(", "));
         
-        QJsonObject jsonObject;
-        jsonObject["event"] = "removeItem";
-        jsonObject["data"] = targetPath;
+        for (const QString& path : paths)
+        {
+            QJsonObject jsonObject;
+            jsonObject["event"] = "removeItem";
+            jsonObject["data"] = path;
 
-        TcpServer::sendData(socket, jsonObject);
-        fetchDirectoryContents(index.parent());
+            TcpServer::sendData(socket, jsonObject);
+            fetchDirectoryContents(index.parent());
+        }
     });
 
     if (targetPath.endsWith(".zip") || targetPath.endsWith(".rar")) {
