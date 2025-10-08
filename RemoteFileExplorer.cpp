@@ -334,6 +334,7 @@ void RemoteFileExplorer::contextMenuEvent(QContextMenuEvent *event)
 
             TcpServer::sendData(socket, jsonObject);
         });
+        downloadAction->setEnabled(selectedCount == 1);
     }
 
     QAction *renameAction = new QAction("重命名", &contextMenu);
@@ -415,6 +416,7 @@ void RemoteFileExplorer::contextMenuEvent(QContextMenuEvent *event)
             TcpServer::sendData(socket, jsonObject);
             fetchDirectoryContents(index.parent());
         });
+        extractAction->setEnabled(selectedCount == 1);
     }
 
     contextMenu.exec(event->globalPos());
