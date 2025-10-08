@@ -44,7 +44,7 @@ public:
         });
     }
 
-    void orientationChanged(int orientation, bool shouldResize = true)
+    void orientationChanged(int orientation)
     {
         switch (orientation) {
             case 1: // Portrait
@@ -64,7 +64,7 @@ public:
         auto width = size().width();
         auto height = size().height();
 
-        if (shouldResize && ((orientation == 1 || orientation == 2) && height < width || (orientation == 3 || orientation == 4) && height > width))
+        if ((orientation == 1 || orientation == 2) && height < width || (orientation == 3 || orientation == 4) && height > width)
             resize(height, width);
         else
             update();
