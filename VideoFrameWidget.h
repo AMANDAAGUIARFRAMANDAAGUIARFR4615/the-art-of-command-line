@@ -12,7 +12,6 @@
 #include <QTimer>
 #include <QDragEnterEvent>
 #include <QDropEvent>
-#include <QCryptographicHash>
 
 class VideoFrameWidget : public QWidget
 {
@@ -22,10 +21,10 @@ public:
     explicit VideoFrameWidget(QMediaPlayer *player, QWidget *parent = nullptr) 
         : QWidget(parent), m_mediaPlayer(player)
     {
-        m_videoSink = new QVideoSink(this);
-        m_mediaPlayer->setVideoSink(m_videoSink);
+        videoSink = new QVideoSink(this);
+        m_mediaPlayer->setVideoSink(videoSink);
 
-        connect(m_videoSink, &QVideoSink::videoFrameChanged, this, &VideoFrameWidget::onVideoFrameChanged);
+        connect(videoSink, &QVideoSink::videoFrameChanged, this, &VideoFrameWidget::onVideoFrameChanged);
 
         m_mediaPlayer->setAudioOutput(nullptr);
 
@@ -45,20 +44,49 @@ public:
         });
     }
 
+    void orientationChanged(int orientation, bool shouldResize = true)
+    {
+        switch (orientation) {
+            case 1: // Portrait
+                rotationAngle = 0;
+                break;
+            case 2: // PortraitUpsideDown
+                rotationAngle = 180;
+                break;
+            case 3: // LandscapeRight
+                rotationAngle = -90;
+                break;
+            case 4: // LandscapeLeft
+                rotationAngle = 90;
+                break;
+        }
+
+        auto width = size().width();
+        auto height = size().height();
+
+        if (shouldResize && ((orientation == 1 || orientation == 2) && height < width || (orientation == 3 || orientation == 4) && height > width))
+            resize(height, width);
+        else
+            update();
+    }
+
 protected:
     void paintEvent(QPaintEvent *event) override
     {
         QWidget::paintEvent(event);
 
-        if (m_currentImage.isNull())
+        if (currentImage.isNull())
             return;
 
         QPainter painter(this);
         painter.setRenderHint(QPainter::Antialiasing, true);
         painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
 
-        // 保持比例缩放并平滑绘制
-        auto scaled = m_currentImage.scaled(size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        QTransform transform;
+        transform.rotate(rotationAngle);
+
+        auto rotatedImage = currentImage.transformed(transform);
+        auto scaled = rotatedImage.scaled(size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
         // 计算居中位置
         QRect targetRect(QPoint(0, 0), scaled.size());
@@ -82,47 +110,12 @@ protected:
             return;
         }
 
-        m_currentImage = img;
+        currentImage = img;
         update();
     }
 
-    bool canUpdateFrame(const QVideoFrame &frame)
-    {
-        // 使用哈希值判断帧是否发生变化
-        QByteArray currentFrameHash = generateFrameHash(frame);
-        if (currentFrameHash == m_lastFrameHash)
-        {
-            return false; 
-        }
-
-        m_lastFrameHash = currentFrameHash;
-        return true;
-    }
-
-    QByteArray generateFrameHash(const QVideoFrame &frame)
-    {
-        // 通过获取 Y、U、V 平面和它们的字节数生成哈希
-        QCryptographicHash hash(QCryptographicHash::Sha256);
-
-        // 获取 Y、U、V 平面的数据
-        const uchar *yPlane = frame.bits(0);
-        const uchar *uPlane = frame.bits(1);
-        const uchar *vPlane = frame.bits(2);
-
-        // 计算每个平面的字节数
-        int yBytes = frame.bytesPerLine(0) * frame.height();
-        int uvBytes = frame.bytesPerLine(1) * (frame.height() / 2); // UV平面高度为原高度的一半
-
-        // 将 Y、U、V 平面的数据加入哈希计算
-        hash.addData(reinterpret_cast<const char*>(yPlane), yBytes);
-        hash.addData(reinterpret_cast<const char*>(uPlane), uvBytes);
-        hash.addData(reinterpret_cast<const char*>(vPlane), uvBytes);
-
-        return hash.result();
-    }
-
     QMediaPlayer *m_mediaPlayer;
-    QVideoSink *m_videoSink;
-    QImage m_currentImage;
-    QByteArray m_lastFrameHash;
+    QVideoSink *videoSink;
+    QImage currentImage;
+    int rotationAngle = 0;
 };

@@ -35,12 +35,12 @@ public:
     const QString inuse;
     const int jbType;
     const QString localIp;
-    const int orientation;
     const QString platform;
     const int screenWidth;
     const int screenHeight;
     const QString version;
 
+    int orientation;
     bool lockedStatus;
     float scaleFactor = 1;
 

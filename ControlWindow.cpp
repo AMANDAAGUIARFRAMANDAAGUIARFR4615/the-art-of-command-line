@@ -2,6 +2,7 @@
 #include "Logger.h"
 #include "ControlWindow.h"
 #include "TcpServer.h"
+#include "EventHub.h"
 #include <QMediaPlayer>
 #include <QString>
 #include <QStyle>
@@ -9,12 +10,22 @@
 #include <QVBoxLayout>
 #include <QMouseEvent>
 
-ControlWindow::ControlWindow(QTcpSocket* socket, const DeviceInfo* deviceInfo, QWidget *parent) : socket(socket), deviceInfo(deviceInfo), VideoFrameWidget(new QMediaPlayer(parent), parent)
+ControlWindow::ControlWindow(QTcpSocket* socket, DeviceInfo* const deviceInfo, QWidget *parent) : socket(socket), deviceInfo(deviceInfo), VideoFrameWidget(new QMediaPlayer(parent), parent)
 {
     setAttribute(Qt::WA_InputMethodEnabled, true);
+
+    EventHub::StartListening("orientation", [this](const QJsonValue &data, QTcpSocket* socket) {
+        if (this->socket != socket)
+            return;
+
+        orientationChanged(data.toInt());
+    });
 }
 
-ControlWindow::~ControlWindow() {}
+ControlWindow::~ControlWindow()
+{
+
+}
 
 void ControlWindow::setSource(const QUrl &source)
 {
@@ -60,12 +71,24 @@ bool ControlWindow::event(QEvent *event)
     {
         auto pos = static_cast<QMouseEvent *>(event)->pos();
         auto x = pos.x() / deviceInfo->scaleFactor, y = pos.y() / deviceInfo->scaleFactor;
-        // qDebugEx() << "event" << event->type() << x << y;
+        auto width = this->width() / deviceInfo->scaleFactor, height = this->height() / deviceInfo->scaleFactor;
 
         QJsonObject dataObject;
         dataObject["type"] = type;
-        dataObject["x"] = x;
-        dataObject["y"] = y;
+
+        if (deviceInfo->orientation == 1) { // Portrait
+            dataObject["x"] = x;
+            dataObject["y"] = y;
+        } else if (deviceInfo->orientation == 2) { // PortraitUpsideDown
+            dataObject["x"] = width - x;
+            dataObject["y"] = height - y;
+        } else if (deviceInfo->orientation == 3) { // LandscapeRight
+            dataObject["x"] = height - y;
+            dataObject["y"] = x;
+        } else if (deviceInfo->orientation == 4) { // LandscapeLeft
+            dataObject["x"] = y;
+            dataObject["y"] = width - x;
+        }
 
         QJsonObject jsonObject;
         jsonObject["event"] = "mouse";

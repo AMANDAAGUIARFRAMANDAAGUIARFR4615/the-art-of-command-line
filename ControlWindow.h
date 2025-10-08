@@ -14,7 +14,7 @@ class ControlWindow : public VideoFrameWidget
 {
     Q_OBJECT
 public:
-    explicit ControlWindow(QTcpSocket* socket, const DeviceInfo* deviceInfo, QWidget *parent = nullptr);
+    explicit ControlWindow(QTcpSocket* socket, DeviceInfo* const deviceInfo, QWidget *parent = nullptr);
     ~ControlWindow();
 
     void setSource(const QUrl &source);
@@ -28,5 +28,5 @@ protected:
     void inputMethodEvent(QInputMethodEvent *event) override;
 
     QTcpSocket* socket;
-    const DeviceInfo* deviceInfo;
+    DeviceInfo* const deviceInfo;
 };

@@ -56,6 +56,16 @@ RemoteDevice::RemoteDevice(QTcpSocket* socket, DeviceInfo* deviceInfo, QWidget *
     layout->addWidget(videoWidget);
     setLayout(layout);
 
+    videoWidget->orientationChanged(deviceInfo->orientation);
+
+    EventHub::StartListening("orientation", [this, videoWidget](const QJsonValue &data, QTcpSocket* socket) {
+        if (this->socket != socket)
+            return;
+
+        this->deviceInfo->orientation = data.toInt();
+        videoWidget->orientationChanged(data.toInt());
+    });
+
     EventHub::StartListening("lockedStatus", [this, deviceInfo](const QJsonValue &data, QTcpSocket* socket) {
         if (this->socket != socket)
             return;
@@ -88,6 +98,7 @@ void RemoteDevice::mouseDoubleClickEvent(QMouseEvent *event)
 
     auto window = new ControlWindow(socket, deviceInfo);
     window->resize(deviceInfo->screenWidth * deviceInfo->scaleFactor, deviceInfo->screenHeight * deviceInfo->scaleFactor);
+    window->orientationChanged(deviceInfo->orientation);
     window->setAttribute(Qt::WA_DeleteOnClose);
     window->setSource(m_mediaPlayer->source());
     window->play();
