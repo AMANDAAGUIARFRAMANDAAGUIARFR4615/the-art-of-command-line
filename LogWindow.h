@@ -3,6 +3,7 @@
 #include <QTextBrowser>
 #include <QMetaObject>
 #include <QMessageLogContext>
+#include <QStringList>
 
 class LogWindow : public QTextBrowser
 {
@@ -16,13 +17,17 @@ public:
 
         qInstallMessageHandler([](QtMsgType type, const QMessageLogContext &context, const QString &message) {
             QMetaObject::invokeMethod(logWindow, [type, message]() {
-                if (type == QtCriticalMsg || type == QtFatalMsg || type == QtWarningMsg) {
-                    // 红色显示错误、警告、致命信息
-                    logWindow->append(QString("<span style='color:red;'>%1</span>").arg(message));
-                } else {
-                    // 普通信息默认黑色
-                    logWindow->append(message);
+                if (logWindow->logEntries.size() >= 1000) {
+                    logWindow->logEntries.removeFirst();
                 }
+
+                if (type == QtCriticalMsg || type == QtFatalMsg || type == QtWarningMsg) {
+                    logWindow->logEntries.append(QString("<span style='color:red;'>%1</span>").arg(message));
+                } else {
+                    logWindow->logEntries.append(message);
+                }
+
+                logWindow->setPlainText(logWindow->logEntries.join("\n"));
             });
         });
     }
@@ -34,4 +39,5 @@ public:
 
 private:
     inline static LogWindow* logWindow;
+    QStringList logEntries;
 };
