@@ -28,6 +28,8 @@ public:
                 }
 
                 logWindow->setPlainText(logWindow->logEntries.join("\n"));
+
+                logWindow->moveCursor(QTextCursor::End);
             });
         });
     }
