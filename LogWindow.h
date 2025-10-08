@@ -36,10 +36,11 @@ private:
 
     void appendWithLimit(const QString& message)
     {
-        if (document()->blockCount() > 100) {
+        if (document()->blockCount() > 500) {
             QTextBlock firstBlock = document()->firstBlock();
             QTextCursor cursor(firstBlock);
-            cursor.select(QTextCursor::BlockUnderCursor);
+            
+            cursor.movePosition(QTextCursor::NextBlock, QTextCursor::KeepAnchor, 1);
             cursor.removeSelectedText();
         }
 
