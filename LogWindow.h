@@ -3,7 +3,7 @@
 #include <QTextBrowser>
 #include <QMetaObject>
 #include <QMessageLogContext>
-#include <QStringList>
+#include <QTextBlock>
 
 class LogWindow : public QTextBrowser
 {
@@ -17,19 +17,11 @@ public:
 
         qInstallMessageHandler([](QtMsgType type, const QMessageLogContext &context, const QString &message) {
             QMetaObject::invokeMethod(logWindow, [type, message]() {
-                if (logWindow->logEntries.size() >= 1000) {
-                    logWindow->logEntries.removeFirst();
-                }
-
                 if (type == QtCriticalMsg || type == QtFatalMsg || type == QtWarningMsg) {
-                    logWindow->logEntries.append(QString("<span style='color:red;'>%1</span>").arg(message));
+                    logWindow->appendWithLimit(QString("<span style='color:red;'>%1</span>").arg(message));
                 } else {
-                    logWindow->logEntries.append(message);
+                    logWindow->appendWithLimit(message);
                 }
-
-                logWindow->setPlainText(logWindow->logEntries.join("\n"));
-
-                logWindow->moveCursor(QTextCursor::End);
             });
         });
     }
@@ -41,5 +33,16 @@ public:
 
 private:
     inline static LogWindow* logWindow;
-    QStringList logEntries;
+
+    void appendWithLimit(const QString& message)
+    {
+        if (document()->blockCount() > 100) {
+            QTextBlock firstBlock = document()->firstBlock();
+            QTextCursor cursor(firstBlock);
+            cursor.select(QTextCursor::BlockUnderCursor);
+            cursor.removeSelectedText();
+        }
+
+        append(message);
+    }
 };
