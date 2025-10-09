@@ -18,8 +18,8 @@ class VideoFrameWidget : public QWidget
     Q_OBJECT
 
 public:
-    explicit VideoFrameWidget(QMediaPlayer *player, QWidget *parent = nullptr) 
-        : QWidget(parent), mediaPlayer(player)
+    explicit VideoFrameWidget(QWidget *parent = nullptr) 
+        : QWidget(parent), mediaPlayer(new QMediaPlayer(this))
     {
         videoSink = new QVideoSink(this);
         mediaPlayer->setVideoSink(videoSink);

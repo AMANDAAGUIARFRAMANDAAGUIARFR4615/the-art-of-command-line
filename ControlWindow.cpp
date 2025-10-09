@@ -10,7 +10,7 @@
 #include <QVBoxLayout>
 #include <QMouseEvent>
 
-ControlWindow::ControlWindow(QTcpSocket* socket, DeviceInfo* const deviceInfo, QWidget *parent) : socket(socket), deviceInfo(deviceInfo), videoFrameWidget(new VideoFrameWidget(new QMediaPlayer(parent))), QWidget(parent)
+ControlWindow::ControlWindow(QTcpSocket* socket, DeviceInfo* const deviceInfo, QWidget *parent) : socket(socket), deviceInfo(deviceInfo), videoFrameWidget(new VideoFrameWidget(parent)), QWidget(parent)
 {
     setAttribute(Qt::WA_InputMethodEnabled, true);
 

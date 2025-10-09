@@ -6,7 +6,6 @@
 #include "TcpServer.h"
 #include "FileTransfer.h"
 #include "EventHub.h"
-#include "VideoFrameWidget.h"
 #include <QMediaPlayer>
 #include <QString>
 #include <QStyle>
@@ -29,9 +28,7 @@ RemoteDevice::RemoteDevice(QTcpSocket* socket, DeviceInfo* deviceInfo, QWidget *
 {
     setAcceptDrops(true);
 
-    mediaPlayer = new QMediaPlayer(this);
-
-    auto videoWidget = new VideoFrameWidget(mediaPlayer);
+    videoFrameWidget = new VideoFrameWidget(this);
     auto layout = new QVBoxLayout;
 
     auto deviceInfoText = QString("%1 - %2  |  %3 x %4")
@@ -53,18 +50,20 @@ RemoteDevice::RemoteDevice(QTcpSocket* socket, DeviceInfo* deviceInfo, QWidget *
     deviceInfoLabel->setFixedHeight(24);
     
     layout->addWidget(deviceInfoLabel);
-    layout->addWidget(videoWidget);
+    layout->addWidget(videoFrameWidget);
     setLayout(layout);
 
-    videoWidget->orientationChanged(deviceInfo->orientation);
+    videoFrameWidget->orientationChanged(deviceInfo->orientation);
 
-    EventHub::StartListening("orientation", [this, videoWidget](const QJsonValue &data, QTcpSocket* socket) {
+    EventHub::StartListening("orientation", [this](const QJsonValue &data, QTcpSocket* socket) {
         if (this->socket != socket)
             return;
 
         this->deviceInfo->orientation = data.toInt();
-        videoWidget->orientationChanged(data.toInt());
+        videoFrameWidget->orientationChanged(data.toInt());
     });
+
+    lastSource = videoFrameWidget->mediaPlayer->source();
 
     EventHub::StartListening("lockedStatus", [this, deviceInfo](const QJsonValue &data, QTcpSocket* socket) {
         if (this->socket != socket)
@@ -74,11 +73,16 @@ RemoteDevice::RemoteDevice(QTcpSocket* socket, DeviceInfo* deviceInfo, QWidget *
 
         if (locked)
         {
-            mediaPlayer->stop();
-            // mediaPlayer->setSource("");
+            lastSource = videoFrameWidget->mediaPlayer->source();
+            this->layout()->removeWidget(videoFrameWidget);
+            videoFrameWidget->deleteLater();
         }
         else
-            mediaPlayer->play();
+        {
+            videoFrameWidget = new VideoFrameWidget(this);
+            videoFrameWidget->mediaPlayer->setSource(lastSource);
+            this->layout()->addWidget(videoFrameWidget);
+        }
     });
 }
 
@@ -89,7 +93,7 @@ RemoteDevice::~RemoteDevice()
 
 void RemoteDevice::setSource(const QUrl &source)
 {
-    mediaPlayer->setSource(source);
+    videoFrameWidget->mediaPlayer->setSource(source);
 }
 
 void RemoteDevice::mouseDoubleClickEvent(QMouseEvent *event)
@@ -100,7 +104,7 @@ void RemoteDevice::mouseDoubleClickEvent(QMouseEvent *event)
     window->videoFrameWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     window->videoFrameWidget->setFixedSize(deviceInfo->screenWidth * deviceInfo->scaleFactor, deviceInfo->screenHeight * deviceInfo->scaleFactor);
     window->videoFrameWidget->orientationChanged(deviceInfo->orientation);
-    window->videoFrameWidget->mediaPlayer->setSource(mediaPlayer->source());
+    window->videoFrameWidget->mediaPlayer->setSource(videoFrameWidget->mediaPlayer->source());
     window->setAttribute(Qt::WA_DeleteOnClose);
     window->show();
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "DeviceInfo.h"
+#include "VideoFrameWidget.h"
 #include <QWidget>
 #include <QUrl>
 #include <QTcpSocket>
@@ -24,5 +25,6 @@ protected:
 
     QTcpSocket* socket;
     DeviceInfo* deviceInfo;
-    QMediaPlayer *mediaPlayer;
+    VideoFrameWidget *videoFrameWidget;
+    QUrl lastSource;
 };
