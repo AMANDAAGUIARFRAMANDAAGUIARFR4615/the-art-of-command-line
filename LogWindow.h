@@ -20,7 +20,7 @@ public:
                 if (type == QtCriticalMsg || type == QtFatalMsg || type == QtWarningMsg) {
                     logWindow->appendWithLimit(QString("<span style='color:red;'>%1</span>").arg(message));
                 } else {
-                    logWindow->appendWithLimit(message);
+                    logWindow->appendWithLimit(QString("<span style='color:black;'>%1</span>").arg(message));
                 }
             });
         });

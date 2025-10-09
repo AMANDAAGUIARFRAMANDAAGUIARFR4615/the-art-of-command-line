@@ -4,7 +4,7 @@
 #include <QDebug>
 #include <QHostAddress>
 #include <QJsonDocument>
-#include <QThread>
+#include <QTimer>
 
 UdpTransport::UdpTransport(const std::function<void(const QJsonObject &jsonObject)> &onDataReceived,
                      const std::function<void(QAbstractSocket::SocketError)> &onError,
@@ -64,15 +64,29 @@ void UdpTransport::sendData(const QJsonObject &jsonObject, const QHostAddress &h
     dataToSend.append(reinterpret_cast<const char*>(&jsonDataLength), sizeof(jsonDataLength));
     dataToSend.append(jsonData);
 
-    while (retryCount-- > 0) {
-        if (socket->writeDatagram(dataToSend, host, port) == dataToSend.size())
+    auto sendAttempt = new std::function<void(quint16)>();
+    *sendAttempt = [=](quint16 remainingRetries) mutable {
+        if (socket->writeDatagram(dataToSend, host, port) == dataToSend.size()) {
+            delete sendAttempt; // 成功发送，清理
             return;
+        }
 
-        qWarningEx() << host.toString() + ":" + QString::number(port) << "发送失败，剩余重试次数:" << retryCount;
-        QThread::msleep(50);
-    }
+        if (remainingRetries == 0) {
+            qCriticalEx() << host.toString() + ":" + QString::number(port) << "发送失败，已达到最大重试次数！";
+            delete sendAttempt;
+            return;
+        }
 
-    qCriticalEx() << host.toString() + ":" + QString::number(port) << "发送失败，已达到最大重试次数！";
+        qWarningEx() << host.toString() + ":" + QString::number(port) 
+                     << "发送失败，剩余重试次数:" << remainingRetries;
+
+        // 使用单次定时器延迟重试
+        QTimer::singleShot(50, [sendAttempt, remainingRetries]() {
+            (*sendAttempt)(remainingRetries - 1);
+        });
+    };
+
+    (*sendAttempt)(retryCount);
 }
 
 void UdpTransport::processBufferedData()
