@@ -86,10 +86,9 @@ RemoteDevice::RemoteDevice(QTcpSocket* socket, DeviceInfo* deviceInfo, QWidget *
             layout->addWidget(label);
             layout->addStretch();
             lockOverlay->setLayout(layout);
-            lockOverlay->setGeometry(this->rect());
-            lockOverlay->show();
 
-            this->layout()->removeWidget(videoFrameWidget);
+            this->layout()->replaceWidget(videoFrameWidget, lockOverlay);
+        
             videoFrameWidget->deleteLater();
             videoFrameWidget = nullptr;
         }
