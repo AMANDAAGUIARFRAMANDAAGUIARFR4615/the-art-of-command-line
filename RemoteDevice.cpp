@@ -29,9 +29,9 @@ RemoteDevice::RemoteDevice(QTcpSocket* socket, DeviceInfo* deviceInfo, QWidget *
 {
     setAcceptDrops(true);
 
-    m_mediaPlayer = new QMediaPlayer(this);
+    mediaPlayer = new QMediaPlayer(this);
 
-    auto videoWidget = new VideoFrameWidget(m_mediaPlayer);
+    auto videoWidget = new VideoFrameWidget(mediaPlayer);
     auto layout = new QVBoxLayout;
 
     auto deviceInfoText = QString("%1 - %2  |  %3 x %4")
@@ -74,11 +74,11 @@ RemoteDevice::RemoteDevice(QTcpSocket* socket, DeviceInfo* deviceInfo, QWidget *
 
         if (locked)
         {
-            m_mediaPlayer->stop();
-            // m_mediaPlayer->setSource("");
+            mediaPlayer->stop();
+            // mediaPlayer->setSource("");
         }
         else
-            m_mediaPlayer->play();
+            mediaPlayer->play();
     });
 }
 
@@ -89,7 +89,7 @@ RemoteDevice::~RemoteDevice()
 
 void RemoteDevice::setSource(const QUrl &source)
 {
-    m_mediaPlayer->setSource(source);
+    mediaPlayer->setSource(source);
 }
 
 void RemoteDevice::mouseDoubleClickEvent(QMouseEvent *event)
@@ -100,7 +100,7 @@ void RemoteDevice::mouseDoubleClickEvent(QMouseEvent *event)
     window->videoFrameWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     window->videoFrameWidget->setFixedSize(deviceInfo->screenWidth * deviceInfo->scaleFactor, deviceInfo->screenHeight * deviceInfo->scaleFactor);
     window->videoFrameWidget->orientationChanged(deviceInfo->orientation);
-    window->videoFrameWidget->mediaPlayer->setSource(m_mediaPlayer->source());
+    window->videoFrameWidget->mediaPlayer->setSource(mediaPlayer->source());
     window->setAttribute(Qt::WA_DeleteOnClose);
     window->show();
 }
