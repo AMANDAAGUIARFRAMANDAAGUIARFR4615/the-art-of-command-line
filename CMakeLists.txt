@@ -15,13 +15,13 @@ add_executable(${PROJECT_NAME}
     MainWindow.h MainWindow.cpp
     VideoFrameWidget.h
     DeviceInfo.h Tools.h
-    RemoteDevice.h RemoteDevice.cpp
+    DeviceWidget.h DeviceWidget.cpp
     TcpServer.h TcpServer.cpp
     # TcpClient.h TcpClient.cpp
     UdpTransport.h UdpTransport.cpp
     ToastWidget.h
     NetworkUtils.h
-    ControlWindow.h ControlWindow.cpp
+    DeviceWindow.h DeviceWindow.cpp
     RemoteFileExplorer.h RemoteFileExplorer.cpp FileTransfer.h
     ${RESOURCE_SOURCES}
 )

@@ -1,6 +1,6 @@
-#include "RemoteDevice.h"
+#include "DeviceWidget.h"
 #include "Logger.h"
-#include "ControlWindow.h"
+#include "DeviceWindow.h"
 #include "TcpServer.h"
 #include "EventHub.h"
 #include <QMediaPlayer>
@@ -10,7 +10,7 @@
 #include <QVBoxLayout>
 #include <QMouseEvent>
 
-ControlWindow::ControlWindow(QTcpSocket* socket, DeviceInfo* const deviceInfo, QWidget *parent) : socket(socket), deviceInfo(deviceInfo), videoFrameWidget(new VideoFrameWidget(parent)), QWidget(parent)
+DeviceWindow::DeviceWindow(QTcpSocket* socket, DeviceInfo* const deviceInfo, QWidget *parent) : socket(socket), deviceInfo(deviceInfo), videoFrameWidget(new VideoFrameWidget(parent)), QWidget(parent)
 {
     setAttribute(Qt::WA_InputMethodEnabled, true);
 
@@ -31,12 +31,12 @@ ControlWindow::ControlWindow(QTcpSocket* socket, DeviceInfo* const deviceInfo, Q
     });
 }
 
-ControlWindow::~ControlWindow()
+DeviceWindow::~DeviceWindow()
 {
 
 }
 
-QPointF ControlWindow::getTransformedPosition(QMouseEvent *event) {
+QPointF DeviceWindow::getTransformedPosition(QMouseEvent *event) {
     auto x = event->pos().x() / deviceInfo->scaleFactor;
     auto y = event->pos().y() / deviceInfo->scaleFactor;
     auto width = this->width() / deviceInfo->scaleFactor;
@@ -56,7 +56,7 @@ QPointF ControlWindow::getTransformedPosition(QMouseEvent *event) {
     }
 }
 
-void ControlWindow::mouseDoubleClickEvent(QMouseEvent *event)
+void DeviceWindow::mouseDoubleClickEvent(QMouseEvent *event)
 {
     QWidget::mouseDoubleClickEvent(event);
 
@@ -75,7 +75,7 @@ void ControlWindow::mouseDoubleClickEvent(QMouseEvent *event)
     }
 }
 
-bool ControlWindow::event(QEvent *event)
+bool DeviceWindow::event(QEvent *event)
 {
     int type = 0;
     Qt::MouseButton button = Qt::NoButton;
@@ -113,7 +113,7 @@ bool ControlWindow::event(QEvent *event)
     return QWidget::event(event);
 }
 
-void ControlWindow::keyPressEvent(QKeyEvent *event)
+void DeviceWindow::keyPressEvent(QKeyEvent *event)
 {
     if (event->key() == Qt::Key_Escape)
     {
@@ -141,7 +141,7 @@ void ControlWindow::keyPressEvent(QKeyEvent *event)
     QWidget::keyPressEvent(event);
 }
 
-void ControlWindow::keyReleaseEvent(QKeyEvent *event)
+void DeviceWindow::keyReleaseEvent(QKeyEvent *event)
 {
     auto keyText = QKeySequence(event->key()).toString();
 
@@ -163,7 +163,7 @@ void ControlWindow::keyReleaseEvent(QKeyEvent *event)
     QWidget::keyReleaseEvent(event);
 }
 
-void ControlWindow::inputMethodEvent(QInputMethodEvent *event)
+void DeviceWindow::inputMethodEvent(QInputMethodEvent *event)
 {
     QString commitText = event->commitString();
     if (!commitText.isEmpty())

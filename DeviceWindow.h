@@ -10,12 +10,12 @@
 
 class QMediaPlayer;
 
-class ControlWindow : public QWidget
+class DeviceWindow : public QWidget
 {
     Q_OBJECT
 public:
-    explicit ControlWindow(QTcpSocket* socket, DeviceInfo* const deviceInfo, QWidget *parent = nullptr);
-    ~ControlWindow();
+    explicit DeviceWindow(QTcpSocket* socket, DeviceInfo* const deviceInfo, QWidget *parent = nullptr);
+    ~DeviceWindow();
 
     VideoFrameWidget* const videoFrameWidget;
 

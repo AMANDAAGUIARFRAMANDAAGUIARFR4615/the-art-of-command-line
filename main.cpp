@@ -84,11 +84,11 @@ int main(int argc, char *argv[])
     //     mainWindow.addItem();
     // });
 
-    // auto player = new RemoteDevice();
+    // auto player = new DeviceWidget();
     // // player->setSource(QString("tcp://192.168.0.102:23145"));
     // mainWindow.addPlayer(player);
-    // mainWindow.addPlayer(new RemoteDevice());
-    // mainWindow.addPlayer(new RemoteDevice());
+    // mainWindow.addPlayer(new DeviceWidget());
+    // mainWindow.addPlayer(new DeviceWidget());
 
     return application.exec();
 }

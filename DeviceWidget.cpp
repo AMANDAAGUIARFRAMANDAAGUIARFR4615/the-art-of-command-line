@@ -1,6 +1,6 @@
-#include "RemoteDevice.h"
+#include "DeviceWidget.h"
 #include "Logger.h"
-#include "ControlWindow.h"
+#include "DeviceWindow.h"
 #include "Tools.h"
 #include "RemoteFileExplorer.h"
 #include "TcpServer.h"
@@ -23,7 +23,7 @@
 #include <QUuid>
 #include <QFileInfo>
 
-RemoteDevice::RemoteDevice(QTcpSocket* socket, DeviceInfo* deviceInfo, QWidget *parent)
+DeviceWidget::DeviceWidget(QTcpSocket* socket, DeviceInfo* deviceInfo, QWidget *parent)
     : socket(socket), deviceInfo(deviceInfo), QWidget(parent)
 {
     setAcceptDrops(true);
@@ -79,12 +79,12 @@ RemoteDevice::RemoteDevice(QTcpSocket* socket, DeviceInfo* deviceInfo, QWidget *
     });
 }
 
-RemoteDevice::~RemoteDevice()
+DeviceWidget::~DeviceWidget()
 {
 
 }
 
-void RemoteDevice::setSource(const QUrl &source)
+void DeviceWidget::setSource(const QUrl &source)
 {
     mediaSource = source;
     
@@ -94,7 +94,7 @@ void RemoteDevice::setSource(const QUrl &source)
         addVideoFrameWidget();
 }
 
-void RemoteDevice::addOverlay(const QString &text)
+void DeviceWidget::addOverlay(const QString &text)
 {
     QWidget *overlay = new QWidget(this);
     overlay->setStyleSheet("background-color: black;");
@@ -120,7 +120,7 @@ void RemoteDevice::addOverlay(const QString &text)
     }
 }
 
-void RemoteDevice::addVideoFrameWidget()
+void DeviceWidget::addVideoFrameWidget()
 {
     videoFrameWidget = new VideoFrameWidget(this);
     layout()->addWidget(videoFrameWidget);
@@ -128,11 +128,11 @@ void RemoteDevice::addVideoFrameWidget()
     videoFrameWidget->orientationChanged(deviceInfo->orientation);
 }
 
-void RemoteDevice::mouseDoubleClickEvent(QMouseEvent *event)
+void DeviceWidget::mouseDoubleClickEvent(QMouseEvent *event)
 {
     QWidget::mouseDoubleClickEvent(event);
 
-    auto window = new ControlWindow(socket, deviceInfo);
+    auto window = new DeviceWindow(socket, deviceInfo);
     window->videoFrameWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     window->videoFrameWidget->setFixedSize(deviceInfo->screenWidth * deviceInfo->scaleFactor, deviceInfo->screenHeight * deviceInfo->scaleFactor);
     window->videoFrameWidget->orientationChanged(deviceInfo->orientation);
@@ -141,7 +141,7 @@ void RemoteDevice::mouseDoubleClickEvent(QMouseEvent *event)
     window->show();
 }
 
-void RemoteDevice::contextMenuEvent(QContextMenuEvent *event)
+void DeviceWidget::contextMenuEvent(QContextMenuEvent *event)
 {
     QMenu contextMenu(this);
 
@@ -195,7 +195,7 @@ void RemoteDevice::contextMenuEvent(QContextMenuEvent *event)
     contextMenu.exec(event->globalPos());
 }
 
-void RemoteDevice::dragEnterEvent(QDragEnterEvent *event)
+void DeviceWidget::dragEnterEvent(QDragEnterEvent *event)
 {
     qDebugEx() << "dragEnterEvent";
 
@@ -215,7 +215,7 @@ void RemoteDevice::dragEnterEvent(QDragEnterEvent *event)
     event->accept();
 }
 
-void RemoteDevice::dropEvent(QDropEvent *event)
+void DeviceWidget::dropEvent(QDropEvent *event)
 {
     qDebugEx() << "dropEvent";
 

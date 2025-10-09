@@ -13,7 +13,7 @@
 #include <QScreen>
 #include <QApplication>
 #include <QTabBar>
-#include "RemoteDevice.h"
+#include "DeviceWidget.h"
 #include <QSplitter>
 #include <QListWidget>
 #include <QListWidgetItem>
@@ -171,10 +171,10 @@ void MainWindow::addItem(QTcpSocket* socket, DeviceInfo* deviceInfo)
 
             auto w = frameLayout->itemAt(0)->widget();
 
-            if (qobject_cast<RemoteDevice*>(w) == nullptr) {
+            if (qobject_cast<DeviceWidget*>(w) == nullptr) {
                 qDebugEx() << "找到占位" << i;
                 delete w;
-                auto player = new RemoteDevice(socket, deviceInfo);
+                auto player = new DeviceWidget(socket, deviceInfo);
                 player->setSource(url);
                 frameLayout->addWidget(player);
                 bottomWidget->adjustSize();
@@ -196,7 +196,7 @@ void MainWindow::addItem(QTcpSocket* socket, DeviceInfo* deviceInfo)
 
         if (i == 0 && url != nullptr) {
             qDebugEx() << "放在新行第一个" << url;
-            auto player = new RemoteDevice(socket, deviceInfo);
+            auto player = new DeviceWidget(socket, deviceInfo);
             player->setSource(url);
             frameLayout->addWidget(player);
         } else {

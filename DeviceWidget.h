@@ -8,12 +8,12 @@
 
 class QMediaPlayer;
 
-class RemoteDevice : public QWidget
+class DeviceWidget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit RemoteDevice(QTcpSocket* socket, DeviceInfo* deviceInfo, QWidget *parent = nullptr);
-    ~RemoteDevice();
+    explicit DeviceWidget(QTcpSocket* socket, DeviceInfo* deviceInfo, QWidget *parent = nullptr);
+    ~DeviceWidget();
 
     void setSource(const QUrl &source);
 
