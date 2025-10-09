@@ -28,7 +28,6 @@ RemoteDevice::RemoteDevice(QTcpSocket* socket, DeviceInfo* deviceInfo, QWidget *
 {
     setAcceptDrops(true);
 
-    videoFrameWidget = new VideoFrameWidget(this);
     auto layout = new QVBoxLayout;
 
     auto deviceInfoText = QString("%1 - %2  |  %3 x %4")
@@ -50,20 +49,17 @@ RemoteDevice::RemoteDevice(QTcpSocket* socket, DeviceInfo* deviceInfo, QWidget *
     deviceInfoLabel->setFixedHeight(24);
     
     layout->addWidget(deviceInfoLabel);
-    layout->addWidget(videoFrameWidget);
     setLayout(layout);
-
-    videoFrameWidget->orientationChanged(deviceInfo->orientation);
 
     EventHub::StartListening("orientation", [this](const QJsonValue &data, QTcpSocket* socket) {
         if (this->socket != socket)
             return;
 
         this->deviceInfo->orientation = data.toInt();
-        videoFrameWidget->orientationChanged(data.toInt());
-    });
 
-    lastSource = videoFrameWidget->mediaPlayer->source();
+        if (videoFrameWidget)
+            videoFrameWidget->orientationChanged(data.toInt());
+    });
 
     EventHub::StartListening("lockedStatus", [this, deviceInfo](const QJsonValue &data, QTcpSocket* socket) {
         if (this->socket != socket)
@@ -73,32 +69,12 @@ RemoteDevice::RemoteDevice(QTcpSocket* socket, DeviceInfo* deviceInfo, QWidget *
 
         if (locked)
         {
-            lastSource = videoFrameWidget->mediaPlayer->source();
-
-            QWidget *lockOverlay = new QWidget(this);
-            lockOverlay->setStyleSheet("background-color: black;");
-            QLabel *label = new QLabel("设备已锁定", lockOverlay);
-            label->setStyleSheet("color: white; font-size: 20px;");
-            label->setAlignment(Qt::AlignCenter);
-
-            QVBoxLayout *layout = new QVBoxLayout(lockOverlay);
-            layout->addStretch();
-            layout->addWidget(label);
-            layout->addStretch();
-            lockOverlay->setLayout(layout);
-
-            this->layout()->replaceWidget(videoFrameWidget, lockOverlay);
-        
-            videoFrameWidget->deleteLater();
-            videoFrameWidget = nullptr;
+            addOverlay("设备已锁定");
         }
         else
         {
             this->layout()->itemAt(1)->widget()->deleteLater();
-
-            videoFrameWidget = new VideoFrameWidget(this);
-            videoFrameWidget->mediaPlayer->setSource(lastSource);
-            this->layout()->addWidget(videoFrameWidget);
+            addVideoFrameWidget();
         }
     });
 }
@@ -110,10 +86,46 @@ RemoteDevice::~RemoteDevice()
 
 void RemoteDevice::setSource(const QUrl &source)
 {
-    videoFrameWidget->mediaPlayer->setSource(source);
+    mediaSource = source;
     
     if (deviceInfo->lockedStatus)
-        videoFrameWidget->mediaPlayer->pause();
+        addOverlay("设备已锁定");
+    else
+        addVideoFrameWidget();
+}
+
+void RemoteDevice::addOverlay(const QString &text)
+{
+    QWidget *overlay = new QWidget(this);
+    overlay->setStyleSheet("background-color: black;");
+    QLabel *label = new QLabel(text, overlay);
+    label->setStyleSheet("color: white; font-size: 20px;");
+    label->setAlignment(Qt::AlignCenter);
+
+    QVBoxLayout *layout = new QVBoxLayout(overlay);
+    layout->addStretch();
+    layout->addWidget(label);
+    layout->addStretch();
+    overlay->setLayout(layout);
+
+    if (videoFrameWidget)
+    {
+        this->layout()->replaceWidget(videoFrameWidget, overlay);
+        videoFrameWidget->deleteLater();
+        videoFrameWidget = nullptr;
+    }
+    else
+    {
+        this->layout()->addWidget(overlay);
+    }
+}
+
+void RemoteDevice::addVideoFrameWidget()
+{
+    videoFrameWidget = new VideoFrameWidget(this);
+    layout()->addWidget(videoFrameWidget);
+    videoFrameWidget->mediaPlayer->setSource(mediaSource);
+    videoFrameWidget->orientationChanged(deviceInfo->orientation);
 }
 
 void RemoteDevice::mouseDoubleClickEvent(QMouseEvent *event)

@@ -18,6 +18,8 @@ public:
     void setSource(const QUrl &source);
 
 protected:
+    void addOverlay(const QString &text);
+    void addVideoFrameWidget();
     void mouseDoubleClickEvent(QMouseEvent *event) override;
     void contextMenuEvent(QContextMenuEvent *event) override;
     void dragEnterEvent(QDragEnterEvent *event) override;
@@ -25,6 +27,6 @@ protected:
 
     QTcpSocket* socket;
     DeviceInfo* deviceInfo;
-    VideoFrameWidget *videoFrameWidget;
-    QUrl lastSource;
+    VideoFrameWidget *videoFrameWidget = nullptr;
+    QUrl mediaSource;
 };
