@@ -31,7 +31,7 @@ public:
         connect(mediaPlayer, &QMediaPlayer::mediaStatusChanged, this, [this](QMediaPlayer::MediaStatus status) {
             qDebugEx() << "Media Status Changed: " << status;
             if (status == QMediaPlayer::LoadedMedia) {
-                if (!mediaPlayer->isPlaying()) {
+                if (!mediaPlayer->isPlaying() && mediaPlayer->playbackState() != QMediaPlayer::PausedState) {
                     qDebugEx() << "播放...";
                     mediaPlayer->stop();
                     mediaPlayer->play();
