@@ -19,28 +19,28 @@ class VideoFrameWidget : public QWidget
 
 public:
     explicit VideoFrameWidget(QMediaPlayer *player, QWidget *parent = nullptr) 
-        : QWidget(parent), m_mediaPlayer(player)
+        : QWidget(parent), mediaPlayer(player)
     {
         videoSink = new QVideoSink(this);
-        m_mediaPlayer->setVideoSink(videoSink);
+        mediaPlayer->setVideoSink(videoSink);
 
         connect(videoSink, &QVideoSink::videoFrameChanged, this, &VideoFrameWidget::onVideoFrameChanged);
 
-        m_mediaPlayer->setAudioOutput(nullptr);
+        mediaPlayer->setAudioOutput(nullptr);
 
-        connect(m_mediaPlayer, &QMediaPlayer::mediaStatusChanged, this, [this](QMediaPlayer::MediaStatus status) {
+        connect(mediaPlayer, &QMediaPlayer::mediaStatusChanged, this, [this](QMediaPlayer::MediaStatus status) {
             qDebugEx() << "Media Status Changed: " << status;
             if (status == QMediaPlayer::LoadedMedia) {
-                if (!m_mediaPlayer->isPlaying()) {
+                if (!mediaPlayer->isPlaying()) {
                     qDebugEx() << "播放...";
-                    m_mediaPlayer->stop();
-                    m_mediaPlayer->play();
+                    mediaPlayer->stop();
+                    mediaPlayer->play();
                 }
             }
         });
 
-        connect(m_mediaPlayer, &QMediaPlayer::errorChanged, [this]() {
-            qCriticalEx() << "errorChanged" << m_mediaPlayer->errorString();
+        connect(mediaPlayer, &QMediaPlayer::errorChanged, [this]() {
+            qCriticalEx() << "errorChanged" << mediaPlayer->errorString();
         });
     }
 
@@ -65,10 +65,19 @@ public:
         auto height = size().height();
 
         if ((orientation == 1 || orientation == 2) && height < width || (orientation == 3 || orientation == 4) && height > width)
-            resize(height, width);
+        {
+            if (sizePolicy().horizontalPolicy() == QSizePolicy::Fixed && sizePolicy().verticalPolicy() == QSizePolicy::Fixed)
+                setFixedSize(height, width);
+            else
+                resize(height, width);
+        }
         else
+        {
             update();
+        }
     }
+
+    QMediaPlayer* const mediaPlayer;
 
 protected:
     void paintEvent(QPaintEvent *event) override
@@ -114,7 +123,6 @@ protected:
         update();
     }
 
-    QMediaPlayer *m_mediaPlayer;
     QVideoSink *videoSink;
     QImage currentImage;
     int rotationAngle = 0;

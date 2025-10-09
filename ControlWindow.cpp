@@ -10,31 +10,30 @@
 #include <QVBoxLayout>
 #include <QMouseEvent>
 
-ControlWindow::ControlWindow(QTcpSocket* socket, DeviceInfo* const deviceInfo, QWidget *parent) : socket(socket), deviceInfo(deviceInfo), VideoFrameWidget(new QMediaPlayer(parent), parent)
+ControlWindow::ControlWindow(QTcpSocket* socket, DeviceInfo* const deviceInfo, QWidget *parent) : socket(socket), deviceInfo(deviceInfo), videoFrameWidget(new VideoFrameWidget(new QMediaPlayer(parent))), QWidget(parent)
 {
     setAttribute(Qt::WA_InputMethodEnabled, true);
+
+    QHBoxLayout *layout = new QHBoxLayout(this);
+    layout->setSizeConstraint(QLayout::SetFixedSize);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(0);
+
+    layout->addWidget(videoFrameWidget);
+
+    setLayout(layout);
 
     EventHub::StartListening("orientation", [this](const QJsonValue &data, QTcpSocket* socket) {
         if (this->socket != socket)
             return;
 
-        orientationChanged(data.toInt());
+        videoFrameWidget->orientationChanged(data.toInt());
     });
 }
 
 ControlWindow::~ControlWindow()
 {
 
-}
-
-void ControlWindow::setSource(const QUrl &source)
-{
-    m_mediaPlayer->setSource(source);
-}
-
-void ControlWindow::play()
-{
-    m_mediaPlayer->play();
 }
 
 QPointF ControlWindow::getTransformedPosition(QMouseEvent *event) {

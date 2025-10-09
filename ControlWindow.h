@@ -10,15 +10,14 @@
 
 class QMediaPlayer;
 
-class ControlWindow : public VideoFrameWidget
+class ControlWindow : public QWidget
 {
     Q_OBJECT
 public:
     explicit ControlWindow(QTcpSocket* socket, DeviceInfo* const deviceInfo, QWidget *parent = nullptr);
     ~ControlWindow();
 
-    void setSource(const QUrl &source);
-    void play();
+    VideoFrameWidget* const videoFrameWidget;
 
 protected:
     QPointF getTransformedPosition(QMouseEvent *event);

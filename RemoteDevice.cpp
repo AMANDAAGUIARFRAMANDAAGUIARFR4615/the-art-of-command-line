@@ -97,11 +97,11 @@ void RemoteDevice::mouseDoubleClickEvent(QMouseEvent *event)
     QWidget::mouseDoubleClickEvent(event);
 
     auto window = new ControlWindow(socket, deviceInfo);
-    window->resize(deviceInfo->screenWidth * deviceInfo->scaleFactor, deviceInfo->screenHeight * deviceInfo->scaleFactor);
-    window->orientationChanged(deviceInfo->orientation);
+    window->videoFrameWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    window->videoFrameWidget->setFixedSize(deviceInfo->screenWidth * deviceInfo->scaleFactor, deviceInfo->screenHeight * deviceInfo->scaleFactor);
+    window->videoFrameWidget->orientationChanged(deviceInfo->orientation);
+    window->videoFrameWidget->mediaPlayer->setSource(m_mediaPlayer->source());
     window->setAttribute(Qt::WA_DeleteOnClose);
-    window->setSource(m_mediaPlayer->source());
-    window->play();
     window->show();
 }
 
