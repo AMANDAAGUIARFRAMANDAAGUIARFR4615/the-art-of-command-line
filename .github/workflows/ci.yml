@@ -54,20 +54,23 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set Env
+        shell: bash
+        run: |
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            USER_DIR=$USERPROFILE
+          else
+            USER_DIR=$HOME
+          fi
+
+          echo "USER_DIR=$USER_DIR" >> $GITHUB_ENV
+          echo "FFMPEG_DIR=$USER_DIR/ffmpeg" >> $GITHUB_ENV
+
       - name: Checkout FFmpeg
         uses: actions/checkout@v4
         with:
           repository: wowkids1914/FFmpeg
           path: FFmpeg
-
-      - name: Set FFMPEG_DIR based on OS
-        shell: bash
-        run: |
-          if [[ "$RUNNER_OS" == "Windows" ]]; then
-            echo "FFMPEG_DIR=C:/ffmpeg" >> $GITHUB_ENV
-          else
-            echo "FFMPEG_DIR=/usr/local/ffmpeg" >> $GITHUB_ENV
-          fi
 
       - name: Get FFmpeg Commit SHA
         id: get_ffmpeg_sha
@@ -77,12 +80,12 @@ jobs:
           echo "FFMPEG_SHA=$FFmpeg_SHA" >> $GITHUB_ENV
           echo "FFmpeg SHA: $FFmpeg_SHA"
 
-      - name: restore
+      - name: Restore FFmpeg cache
         id: cache-ffmpeg
         uses: actions/cache/restore@v4
         with:
-          path: ${{ env.FFMPEG_DIR }}
           key: ${{ runner.os }}-ffmpeg-build-${{ env.FFMPEG_SHA }}
+          path: ${{ env.FFMPEG_DIR }}
 
       - name: Build FFmpeg
         if: steps.cache-ffmpeg.outputs.cache-hit != 'true'
@@ -120,12 +123,26 @@ jobs:
             make -j install
           fi
 
-      - name: save
+      - name: Save FFmpeg cache
         if: steps.cache-ffmpeg.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
-          path: ${{ env.FFMPEG_DIR }}
           key: ${{ runner.os }}-ffmpeg-build-${{ env.FFMPEG_SHA }}
+          path: ${{ env.FFMPEG_DIR }}
+
+      - name: Upload FFmpeg cache
+        if: steps.cache-ffmpeg.outputs.cache-hit != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ runner.os }}-ffmpeg-build-${{ env.FFMPEG_SHA }}
+          path: ${{ env.FFMPEG_DIR }}
+
+      # - name: Restore Qt cache
+      #   id: cache-qt
+      #   uses: actions/cache/restore@v4
+      #   with:
+      #     key: ${{ runner.os }}-qt-${{ env.VERSION }}
+      #     path: $QT_ROOT_DIR
 
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
@@ -133,13 +150,21 @@ jobs:
           version: ${{ env.VERSION }}
           target: 'desktop'
           modules: 'qtshadertools'
+          dir: $QT_ROOT_DIR
+
+      # - name: Save Qt cache
+      #   if: steps.cache-qt.outputs.cache-hit != 'true'
+      #   uses: actions/cache/save@v4
+      #   with:
+      #     key: ${{ runner.os }}-qt-${{ env.VERSION }}
+      #     path: $QT_ROOT_DIR
 
       - name: Build qtmultimedia
         # shell: cmd
         run: |
           # call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" amd64
 
-          echo QT_ROOT_DIR=$QT_ROOT_DIR
+          echo Qt6_DIR=$Qt6_DIR
 
           curl -O https://mirrors.aliyun.com/qt/archive/qt/6.9/${{ env.VERSION }}/submodules/qtmultimedia-everywhere-src-${{ env.VERSION }}.zip
           unzip qtmultimedia-everywhere-src-${{ env.VERSION }}.zip
@@ -215,7 +240,7 @@ jobs:
           # QT_ROOT_DIR=/Users/lin/Qt/6.9.2/macos
           echo QT_ROOT_DIR=$QT_ROOT_DIR
 
-          cmake .. -DQt6_DIR=$QT_ROOT_DIR/lib/cmake/Qt6 -DCMAKE_BUILD_TYPE=Release -DQT_DEBUG_FIND_PACKAGE=ON -DCMAKE_PREFIX_PATH=$QT_ROOT_DIR/lib/cmake/Qt6
+          cmake .. -DCMAKE_BUILD_TYPE=Release -DQT_DEBUG_FIND_PACKAGE=ON
           cmake --build . --config Release --verbose
 
           if [[ "$RUNNER_OS" == 'Windows' ]]; then
