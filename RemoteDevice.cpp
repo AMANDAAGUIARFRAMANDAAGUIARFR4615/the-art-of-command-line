@@ -74,11 +74,29 @@ RemoteDevice::RemoteDevice(QTcpSocket* socket, DeviceInfo* deviceInfo, QWidget *
         if (locked)
         {
             lastSource = videoFrameWidget->mediaPlayer->source();
+
+            QWidget *lockOverlay = new QWidget(this);
+            lockOverlay->setStyleSheet("background-color: black;");
+            QLabel *label = new QLabel("设备已锁定", lockOverlay);
+            label->setStyleSheet("color: white; font-size: 20px;");
+            label->setAlignment(Qt::AlignCenter);
+
+            QVBoxLayout *layout = new QVBoxLayout(lockOverlay);
+            layout->addStretch();
+            layout->addWidget(label);
+            layout->addStretch();
+            lockOverlay->setLayout(layout);
+            lockOverlay->setGeometry(this->rect());
+            lockOverlay->show();
+
             this->layout()->removeWidget(videoFrameWidget);
             videoFrameWidget->deleteLater();
+            videoFrameWidget = nullptr;
         }
         else
         {
+            this->layout()->itemAt(1)->widget()->deleteLater();
+
             videoFrameWidget = new VideoFrameWidget(this);
             videoFrameWidget->mediaPlayer->setSource(lastSource);
             this->layout()->addWidget(videoFrameWidget);
@@ -94,6 +112,9 @@ RemoteDevice::~RemoteDevice()
 void RemoteDevice::setSource(const QUrl &source)
 {
     videoFrameWidget->mediaPlayer->setSource(source);
+    
+    if (deviceInfo->lockedStatus)
+        videoFrameWidget->mediaPlayer->pause();
 }
 
 void RemoteDevice::mouseDoubleClickEvent(QMouseEvent *event)
