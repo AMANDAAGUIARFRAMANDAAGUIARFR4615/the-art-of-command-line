@@ -1,16 +1,13 @@
-#include "DeviceWidget.h"
-#include "Logger.h"
 #include "DeviceWindow.h"
+#include "Logger.h"
 #include "TcpServer.h"
 #include "EventHub.h"
-#include <QMediaPlayer>
-#include <QString>
 #include <QStyle>
 #include <QElapsedTimer>
 #include <QVBoxLayout>
 #include <QMouseEvent>
 
-DeviceWindow::DeviceWindow(QTcpSocket* socket, DeviceInfo* const deviceInfo, QWidget *parent) : socket(socket), deviceInfo(deviceInfo), videoFrameWidget(new VideoFrameWidget(parent)), QWidget(parent)
+DeviceWindow::DeviceWindow(QTcpSocket* socket, DeviceInfo* const deviceInfo, QWidget *parent) : DeviceView(socket, deviceInfo, parent)
 {
     setAttribute(Qt::WA_InputMethodEnabled, true);
 
@@ -19,16 +16,10 @@ DeviceWindow::DeviceWindow(QTcpSocket* socket, DeviceInfo* const deviceInfo, QWi
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(0);
 
+    videoFrameWidget = new VideoFrameWidget(this);
     layout->addWidget(videoFrameWidget);
 
     setLayout(layout);
-
-    EventHub::StartListening("orientation", [this](const QJsonValue &data, QTcpSocket* socket) {
-        if (this->socket != socket)
-            return;
-
-        videoFrameWidget->orientationChanged(data.toInt());
-    });
 }
 
 DeviceWindow::~DeviceWindow()
