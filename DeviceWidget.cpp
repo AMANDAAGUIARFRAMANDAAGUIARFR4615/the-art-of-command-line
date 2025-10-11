@@ -1,5 +1,6 @@
 #include "DeviceWidget.h"
 #include "DeviceWindow.h"
+#include "EventHub.h"
 #include <QVBoxLayout>
 #include <QLabel>
 
@@ -27,6 +28,21 @@ DeviceWidget::DeviceWidget(QTcpSocket* socket, DeviceInfo* deviceInfo): DeviceVi
     
     layout->addWidget(deviceInfoLabel);
     setLayout(layout);
+
+    EventHub::StartListening("lockedStatus", [this](const QJsonValue &data, QTcpSocket* socket) {
+        if (this->socket != socket)
+            return;
+
+        if (deviceWindow)
+            return;
+
+        auto locked = data.toBool();
+
+        if (locked)
+            addOverlay("设备已锁定");
+        else
+            addVideoFrameWidget(new VideoFrameWidget(this));
+    });
 }
 
 DeviceWidget::~DeviceWidget()
@@ -47,5 +63,6 @@ void DeviceWidget::mouseDoubleClickEvent(QMouseEvent *event)
     deviceWindow->setAttribute(Qt::WA_DeleteOnClose);
     deviceWindow->show();
 
+    videoFrameWidget = nullptr;
     addOverlay("设备控制中");
 }

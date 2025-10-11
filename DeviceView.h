@@ -18,10 +18,10 @@ public:
     VideoFrameWidget* getVideoFrameWidget() { return videoFrameWidget; }
     void setSource(const QUrl &source);
 
-    void addOverlay(const QString &text);
-    void addVideoFrameWidget(VideoFrameWidget* videoFrameWidget);
-
 protected:
+    virtual void addOverlay(const QString &text);
+    virtual void addVideoFrameWidget(VideoFrameWidget* videoFrameWidget);
+
     void contextMenuEvent(QContextMenuEvent *event) override;
     void dragEnterEvent(QDragEnterEvent *event) override;
     void dropEvent(QDropEvent *event) override;
@@ -30,4 +30,5 @@ protected:
     DeviceInfo* const deviceInfo;
     VideoFrameWidget *videoFrameWidget = nullptr;
     QUrl mediaSource;
+    QWidget *overlay = nullptr;
 };

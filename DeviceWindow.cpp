@@ -13,6 +13,7 @@ DeviceWindow::DeviceWindow(QTcpSocket* socket, DeviceInfo* deviceInfo, DeviceWid
     setAttribute(Qt::WA_InputMethodEnabled, true);
 
     videoFrameWidget = deviceWidget->getVideoFrameWidget();
+    mediaSource = deviceWidget->mediaSource;
 
     QHBoxLayout *layout = new QHBoxLayout(this);
     layout->setSizeConstraint(QLayout::SetFixedSize);
@@ -22,11 +23,40 @@ DeviceWindow::DeviceWindow(QTcpSocket* socket, DeviceInfo* deviceInfo, DeviceWid
     layout->addWidget(videoFrameWidget);
 
     setLayout(layout);
+
+    EventHub::StartListening("lockedStatus", [this](const QJsonValue &data, QTcpSocket* socket) {
+        if (this->socket != socket)
+            return;
+
+        auto locked = data.toBool();
+
+        if (locked)
+            addOverlay("设备已锁定");
+        else
+            addVideoFrameWidget(new VideoFrameWidget(this));
+    });
 }
 
 DeviceWindow::~DeviceWindow()
 {
 
+}
+
+void DeviceWindow::addOverlay(const QString &text)
+{
+    auto orientation = deviceInfo->orientation;
+    auto size = videoFrameWidget->size();
+
+    DeviceView::addOverlay(text);
+    overlay->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    overlay->setFixedSize(size);
+}
+
+void DeviceWindow::addVideoFrameWidget(VideoFrameWidget* videoFrameWidget)
+{
+    videoFrameWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    videoFrameWidget->setFixedSize(deviceInfo->screenWidth * deviceInfo->scaleFactor, deviceInfo->screenHeight * deviceInfo->scaleFactor);
+    DeviceView::addVideoFrameWidget(videoFrameWidget);
 }
 
 QPointF DeviceWindow::getTransformedPosition(QMouseEvent *event) {
@@ -113,6 +143,7 @@ void DeviceWindow::keyPressEvent(QKeyEvent *event)
         videoFrameWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
         videoFrameWidget->setFixedSize(deviceWidget->videoFrameWidgetSize);
         deviceWidget->addVideoFrameWidget(videoFrameWidget);
+        videoFrameWidget = nullptr;
         close();
         return;
     }

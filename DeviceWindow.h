@@ -14,6 +14,8 @@ public:
     DeviceWidget* const deviceWidget;
 
 protected:
+    void addOverlay(const QString &text) override;
+    void addVideoFrameWidget(VideoFrameWidget* videoFrameWidget) override;
     QPointF getTransformedPosition(QMouseEvent *event);
     void mouseDoubleClickEvent(QMouseEvent *event) override;
     bool event(QEvent *event) override;
