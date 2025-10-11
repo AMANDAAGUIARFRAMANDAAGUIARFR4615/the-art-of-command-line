@@ -1,7 +1,8 @@
 #pragma once
 
 #include "DeviceView.h"
-#include "DeviceWidget.h"
+
+class DeviceWidget;
 
 class DeviceWindow : public DeviceView
 {

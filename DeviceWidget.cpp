@@ -3,7 +3,7 @@
 #include <QVBoxLayout>
 #include <QLabel>
 
-DeviceWidget::DeviceWidget(QTcpSocket* socket, DeviceInfo* deviceInfo, QWidget *parent): DeviceView(socket, deviceInfo, parent)
+DeviceWidget::DeviceWidget(QTcpSocket* socket, DeviceInfo* deviceInfo): DeviceView(socket, deviceInfo)
 {
     auto layout = new QVBoxLayout;
 
@@ -38,18 +38,12 @@ void DeviceWidget::mouseDoubleClickEvent(QMouseEvent *event)
 {
     QWidget::mouseDoubleClickEvent(event);
 
+    deviceWindow = new DeviceWindow(socket, deviceInfo, this);
+    videoFrameWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    videoFrameWidget->setFixedSize(deviceInfo->screenWidth * deviceInfo->scaleFactor, deviceInfo->screenHeight * deviceInfo->scaleFactor);
+    videoFrameWidget->orientationChanged(deviceInfo->orientation);
+    deviceWindow->setAttribute(Qt::WA_DeleteOnClose);
+    deviceWindow->show();
+
     addOverlay("设备控制中");
-
-    qDebugEx() << "mediaSource" << mediaSource;
-
-    auto window = new DeviceWindow(socket, deviceInfo, this);
-    window->getVideoFrameWidget()->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    window->getVideoFrameWidget()->setFixedSize(deviceInfo->screenWidth * deviceInfo->scaleFactor, deviceInfo->screenHeight * deviceInfo->scaleFactor);
-    window->getVideoFrameWidget()->orientationChanged(deviceInfo->orientation);
-    window->setAttribute(Qt::WA_DeleteOnClose);
-    window->show();
-
-    QTimer::singleShot(100, [this, window]() {
-        window->getVideoFrameWidget()->mediaPlayer->setSource(mediaSource);
-    });
 }

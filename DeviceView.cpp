@@ -40,7 +40,7 @@ DeviceView::DeviceView(QTcpSocket* socket, DeviceInfo* deviceInfo, QWidget *pare
         if (locked)
             addOverlay("设备已锁定");
         else
-            addVideoFrameWidget();
+            addVideoFrameWidget(new VideoFrameWidget(this));
     });
 }
 
@@ -56,11 +56,16 @@ void DeviceView::setSource(const QUrl &source)
     if (deviceInfo->lockedStatus)
         addOverlay("设备已锁定");
     else
-        addVideoFrameWidget();
+        addVideoFrameWidget(new VideoFrameWidget(this));
 }
 
 void DeviceView::addOverlay(const QString &text)
 {
+    if (layout()->itemAt(1))
+        layout()->itemAt(1)->widget()->deleteLater();
+
+    videoFrameWidget = nullptr;
+
     QWidget *overlay = new QWidget(this);
     overlay->setStyleSheet("background-color: black;");
     QLabel *label = new QLabel(text, overlay);
@@ -73,24 +78,15 @@ void DeviceView::addOverlay(const QString &text)
     layout->addStretch();
     overlay->setLayout(layout);
 
-    if (videoFrameWidget)
-    {
-        this->layout()->replaceWidget(videoFrameWidget, overlay);
-        videoFrameWidget->deleteLater();
-        videoFrameWidget = nullptr;
-    }
-    else
-    {
-        this->layout()->addWidget(overlay);
-    }
+    this->layout()->addWidget(overlay);
 }
 
-void DeviceView::addVideoFrameWidget()
+void DeviceView::addVideoFrameWidget(VideoFrameWidget* videoFrameWidget)
 {
     if (layout()->itemAt(1))
         layout()->itemAt(1)->widget()->deleteLater();
 
-    videoFrameWidget = new VideoFrameWidget(this);
+    this->videoFrameWidget = videoFrameWidget;
     layout()->addWidget(videoFrameWidget);
     videoFrameWidget->mediaPlayer->setSource(mediaSource);
     videoFrameWidget->orientationChanged(deviceInfo->orientation);

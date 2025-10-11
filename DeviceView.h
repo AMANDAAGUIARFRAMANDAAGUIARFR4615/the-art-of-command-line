@@ -19,7 +19,7 @@ public:
     void setSource(const QUrl &source);
 
     void addOverlay(const QString &text);
-    void addVideoFrameWidget();
+    void addVideoFrameWidget(VideoFrameWidget* videoFrameWidget);
 
 protected:
     void contextMenuEvent(QContextMenuEvent *event) override;

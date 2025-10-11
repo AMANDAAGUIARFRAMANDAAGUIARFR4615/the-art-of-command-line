@@ -1,4 +1,5 @@
 #include "DeviceWindow.h"
+#include "DeviceWidget.h"
 #include "Logger.h"
 #include "TcpServer.h"
 #include "EventHub.h"
@@ -11,12 +12,13 @@ DeviceWindow::DeviceWindow(QTcpSocket* socket, DeviceInfo* deviceInfo, DeviceWid
 {
     setAttribute(Qt::WA_InputMethodEnabled, true);
 
+    videoFrameWidget = deviceWidget->getVideoFrameWidget();
+
     QHBoxLayout *layout = new QHBoxLayout(this);
     layout->setSizeConstraint(QLayout::SetFixedSize);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(0);
 
-    videoFrameWidget = new VideoFrameWidget(this);
     layout->addWidget(videoFrameWidget);
 
     setLayout(layout);
@@ -108,7 +110,7 @@ void DeviceWindow::keyPressEvent(QKeyEvent *event)
 {
     if (event->key() == Qt::Key_Escape)
     {
-        deviceWidget->addVideoFrameWidget();
+        deviceWidget->addVideoFrameWidget(videoFrameWidget);
         close();
         return;
     }
