@@ -1,13 +1,16 @@
 #pragma once
 
 #include "DeviceView.h"
+#include "DeviceWidget.h"
 
 class DeviceWindow : public DeviceView
 {
     Q_OBJECT
 public:
-    explicit DeviceWindow(QTcpSocket* socket, DeviceInfo* const deviceInfo, QWidget *parent = nullptr);
+    explicit DeviceWindow(QTcpSocket* socket, DeviceInfo* deviceInfo, DeviceWidget* deviceWidget);
     ~DeviceWindow();
+
+    DeviceWidget* const deviceWidget;
 
 protected:
     QPointF getTransformedPosition(QMouseEvent *event);

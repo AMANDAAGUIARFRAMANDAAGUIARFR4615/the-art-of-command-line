@@ -7,7 +7,7 @@
 #include <QVBoxLayout>
 #include <QMouseEvent>
 
-DeviceWindow::DeviceWindow(QTcpSocket* socket, DeviceInfo* const deviceInfo, QWidget *parent) : DeviceView(socket, deviceInfo, parent)
+DeviceWindow::DeviceWindow(QTcpSocket* socket, DeviceInfo* deviceInfo, DeviceWidget* deviceWidget) : DeviceView(socket, deviceInfo), deviceWidget(deviceWidget)
 {
     setAttribute(Qt::WA_InputMethodEnabled, true);
 
@@ -108,6 +108,7 @@ void DeviceWindow::keyPressEvent(QKeyEvent *event)
 {
     if (event->key() == Qt::Key_Escape)
     {
+        deviceWidget->addVideoFrameWidget();
         close();
         return;
     }

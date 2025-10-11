@@ -18,15 +18,16 @@ public:
     VideoFrameWidget* getVideoFrameWidget() { return videoFrameWidget; }
     void setSource(const QUrl &source);
 
-protected:
     void addOverlay(const QString &text);
     void addVideoFrameWidget();
+
+protected:
     void contextMenuEvent(QContextMenuEvent *event) override;
     void dragEnterEvent(QDragEnterEvent *event) override;
     void dropEvent(QDropEvent *event) override;
 
-    QTcpSocket* socket;
-    DeviceInfo* deviceInfo;
+    QTcpSocket* const socket;
+    DeviceInfo* const deviceInfo;
     VideoFrameWidget *videoFrameWidget = nullptr;
     QUrl mediaSource;
 };

@@ -31,21 +31,16 @@ DeviceView::DeviceView(QTcpSocket* socket, DeviceInfo* deviceInfo, QWidget *pare
             videoFrameWidget->orientationChanged(data.toInt());
     });
 
-    EventHub::StartListening("lockedStatus", [this, deviceInfo](const QJsonValue &data, QTcpSocket* socket) {
+    EventHub::StartListening("lockedStatus", [this](const QJsonValue &data, QTcpSocket* socket) {
         if (this->socket != socket)
             return;
 
         auto locked = data.toBool();
 
         if (locked)
-        {
             addOverlay("设备已锁定");
-        }
         else
-        {
-            layout()->itemAt(1)->widget()->deleteLater();
             addVideoFrameWidget();
-        }
     });
 }
 
@@ -92,6 +87,9 @@ void DeviceView::addOverlay(const QString &text)
 
 void DeviceView::addVideoFrameWidget()
 {
+    if (layout()->itemAt(1))
+        layout()->itemAt(1)->widget()->deleteLater();
+
     videoFrameWidget = new VideoFrameWidget(this);
     layout()->addWidget(videoFrameWidget);
     videoFrameWidget->mediaPlayer->setSource(mediaSource);

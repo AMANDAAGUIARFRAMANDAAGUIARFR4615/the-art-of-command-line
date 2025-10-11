@@ -38,11 +38,18 @@ void DeviceWidget::mouseDoubleClickEvent(QMouseEvent *event)
 {
     QWidget::mouseDoubleClickEvent(event);
 
-    auto window = new DeviceWindow(socket, deviceInfo);
+    addOverlay("设备控制中");
+
+    qDebugEx() << "mediaSource" << mediaSource;
+
+    auto window = new DeviceWindow(socket, deviceInfo, this);
     window->getVideoFrameWidget()->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     window->getVideoFrameWidget()->setFixedSize(deviceInfo->screenWidth * deviceInfo->scaleFactor, deviceInfo->screenHeight * deviceInfo->scaleFactor);
     window->getVideoFrameWidget()->orientationChanged(deviceInfo->orientation);
-    window->getVideoFrameWidget()->mediaPlayer->setSource(videoFrameWidget->mediaPlayer->source());
     window->setAttribute(Qt::WA_DeleteOnClose);
     window->show();
+
+    QTimer::singleShot(100, [this, window]() {
+        window->getVideoFrameWidget()->mediaPlayer->setSource(mediaSource);
+    });
 }
