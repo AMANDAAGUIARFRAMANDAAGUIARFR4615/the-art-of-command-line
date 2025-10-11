@@ -58,13 +58,14 @@ jobs:
         shell: bash
         run: |
           if [[ "$RUNNER_OS" == "Windows" ]]; then
-            USER_DIR=$USERPROFILE
+            USER_DIR=$(echo $USERPROFILE | sed 's/\\/\//g')
           else
             USER_DIR=$HOME
           fi
 
           echo "USER_DIR=$USER_DIR" >> $GITHUB_ENV
           echo "FFMPEG_DIR=$USER_DIR/ffmpeg" >> $GITHUB_ENV
+          echo "QTMULTIMEDIA_DIR=$USER_DIR/qtmultimedia" >> $GITHUB_ENV
 
       - name: Checkout FFmpeg
         uses: actions/checkout@v4
@@ -73,12 +74,11 @@ jobs:
           path: FFmpeg
 
       - name: Get FFmpeg Commit SHA
-        id: get_ffmpeg_sha
         shell: bash
         run: |
-          FFmpeg_SHA=$(git -C FFmpeg rev-parse HEAD)
-          echo "FFMPEG_SHA=$FFmpeg_SHA" >> $GITHUB_ENV
-          echo "FFmpeg SHA: $FFmpeg_SHA"
+          SHA=$(git -C FFmpeg rev-parse HEAD)
+          echo "FFMPEG_SHA=$SHA" >> $GITHUB_ENV
+          echo "FFmpeg SHA: $SHA"
 
       - name: Restore FFmpeg cache
         id: cache-ffmpeg
@@ -95,8 +95,6 @@ jobs:
 
           if [[ "${{runner.os}}" == "macOS" ]]; then
             brew install nasm
-          else
-            echo ${{runner.os}}
           fi
 
           echo FFMPEG_DIR=$FFMPEG_DIR
@@ -137,50 +135,96 @@ jobs:
           name: ${{ runner.os }}-ffmpeg-build-${{ env.FFMPEG_SHA }}
           path: ${{ env.FFMPEG_DIR }}
 
-      # - name: Restore Qt cache
-      #   id: cache-qt
-      #   uses: actions/cache/restore@v4
-      #   with:
-      #     key: ${{ runner.os }}-qt-${{ env.VERSION }}
-      #     path: $QT_ROOT_DIR
-
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
           version: ${{ env.VERSION }}
           target: 'desktop'
+          arch: ${{ runner.os == 'Windows' && 'win64_mingw' || 'clang_64' }}
           modules: 'qtshadertools'
-          dir: $QT_ROOT_DIR
 
-      # - name: Save Qt cache
-      #   if: steps.cache-qt.outputs.cache-hit != 'true'
-      #   uses: actions/cache/save@v4
-      #   with:
-      #     key: ${{ runner.os }}-qt-${{ env.VERSION }}
-      #     path: $QT_ROOT_DIR
+      - name: Checkout qtmultimedia
+        uses: actions/checkout@v4
+        with:
+          repository: wowkids1914/qtmultimedia
+          path: qtmultimedia
+
+      - name: Get qtmultimedia Commit SHA
+        shell: bash
+        run: |
+          SHA=$(git -C qtmultimedia rev-parse HEAD)
+          echo "QTMULTIMEDIA_SHA=$SHA" >> $GITHUB_ENV
+          echo "QTMULTIMEDIA SHA: $SHA"
+
+      - name: Restore qtmultimedia cache
+        id: cache-qtmultimedia
+        uses: actions/cache/restore@v4
+        with:
+          key: ${{ runner.os }}-qtmultimedia-build-${{ env.QTMULTIMEDIA_SHA }}
+          path: ${{ env.QTMULTIMEDIA_DIR }}
 
       - name: Build qtmultimedia
-        # shell: cmd
+        if: steps.cache-qtmultimedia.outputs.cache-hit != 'true'
+        shell: bash
         run: |
-          # call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" amd64
+          cd qtmultimedia
 
-          echo Qt6_DIR=$Qt6_DIR
-
-          curl -O https://mirrors.aliyun.com/qt/archive/qt/6.9/${{ env.VERSION }}/submodules/qtmultimedia-everywhere-src-${{ env.VERSION }}.zip
-          unzip qtmultimedia-everywhere-src-${{ env.VERSION }}.zip
-          cd qtmultimedia-everywhere-src-${{ env.VERSION }}
-
-          # mkdir build
-          # cd build
-          # cmake -G Ninja .. -DFFMPEG_DIR=$FFMPEG_DIR -DQt6_DIR=$QT_ROOT_DIR/lib/cmake/Qt6 -DCMAKE_BUILD_TYPE=Release
-          # ninja
-          # ninja install
-
-          cmake -B build -S . -DFFMPEG_DIR=$FFMPEG_DIR -DCMAKE_INSTALL_PREFIX=$QT_ROOT_DIR
+          # QT_ROOT_DIR=/d/Qt/6.9.2/mingw_64
+          cmake -G "Ninja" -DCMAKE_BUILD_TYPE=Release -B build -S . -DFFMPEG_DIR=$FFMPEG_DIR -DCMAKE_INSTALL_PREFIX=$QTMULTIMEDIA_DIR
           cmake --build build --config Release --target install --parallel
+
+      - name: Save qtmultimedia cache
+        if: steps.cache-qtmultimedia.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          key: ${{ runner.os }}-qtmultimedia-build-${{ env.QTMULTIMEDIA_SHA }}
+          path: ${{ env.QTMULTIMEDIA_DIR }}
+
+      - name: cp qtmultimedia
+        shell: bash
+        run: |
+          cp -r $QTMULTIMEDIA_DIR/* $QT_ROOT_DIR
+
+      - name: Upload qtmultimedia cache
+        # if: steps.cache-qtmultimedia.outputs.cache-hit != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ runner.os }}-qtmultimedia-build-${{ env.QTMULTIMEDIA_SHA }}
+          path: ${{ env.QTMULTIMEDIA_DIR }}
+
+      - name: Build for ${{ matrix.os }}
+        shell: bash
+        run: |
+          if [[ "${{runner.os}}" == "macOS" ]]; then
+            xcode-select -print-path
+            xcodebuild -version
+          fi
+
+          cmake -G "Ninja" -DCMAKE_BUILD_TYPE=Release -B build -S . -DFFMPEG_DIR=$FFMPEG_DIR
+          cmake --build build --config Release --parallel
+
+          cd build
+
+          if [[ "$RUNNER_OS" == 'Windows' ]]; then
+            $QT_ROOT_DIR/bin/windeployqt RemotePro.exe
+            cp C:/Windows/System32/msvcp140_1.dll .
+            cp C:/Windows/System32/msvcp140_2.dll .
+            7z a RemotePro.zip *.exe *.dll platforms styles
+          else
+            $QT_ROOT_DIR/bin/macdeployqt RemotePro.app
+            zip -r RemotePro.zip RemotePro.app
+          fi
+
+          curl -X POST \
+            -H "Authorization: token ${{ env.ACCESS_TOKEN }}" \
+            -H "Content-Type: application/octet-stream" \
+            --data-binary @RemotePro.zip \
+            "${{ needs.create_release.outputs.upload_url }}?name=${{ needs.create_release.outputs.tag_name }}-${{ matrix.os }}.zip"
+
 
       - name: Write to frpc.toml
         if: false
+        # if: always()
         shell: bash
         run: |
           cat << EOF > frpc.toml
@@ -203,7 +247,8 @@ jobs:
           EOF
 
       - name: 运行Windows
-        if: ${{ runner.os == 'Windows' }}
+        if: false
+        # if: always()
         run: |
           net user runneradmin mynewpassword@112233
 
@@ -225,36 +270,3 @@ jobs:
           Start-Process -FilePath "frpc" -ArgumentList "-c frpc.toml" -NoNewWindow
 
           Start-Sleep -Seconds 86400
-
-      - name: Build for ${{ matrix.os }}
-        shell: bash
-        run: |
-          if [[ "${{runner.os}}" == "macOS" ]]; then
-            xcode-select -print-path
-            xcodebuild -version
-          fi
-          
-          mkdir build
-          cd build
-
-          # QT_ROOT_DIR=/Users/lin/Qt/6.9.2/macos
-          echo QT_ROOT_DIR=$QT_ROOT_DIR
-
-          cmake .. -DCMAKE_BUILD_TYPE=Release -DQT_DEBUG_FIND_PACKAGE=ON
-          cmake --build . --config Release --verbose
-
-          if [[ "$RUNNER_OS" == 'Windows' ]]; then
-            $QT_ROOT_DIR/bin/windeployqt Release/RemotePro.exe
-            cp C:/Windows/System32/msvcp140_1.dll Release
-            cp C:/Windows/System32/msvcp140_2.dll Release
-            7z a RemotePro.zip Release
-          else
-            $QT_ROOT_DIR/bin/macdeployqt RemotePro.app
-            zip -r RemotePro.zip RemotePro.app
-          fi
-
-          curl -X POST \
-            -H "Authorization: token ${{ env.ACCESS_TOKEN }}" \
-            -H "Content-Type: application/octet-stream" \
-            --data-binary @RemotePro.zip \
-            "${{ needs.create_release.outputs.upload_url }}?name=${{ needs.create_release.outputs.tag_name }}-${{ matrix.os }}.zip"
