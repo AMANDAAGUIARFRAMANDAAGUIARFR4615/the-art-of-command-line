@@ -40,6 +40,8 @@ int main(int argc, char *argv[])
 {
     QApplication application(argc, argv);
 
+    // qputenv("QT_FFMPEG_DEBUG", "1");
+
     QLoggingCategory::setFilterRules("qt.multimedia.*=true");
 
     mainWindow = new MainWindow;
