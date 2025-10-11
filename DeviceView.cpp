@@ -156,13 +156,19 @@ void DeviceView::dragEnterEvent(QDragEnterEvent *event)
 {
     qDebugEx() << "dragEnterEvent";
 
+    QStringList allowedSuffixes = {
+        "zip",
+        "deb", "ipa",
+        "png", "jpg", "jpeg", "bmp", "gif", "webp",
+        "mp4", "mov", "avi", "mkv", "flv", "wmv"
+    };
+
     const QList<QUrl> urls = event->mimeData()->urls();
 
     for (const QUrl &url : urls)
     {
-        auto path = url.toLocalFile();
-        auto fileName = QFileInfo(path).fileName();
-        if (!fileName.endsWith(".deb", Qt::CaseInsensitive) && !fileName.endsWith(".ipa", Qt::CaseInsensitive))
+        QString suffix = QFileInfo(url.toLocalFile()).suffix().toLower();
+        if (!allowedSuffixes.contains(suffix))
         {
             event->ignore();
             return;
