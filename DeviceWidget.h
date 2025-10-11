@@ -15,4 +15,7 @@ protected:
     void mouseDoubleClickEvent(QMouseEvent *event) override;
 
     DeviceWindow* deviceWindow;
+    QSize videoFrameWidgetSize;
+
+    friend DeviceWindow;
 };

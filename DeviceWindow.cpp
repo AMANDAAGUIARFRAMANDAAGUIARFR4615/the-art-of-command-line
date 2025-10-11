@@ -110,6 +110,8 @@ void DeviceWindow::keyPressEvent(QKeyEvent *event)
 {
     if (event->key() == Qt::Key_Escape)
     {
+        videoFrameWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+        videoFrameWidget->setFixedSize(deviceWidget->videoFrameWidgetSize);
         deviceWidget->addVideoFrameWidget(videoFrameWidget);
         close();
         return;

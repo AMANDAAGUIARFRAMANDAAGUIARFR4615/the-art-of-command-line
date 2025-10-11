@@ -38,6 +38,8 @@ void DeviceWidget::mouseDoubleClickEvent(QMouseEvent *event)
 {
     QWidget::mouseDoubleClickEvent(event);
 
+    videoFrameWidgetSize = videoFrameWidget->size();
+
     deviceWindow = new DeviceWindow(socket, deviceInfo, this);
     videoFrameWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     videoFrameWidget->setFixedSize(deviceInfo->screenWidth * deviceInfo->scaleFactor, deviceInfo->screenHeight * deviceInfo->scaleFactor);
