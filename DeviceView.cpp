@@ -178,21 +178,18 @@ void DeviceView::dropEvent(QDropEvent *event)
         
         auto transfer = new FileTransfer(type, path, size);
 
-        auto fileName = QFileInfo(path).fileName();
-        if (fileName.endsWith(".deb", Qt::CaseInsensitive)) {
-            QJsonObject dataObject;
-            dataObject["id"] = id;
-            dataObject["type"] = type;
-            dataObject["port"] = transfer->serverPort();
-            dataObject["name"] = fileName;
-            dataObject["size"] = size;
+        QJsonObject dataObject;
+        dataObject["id"] = id;
+        dataObject["type"] = type;
+        dataObject["port"] = transfer->serverPort();
+        dataObject["name"] = QFileInfo(path).fileName();
+        dataObject["size"] = size;
 
-            QJsonObject jsonObject;
-            jsonObject["event"] = "debInstall";
-            jsonObject["data"] = dataObject;
+        QJsonObject jsonObject;
+        jsonObject["event"] = "transferFile";
+        jsonObject["data"] = dataObject;
 
-            TcpServer::sendData(socket, jsonObject);
-        }
+        TcpServer::sendData(socket, jsonObject);
     }
 
     event->accept();
